@@ -58,7 +58,7 @@ public class Main implements IFlameMod {
 		
 		try {
 			registries = (HashMap<String, String>) Class.forName("RegistryHelper").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
-			FlameConfig.field.append("Registries:" + registries.size() + "\n");
+			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
@@ -70,7 +70,7 @@ public class Main implements IFlameMod {
 	
 	@Override
 	public void postinit(String[] args) {
-		FlameConfig.field.append("Registries:" + registries.size() + "\n");
+		FlameConfig.field.append("PostInit Registries:" + registries.size() + "\n");
 		Iterator<String> names = registries.keySet().iterator();
 		Iterator<String> classes = registries.values().iterator();
 		for (int i = 0; i < registries.size(); i++) {
@@ -78,7 +78,7 @@ public class Main implements IFlameMod {
 				String name = names.next();
 				String clazz = classes.next();
 				clazz = (clazz.replace(".class", "").replace("/", "."));
-				FlameConfig.field.append(name + ":" + clazz + "\n");
+				FlameConfig.field.append("Registry class:   " + name + ":" + clazz + "\n");
 				registryClassNames.put(name, clazz);
 //				registryClasses.put(name,Class.forName(clazz));
 			} catch (Throwable err) {
