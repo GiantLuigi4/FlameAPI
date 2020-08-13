@@ -1,4 +1,4 @@
-package net.minecraft.client;
+package replacements.FlameAPI.net.minecraft.client;
 
 public class ClientBrandRetriever {
 	public static String getClientModName() {

@@ -16,10 +16,10 @@ public class RegistryHelper {
 			"dirt"
 	};
 	private static final String[] items = new String[]{
-			"wooden_pickaxe",
-			"iron_ingot",
-			"diamond",
-			"gold_ingot"
+			"bow",
+			"arrow",
+			"emerald",
+			"diamond"
 	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
@@ -39,20 +39,25 @@ public class RegistryHelper {
 							while (sc.hasNext()) {
 								String s1 = sc.next();
 								if (s1.contains("UnmodifiableIterator")) containsUnmodifiableIterator = true;
+								for (String s : items)
+									if (!itemChecks.containsKey(s) && s1.contains(s))
+										itemChecks.put(s, true);
 								for (String s : blocks)
 									if (!blockChecks.containsKey(s) && s1.contains(s)) blockChecks.put(s, true);
-								for (String s : items)
-									if (!itemChecks.containsKey(s) && s1.contains(s)) itemChecks.put(s, true);
 							}
 							if (containsUnmodifiableIterator) {
-								if (blockChecks.size() == (blocks.length) && itemChecks.size() == 1) {
+								if (blockChecks.size() == (blocks.length)) {
 									registries.put("minecraft:blocks", entry.getName());
 									FlameConfig.field.append("block registry class:" + entry.getName() + "\n");
-								} else if (itemChecks.size() == (items.length)) {
+								}
+								FlameConfig.field.append("Blocks Registries:" + registries.size() + "\n");
+							} else {
+								if (!itemChecks.isEmpty())
+									FlameConfig.field.append("itemChecks: " + itemChecks + "\n");
+								if (itemChecks.size() == (items.length)) {
 									registries.put("minecraft:items", entry.getName());
 									FlameConfig.field.append("item registry class:" + entry.getName() + "\n");
 								}
-								FlameConfig.field.append("Registries:" + registries.size() + "\n");
 							}
 //							FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //							FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
