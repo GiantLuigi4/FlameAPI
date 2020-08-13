@@ -14,6 +14,9 @@ public class Main implements IFlameMod {
 	private static String gameDir;
 	private static String version;
 	private static String execDir = System.getProperty("user.dir");
+	
+	private static String mainRegistry = "";
+	
 	private static HashMap<String, String> registries = null;
 	
 	public static String getGameDir() {
@@ -59,6 +62,8 @@ public class Main implements IFlameMod {
 		try {
 			registries = (HashMap<String, String>) Class.forName("RegistryHelper").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
+			mainRegistry = (String) Class.forName("RegistryHelper").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
