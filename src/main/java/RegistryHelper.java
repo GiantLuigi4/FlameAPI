@@ -44,7 +44,13 @@ public class RegistryHelper {
 			"pig",
 			"creeper"
 	};
-	private static final String[] tileEntities = new String[]{
+	private static final String[] tileEntities_11 = new String[]{
+			"Furnace",
+			"Chest",
+			"EnderChest",
+			"RecordPlayer"
+	};
+	private static final String[] tileEntities_12 = new String[]{
 			"furnace",
 			"chest",
 			"jukebox",
@@ -71,6 +77,7 @@ public class RegistryHelper {
 			boolean flagLessThan11 = Integer.parseInt(mcMajorVer) < 11; // 11 is just a placeholder, still gotta check
 			String[] version_blocks = flagGreaterThan12 ? blocks_13 : blocks_12;
 			String[] version_entities = flagLessThan11 ? entities_11 : entities_12;
+			String[] version_tileEntities = flagLessThan11 ? tileEntities_11 : tileEntities_12;
 			try {
 				for (Iterator<JarEntry> it = file.stream().iterator(); it.hasNext(); ) {
 					JarEntry entry = it.next();
@@ -78,7 +85,6 @@ public class RegistryHelper {
 						try {
 							InputStream stream = file.getInputStream(entry);
 							Scanner sc = new Scanner(stream);
-							boolean containsUnmodifiableIterator = false;
 							HashMap<String, Boolean> blockChecks = new HashMap<>();
 							HashMap<String, Boolean> itemChecks = new HashMap<>();
 							HashMap<String, Boolean> tileEntitiesChecks = new HashMap<>();
@@ -86,7 +92,6 @@ public class RegistryHelper {
 							HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
 							while (sc.hasNext()) {
 								String s1 = sc.next();
-								if (s1.contains("UnmodifiableIterator")) containsUnmodifiableIterator = true;
 								for (String s : items)
 									if (!itemChecks.containsKey(s) && s1.contains(s))
 										itemChecks.put(s, true);
@@ -96,49 +101,28 @@ public class RegistryHelper {
 								for (String s : version_entities)
 									if (!entityChecks.containsKey(s) && s1.contains(s))
 										entityChecks.put(s, true);
-								for (String s : tileEntities)
+								for (String s : version_tileEntities)
 									if (!tileEntitiesChecks.containsKey(s) && s1.contains(s))
 										tileEntitiesChecks.put(s, true);
 								for (String s : enchantments)
 									if (!enchantmentChecks.containsKey(s) && s1.contains(s))
 										enchantmentChecks.put(s, true);
 							}
-							if (flagGreaterThan12) {
-								if (containsUnmodifiableIterator) {
-									if (blockChecks.size() == (version_blocks.length)) {
-										registries.put("minecraft:blocks", entry.getName());
-										FlameConfig.field.append("block registry class:" + entry.getName() + "\n");
-									}
-								} else if (itemChecks.size() == (items.length)) {
-									registries.put("minecraft:items", entry.getName());
-									FlameConfig.field.append("item registry class:" + entry.getName() + "\n");
-								} else if (tileEntitiesChecks.size() == (tileEntities.length)) {
-									registries.put("minecraft:tile_entities", entry.getName());
-									FlameConfig.field.append("tile entities registry class:" + entry.getName() + "\n");
-								} else if (entityChecks.size() == (version_entities.length)) {
-									registries.put("minecraft:entities", entry.getName());
-									FlameConfig.field.append("entity registry class:" + entry.getName() + "\n");
-								} else if (enchantmentChecks.size() == (enchantments.length)) {
-									registries.put("minecraft:enchantments", entry.getName());
-									FlameConfig.field.append("enchantments registry class:" + entry.getName() + "\n");
-								}
-							} else {
-								if (blockChecks.size() == (version_blocks.length)) {
-									registries.put("minecraft:blocks", entry.getName());
-									FlameConfig.field.append("block registry class:" + entry.getName() + "\n");
-								} else if (itemChecks.size() == (items.length)) {
-									registries.put("minecraft:items", entry.getName());
-									FlameConfig.field.append("item registry class:" + entry.getName() + "\n");
-								} else if (tileEntitiesChecks.size() == tileEntities.length) {
-									registries.put("minecraft:tile_entities", entry.getName());
-									FlameConfig.field.append("tile entities registry class:" + entry.getName() + "\n");
-								} else if (entityChecks.size() == (version_entities.length)) {
-									registries.put("minecraft:entities", entry.getName());
-									FlameConfig.field.append("entity registry class:" + entry.getName() + "\n");
-								} else if (enchantmentChecks.size() == (enchantments.length)) {
-									registries.put("minecraft:enchantments", entry.getName());
-									FlameConfig.field.append("enchantments registry class:" + entry.getName() + "\n");
-								}
+							if (blockChecks.size() == (version_blocks.length)) {
+								registries.put("minecraft:blocks", entry.getName());
+								FlameConfig.field.append("block registry class:" + entry.getName() + "\n");
+							} else if (itemChecks.size() == (items.length)) {
+								registries.put("minecraft:items", entry.getName());
+								FlameConfig.field.append("item registry class:" + entry.getName() + "\n");
+							} else if (tileEntitiesChecks.size() == (version_tileEntities.length)) {
+								registries.put("minecraft:tile_entities", entry.getName());
+								FlameConfig.field.append("tile entities registry class:" + entry.getName() + "\n");
+							} else if (entityChecks.size() == (version_entities.length)) {
+								registries.put("minecraft:entities", entry.getName());
+								FlameConfig.field.append("entity registry class:" + entry.getName() + "\n");
+							} else if (enchantmentChecks.size() == (enchantments.length)) {
+								registries.put("minecraft:enchantments", entry.getName());
+								FlameConfig.field.append("enchantments registry class:" + entry.getName() + "\n");
 							}
 //							FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //							FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
