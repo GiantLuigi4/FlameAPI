@@ -1,6 +1,4 @@
-{
-    "Game":"Minecraft"
+Game:Minecraft
 
-    "VersionMin":"1.7.10"
-    "VersionMax":"Anything"
-}
+VersionMin:1.7.10
+VersionMax:Anything
