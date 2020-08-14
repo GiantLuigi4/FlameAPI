@@ -3,7 +3,7 @@ package com.tfc.hacky_class_stuff.ASM;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 
-//https://www.baeldung.com/java-asm
+//https://www.baeldung.com/java-asm#1-working-with-fields
 public class FieldAdder extends ClassVisitor {
 	private final String fieldName;
 	private final Object fieldDefault;

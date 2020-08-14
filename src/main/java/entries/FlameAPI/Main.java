@@ -6,7 +6,6 @@ import com.tfc.flame.IFlameMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.BlockClass;
-import net.minecraft.client.ClientBrandRetriever;
 
 import java.io.File;
 import java.util.HashMap;
@@ -64,19 +63,20 @@ public class Main implements IFlameMod {
 		
 		FlameLauncher.getLoader().getReplacementGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::apply);
-
-//		try {
-//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
-//		} catch (Throwable err) {
-//			FlameConfig.logError(err);
-//		}
 		
 		try {
-			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
-			FlameConfig.field.append(ClientBrandRetriever.class.getFields().length + "\n");
+//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
+			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
+
+//		try {
+//			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
+//			FlameConfig.field.append(ClientBrandRetriever.class.getFields().length + "\n");
+//		} catch (Throwable err) {
+//			FlameConfig.logError(err);
+//		}
 		
 		try {
 			boolean isAssetIndex = false;

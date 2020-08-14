@@ -1,12 +1,12 @@
 package com.tfc.hacky_class_stuff.ASM;
 
-import jdk.internal.org.objectweb.asm.Opcodes;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 
 import java.util.ArrayList;
 
-//https://www.baeldung.com/java-asm
+//https://www.baeldung.com/java-asm#1-working-with-fields
 public class Writer extends ClassWriter {
 	ArrayList<FieldAdder> adders = new ArrayList<>();
 	
@@ -23,11 +23,6 @@ public class Writer extends ClassWriter {
 	
 	public void addField(String name, int access, Object defaultVal) {
 		adders.add(new FieldAdder(Opcodes.ASM4, this, name, defaultVal, defaultVal.getClass().getName(), access));
-	}
-	
-	@Override
-	public int newField(String owner, String name, String descriptor) {
-		return super.newField(owner, name, descriptor);
 	}
 	
 	public byte[] doTransform() {
