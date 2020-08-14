@@ -14,7 +14,7 @@ public class Main implements IFlameMod {
 	private static String gameDir;
 	private static String version;
 	private static String assetVersion; //for snapshots
-	private static String execDir = System.getProperty("user.dir");
+	private static final String execDir = System.getProperty("user.dir");
 
 	private static String mainRegistry = "";
 

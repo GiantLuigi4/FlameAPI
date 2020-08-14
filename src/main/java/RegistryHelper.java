@@ -114,19 +114,19 @@ public class RegistryHelper {
 							}
 							if (blockChecks.size() == (version_blocks.length)) {
 								registries.put("minecraft:blocks", entry.getName());
-								FlameConfig.field.append("block registry class:" + entry.getName() + "\n");
+								FlameConfig.field.append("Blocks registry class:" + entry.getName() + "\n");
 							} else if (itemChecks.size() == (items.length)) {
 								registries.put("minecraft:items", entry.getName());
-								FlameConfig.field.append("item registry class:" + entry.getName() + "\n");
+								FlameConfig.field.append("Items registry class:" + entry.getName() + "\n");
 							} else if (tileEntitiesChecks.size() == (version_tileEntities.length)) {
 								registries.put("minecraft:tile_entities", entry.getName());
-								FlameConfig.field.append("tile entities registry class:" + entry.getName() + "\n");
+								FlameConfig.field.append("TileEntities registry class:" + entry.getName() + "\n");
 							} else if (entityChecks.size() == (version_entities.length)) {
 								registries.put("minecraft:entities", entry.getName());
-								FlameConfig.field.append("entity registry class:" + entry.getName() + "\n");
+								FlameConfig.field.append("Entities registry class:" + entry.getName() + "\n");
 							} else if (enchantmentChecks.size() == (version_enchantments.length)) {
 								registries.put("minecraft:enchantments", entry.getName());
-								FlameConfig.field.append("enchantments registry class:" + entry.getName() + "\n");
+								FlameConfig.field.append("Enchantments registry class:" + entry.getName() + "\n");
 							}
 //							FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //							FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
@@ -152,7 +152,7 @@ public class RegistryHelper {
 			JarFile file = new JarFile(versionDir);
 			AtomicReference<String> registry = new AtomicReference<>(null);
 			for (String typeClass : registryTypes.values()) {
-				FlameConfig.field.append(typeClass + "\n");
+				FlameConfig.field.append("Registry Type: " + typeClass + "\n");
 			}
 			forAllFiles(file, (sc, entry) -> {
 				HashMap<String, Boolean> types = new HashMap<>();
@@ -182,7 +182,7 @@ public class RegistryHelper {
 					textConsumer.accept(sc, f);
 					sc.close();
 					stream.close();
-				} catch (Throwable err) {
+				} catch (Throwable ignored) {
 				}
 			}
 		});
