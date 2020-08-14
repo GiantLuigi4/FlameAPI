@@ -31,7 +31,13 @@ public class RegistryHelper {
 			"emerald",
 			"diamond"
 	};
-	private static final String[] entities = new String[]{
+	private static final String[] entities_11 = new String[] {
+			"Item",
+			"XPOrb",
+			"LeashKnot",
+			"Painting"
+	};
+	private static final String[] entities_12 = new String[]{
 			"player",
 			"lightning_bolt",
 			"fishing_bobber",
@@ -56,11 +62,15 @@ public class RegistryHelper {
 			JarFile file = new JarFile(versionDir);
 			HashMap<String, String> registries = new HashMap<>();
 			String mcAssetVer = Main.getAssetVersion();
-			String mcMajorVer = "";
-			mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);
+			String mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);
+			if (mcMajorVer.contains(".")) {
+				mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));
+			}
 			FlameConfig.field.append(mcMajorVer + "\n");
-			boolean flag = Integer.parseInt(mcMajorVer) > 12; // ||
-			String[] version_blocks = flag ? blocks_13 : blocks_12;
+			boolean flagGreaterThan12 = Integer.parseInt(mcMajorVer) > 12;
+			boolean flagLessThan11 = Integer.parseInt(mcMajorVer) < 11; // 11 is just a placeholder, still gotta check
+			String[] version_blocks = flagGreaterThan12 ? blocks_13 : blocks_12;
+			String[] version_entities = flagLessThan11 ? entities_11 : entities_12;
 			try {
 				for (Iterator<JarEntry> it = file.stream().iterator(); it.hasNext(); ) {
 					JarEntry entry = it.next();
@@ -83,7 +93,7 @@ public class RegistryHelper {
 								for (String s : version_blocks)
 									if (!blockChecks.containsKey(s) && s1.contains(s))
 										blockChecks.put(s, true);
-								for (String s : entities)
+								for (String s : version_entities)
 									if (!entityChecks.containsKey(s) && s1.contains(s))
 										entityChecks.put(s, true);
 								for (String s : tileEntities)
@@ -93,7 +103,7 @@ public class RegistryHelper {
 									if (!enchantmentChecks.containsKey(s) && s1.contains(s))
 										enchantmentChecks.put(s, true);
 							}
-							if (flag) {
+							if (flagGreaterThan12) {
 								if (containsUnmodifiableIterator) {
 									if (blockChecks.size() == (version_blocks.length)) {
 										registries.put("minecraft:blocks", entry.getName());
@@ -105,7 +115,7 @@ public class RegistryHelper {
 								} else if (tileEntitiesChecks.size() == (tileEntities.length)) {
 									registries.put("minecraft:tile_entities", entry.getName());
 									FlameConfig.field.append("tile entities registry class:" + entry.getName() + "\n");
-								} else if (entityChecks.size() == (entities.length)) {
+								} else if (entityChecks.size() == (version_entities.length)) {
 									registries.put("minecraft:entities", entry.getName());
 									FlameConfig.field.append("entity registry class:" + entry.getName() + "\n");
 								} else if (enchantmentChecks.size() == (enchantments.length)) {
@@ -122,7 +132,7 @@ public class RegistryHelper {
 								} else if (tileEntitiesChecks.size() == tileEntities.length) {
 									registries.put("minecraft:tile_entities", entry.getName());
 									FlameConfig.field.append("tile entities registry class:" + entry.getName() + "\n");
-								} else if (entityChecks.size() == (entities.length)) {
+								} else if (entityChecks.size() == (version_entities.length)) {
 									registries.put("minecraft:entities", entry.getName());
 									FlameConfig.field.append("entity registry class:" + entry.getName() + "\n");
 								} else if (enchantmentChecks.size() == (enchantments.length)) {
