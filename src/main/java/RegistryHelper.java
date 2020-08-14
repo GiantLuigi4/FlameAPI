@@ -112,16 +112,13 @@ public class RegistryHelper {
 									FlameConfig.field.append("enchantments registry class:" + entry.getName() + "\n");
 								}
 							} else {
-								int invalidator = 0;
 								if (blockChecks.size() == (version_blocks.length)) {
 									registries.put("minecraft:blocks", entry.getName());
 									FlameConfig.field.append("block registry class:" + entry.getName() + "\n");
-									invalidator++;
 								} else if (itemChecks.size() == (items.length)) {
 									registries.put("minecraft:items", entry.getName());
 									FlameConfig.field.append("item registry class:" + entry.getName() + "\n");
-									invalidator++;
-								} else if (invalidator == 0 && tileEntitiesChecks.size() == (tileEntities.length)) {
+								} else if (tileEntitiesChecks.size() == tileEntities.length) {
 									registries.put("minecraft:tile_entities", entry.getName());
 									FlameConfig.field.append("tile entities registry class:" + entry.getName() + "\n");
 								} else if (entityChecks.size() == (entities.length)) {
