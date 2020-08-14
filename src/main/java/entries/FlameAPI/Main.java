@@ -1,8 +1,12 @@
 package entries.FlameAPI;
 
+import com.tfc.API.flamemc.FlameASM;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameMod;
 import com.tfc.flamemc.FlameLauncher;
+import com.tfc.hacky_class_stuff.ASM.ASM;
+import com.tfc.hacky_class_stuff.BlockClass;
+import net.minecraft.client.ClientBrandRetriever;
 
 import java.io.File;
 import java.util.HashMap;
@@ -31,16 +35,30 @@ public class Main implements IFlameMod {
 	public static String getExecDir() {
 		return execDir;
 	}
-
+	
 	public static String getAssetVersion() {
 		return assetVersion;
 	}
-
-
+	
+	
+	public static HashMap<String, String> getRegistries() {
+		return (HashMap<String, String>) registries.clone();
+	}
+	
 	@Override
 	public void preinit(String[] args) {
+		FlameLauncher.getLoader().getReplacementGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::apply);
+
+//		try {
+//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
+//		} catch (Throwable err) {
+//			FlameConfig.logError(err);
+//		}
+		
 		try {
-			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
+			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
+			FlameConfig.field.append(ClientBrandRetriever.class.getFields().length + "\n");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}

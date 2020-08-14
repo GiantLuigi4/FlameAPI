@@ -16,5 +16,5 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 
-    implementation 'com.github.GiantLuigi4:FlameMC:5a932cceb6'
+    implementation 'com.github.GiantLuigi4:FlameMC:4da6b0258b'
 }
