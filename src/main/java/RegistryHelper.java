@@ -55,11 +55,12 @@ public class RegistryHelper {
 		try {
 			JarFile file = new JarFile(versionDir);
 			HashMap<String, String> registries = new HashMap<>();
-			String mcVersion = Main.getVersion().substring(0, Main.getVersion().indexOf("-"));
-			String mcMiddleVersion = mcVersion.substring(2);
-			mcMiddleVersion = mcMiddleVersion.substring(0, mcMiddleVersion.indexOf("."));
-			FlameConfig.field.append(mcMiddleVersion + "\n");
-			String[] version_blocks = Integer.parseInt(mcMiddleVersion) > 12 ? blocks_13 : blocks_12;
+			String mcAssetVer = Main.getAssetVersion();
+			String mcMajorVer = "";
+			mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);
+			FlameConfig.field.append(mcMajorVer + "\n");
+			boolean flag = Integer.parseInt(mcMajorVer) > 12; // ||
+			String[] version_blocks = flag ? blocks_13 : blocks_12;
 			try {
 				for (Iterator<JarEntry> it = file.stream().iterator(); it.hasNext(); ) {
 					JarEntry entry = it.next();
@@ -92,7 +93,7 @@ public class RegistryHelper {
 									if (!enchantmentChecks.containsKey(s) && s1.contains(s))
 										enchantmentChecks.put(s, true);
 							}
-							if (Integer.parseInt(mcMiddleVersion) > 12) {
+							if (flag) {
 								if (containsUnmodifiableIterator) {
 									if (blockChecks.size() == (version_blocks.length)) {
 										registries.put("minecraft:blocks", entry.getName());

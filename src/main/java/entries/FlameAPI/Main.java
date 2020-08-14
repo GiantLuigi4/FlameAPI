@@ -13,12 +13,13 @@ public class Main implements IFlameMod {
 	private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
 	private static String gameDir;
 	private static String version;
+	private static String assetVersion; //for snapshots
 	private static String execDir = System.getProperty("user.dir");
-	
+
 	private static String mainRegistry = "";
-	
+
 	private static HashMap<String, String> registries = null;
-	
+
 	public static String getGameDir() {
 		return gameDir;
 	}
@@ -30,7 +31,12 @@ public class Main implements IFlameMod {
 	public static String getExecDir() {
 		return execDir;
 	}
-	
+
+	public static String getAssetVersion() {
+		return assetVersion;
+	}
+
+
 	@Override
 	public void preinit(String[] args) {
 		try {
@@ -40,6 +46,7 @@ public class Main implements IFlameMod {
 		}
 		
 		try {
+			boolean isAssetIndex = false;
 			boolean isVersion = false;
 			boolean isDir = false;
 			for (String s : args) {
@@ -53,6 +60,11 @@ public class Main implements IFlameMod {
 				} else if (isDir) {
 					gameDir = s;
 					isDir = false;
+				} else if (s.equals("--assetIndex")) {
+					isAssetIndex = true;
+				} else if (isAssetIndex) {
+					assetVersion = s;
+					isAssetIndex = false;
 				}
 			}
 		} catch (Throwable err) {
