@@ -13,7 +13,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class RegistryHelper {
-	private static final String[] blocks_13 = new String[]{
+	private static final String[] blocks_13 = new String[]{ //1.13 refactor
 			"cobblestone",
 			"air",
 			"grass_block",
@@ -31,7 +31,7 @@ public class RegistryHelper {
 			"emerald",
 			"diamond"
 	};
-	private static final String[] entities_11 = new String[] {
+	private static final String[] entities_11 = new String[] { //1.7.10 has these things starting with uppercase
 			"Item",
 			"XPOrb",
 			"LeashKnot",
@@ -44,7 +44,7 @@ public class RegistryHelper {
 			"pig",
 			"creeper"
 	};
-	private static final String[] tileEntities_11 = new String[]{
+	private static final String[] tileEntities_11 = new String[]{ //1.7.10 has these things starting with uppercase
 			"Furnace",
 			"Chest",
 			"EnderChest",
@@ -62,26 +62,26 @@ public class RegistryHelper {
 			"efficiency",
 			"sharpness"
 	};
-	private static final int[] enchantments_11 = new int[] {
-			0,1,2,3,4,5,6,7,20
+	private static final String[] enchantments_11 = new String[] {  //these are the only strings in aft.class in 1.7.10. They are used for the lang file
+			"enchantment.",
+			"enchantment.level."
 	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
 			JarFile file = new JarFile(versionDir);
 			HashMap<String, String> registries = new HashMap<>();
-			String mcAssetVer = Main.getAssetVersion();
-			String mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);
+			String mcAssetVer = Main.getAssetVersion();								//like 1.16, 1.15 or for 1.7.10 and before, the same version number
+			String mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);	//I get everything after 1. (aka 16, 15 or 7.10)
 			if (mcMajorVer.contains(".")) {
-				mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));
+				mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));		//if there is still a dot, make another substring, so it actually get 7 in case of 7.10
 			}
-			FlameConfig.field.append(mcMajorVer + "\n");
 			boolean flagGreaterThan12 = Integer.parseInt(mcMajorVer) > 12;
-			boolean flagLessThan11 = Integer.parseInt(mcMajorVer) < 11; // 11 is just a placeholder, still gotta check
+			boolean flagLessThan11 = Integer.parseInt(mcMajorVer) < 11; 			// 11 is just a placeholder, still gotta check
 			String[] version_blocks = flagGreaterThan12 ? blocks_13 : blocks_12;
 			String[] version_entities = flagLessThan11 ? entities_11 : entities_12;
 			String[] version_tileEntities = flagLessThan11 ? tileEntities_11 : tileEntities_12;
-
+			String[] version_enchantments = flagLessThan11 ? enchantments_11 : enchantments_12;
 			try {
 				for (Iterator<JarEntry> it = file.stream().iterator(); it.hasNext(); ) {
 					JarEntry entry = it.next();
@@ -93,8 +93,7 @@ public class RegistryHelper {
 							HashMap<String, Boolean> itemChecks = new HashMap<>();
 							HashMap<String, Boolean> tileEntitiesChecks = new HashMap<>();
 							HashMap<String, Boolean> entityChecks = new HashMap<>();
-							HashMap<String, Boolean> enchantmentChecks12 = new HashMap<>();
-							HashMap<Integer, Boolean> enchantmentChecks11 = new HashMap<>();
+							HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
 							while (sc.hasNext()) {
 								String s1 = sc.next();
 								for (String s : items)
@@ -109,17 +108,9 @@ public class RegistryHelper {
 								for (String s : version_tileEntities)
 									if (!tileEntitiesChecks.containsKey(s) && s1.contains(s))
 										tileEntitiesChecks.put(s, true);
-								if (flagLessThan11)
-									for (Integer i : enchantments_11)
-										if (!enchantmentChecks11.containsKey(i) && s1.contains(i.toString()))
-											enchantmentChecks11.put(i, true);
-								else
-									for (String s : enchantments_12)
-										if (!enchantmentChecks12.containsKey(s) && s1.contains(s))
-											enchantmentChecks12.put(s, true);
-							}
-							if (!enchantmentChecks11.isEmpty()) {
-								FlameConfig.field.append("enchant checks: " + enchantmentChecks11 + "\n");
+								for (String s : version_enchantments)
+									if (!enchantmentChecks.containsKey(s) && s1.contains(s))
+										enchantmentChecks.put(s, true);
 							}
 							if (blockChecks.size() == (version_blocks.length)) {
 								registries.put("minecraft:blocks", entry.getName());
@@ -133,10 +124,7 @@ public class RegistryHelper {
 							} else if (entityChecks.size() == (version_entities.length)) {
 								registries.put("minecraft:entities", entry.getName());
 								FlameConfig.field.append("entity registry class:" + entry.getName() + "\n");
-							} else if (flagLessThan11 && enchantmentChecks11.size() == (enchantments_11.length)) {
-								registries.put("minecraft:enchantments", entry.getName());
-								FlameConfig.field.append("enchantments registry class:" + entry.getName() + "\n");
-							} else if (enchantmentChecks12.size() == (enchantments_12.length)) {
+							} else if (enchantmentChecks.size() == (version_enchantments.length)) {
 								registries.put("minecraft:enchantments", entry.getName());
 								FlameConfig.field.append("enchantments registry class:" + entry.getName() + "\n");
 							}
