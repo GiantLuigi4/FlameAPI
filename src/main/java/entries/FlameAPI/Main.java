@@ -47,6 +47,21 @@ public class Main implements IFlameMod {
 	
 	@Override
 	public void preinit(String[] args) {
+		try {
+			Class.forName("org.objectweb.asm.ClassVisitor");
+			Class.forName("org.objectweb.asm.ClassReader");
+			Class.forName("org.objectweb.asm.ClassWriter");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.ASM");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.FieldAdder");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.Writer");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldNode");
+			Class.forName("com.tfc.API.flamemc.FlameASM");
+			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+			throw new RuntimeException(err);
+		}
+		
 		FlameLauncher.getLoader().getReplacementGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::apply);
 
