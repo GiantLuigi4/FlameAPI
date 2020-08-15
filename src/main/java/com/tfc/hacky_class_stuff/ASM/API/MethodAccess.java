@@ -11,27 +11,24 @@ public class MethodAccess {
 		this.method = method;
 	}
 	
-	//There has to be a better way to do this
+	//Better way found (Lorenzo)
 	//TODO:Find a better way to do this, lol
 	public void increase(FlameASM.AccessType type) {
-		if (!this.type.equals(FlameASM.AccessType.PUBLIC_STATIC) && !this.type.equals(FlameASM.AccessType.PUBLIC)) {
-			if (this.type.equals(FlameASM.AccessType.PRIVATE)) {
-				if (type.equals(FlameASM.AccessType.PROTECTED) || type.equals(FlameASM.AccessType.PUBLIC)) {
-					this.type = type;
-				}
-			} else if (this.type.equals(FlameASM.AccessType.PROTECTED)) {
-				if (type.equals(FlameASM.AccessType.PUBLIC)) {
-					this.type = type;
-				}
-			} else if (this.type.equals(FlameASM.AccessType.PRIVATE_STATIC)) {
-				if (type.equals(FlameASM.AccessType.PROTECTED_STATIC) || type.equals(FlameASM.AccessType.PUBLIC_STATIC)) {
-					this.type = type;
-				}
-			} else if (this.type.equals(FlameASM.AccessType.PROTECTED_STATIC)) {
-				if (type.equals(FlameASM.AccessType.PUBLIC_STATIC)) {
-					this.type = type;
-				}
-			}
+		switch (FlameASM.AccessType.valueOf(this.type.name())) {
+			case PUBLIC:
+			case PUBLIC_STATIC:
+				break;
+			case PROTECTED:
+				if (type.equals(FlameASM.AccessType.PUBLIC)) this.type = type;
+			case PRIVATE:
+				if (type.equals(FlameASM.AccessType.PUBLIC) || type.equals(FlameASM.AccessType.PROTECTED))	this.type = type;
+				break;
+			case PRIVATE_STATIC:
+				if (type.equals(FlameASM.AccessType.PROTECTED_STATIC)) this.type = type;
+				break;
+			case PROTECTED_STATIC:
+				if (type.equals(FlameASM.AccessType.PRIVATE_STATIC)) this.type = type;
+				break;
 		}
 	}
 }
