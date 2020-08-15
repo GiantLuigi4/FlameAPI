@@ -53,7 +53,7 @@ public class Main implements IFlameMod {
 			Class.forName("com.tfc.hacky_class_stuff.ASM.ASM");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.FieldAdder");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.Writer");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldNode");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldData");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
 		} catch (Throwable err) {
@@ -66,17 +66,17 @@ public class Main implements IFlameMod {
 		
 		try {
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
-			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
+//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
-
-//		try {
-//			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
-//			FlameConfig.field.append(ClientBrandRetriever.class.getFields().length + "\n");
-//		} catch (Throwable err) {
-//			FlameConfig.logError(err);
-//		}
+		
+		try {
+			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
+			FlameConfig.field.append(Class.forName("net.minecraft.client.ClientBrandRetriever").getFields().length + "\n");
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+		}
 		
 		try {
 			boolean isAssetIndex = false;

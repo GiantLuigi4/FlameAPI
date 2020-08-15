@@ -45,15 +45,17 @@ public class FieldAdder extends ClassVisitor {
 	
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-		isFieldPresent = true;
-		return cv.visitField(this.access, this.fieldName, this.fieldType, signature, this.fieldDefault);
+		if (name.equals(this.fieldName)) {
+			isFieldPresent = true;
+		}
+		return cv.visitField(access, name, desc, signature, value);
 	}
 	
 	@Override
 	public void visitEnd() {
 		if (!isFieldPresent) {
 			if (cv != null) {
-				FieldVisitor fv = cv.visitField(access, fieldName, fieldType, null, fieldDefault);
+				FieldVisitor fv = cv.visitField(access, fieldName, "L" + fieldType.replace(".", "/") + ";", "<init>", fieldDefault);
 				if (fv != null) {
 					fv.visitEnd();
 				}

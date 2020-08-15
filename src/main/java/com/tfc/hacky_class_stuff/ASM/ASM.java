@@ -1,11 +1,12 @@
 package com.tfc.hacky_class_stuff.ASM;
 
 import com.tfc.flame.FlameConfig;
-import com.tfc.hacky_class_stuff.ASM.API.FieldNode;
+import com.tfc.hacky_class_stuff.ASM.API.FieldData;
 import entries.FlameAPI.Main;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.ClassNode;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,11 +15,35 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ASM {
-	private static final HashMap<String, ArrayList<FieldNode>> fieldNodes = new HashMap<>();
+	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	
 	public static byte[] apply(String name, byte[] bytes) {
+		writeBytes(name, "pre", bytes);
+		if (fieldNodes.containsKey(name)) {
+			try {
+				ClassReader reader = new ClassReader(bytes);
+				ClassNode node = new ClassNode();
+				reader.accept(node, 0);
+				ClassWriter writer = new ClassWriter(reader, Opcodes.ASM7);
+				for (FieldData data : fieldNodes.get(name)) {
+//					node.fields.add(new FieldNode(data.access,data.name,"L"+(data.defaultVal.getClass().toString().replace(".","/")),"",data.defaultVal));
+					reader.accept(new FieldAdder(Opcodes.ASM7, writer, data.name, data.defaultVal, data.defaultVal.getClass().getName(), data.access), 0);
+				}
+				node.visitEnd();
+				writer.visitEnd();
+				byte[] bytes1 = writer.toByteArray();
+				writeBytes(name, "post", bytes1);
+				return bytes1;
+			} catch (Throwable err) {
+				FlameConfig.logError(err);
+			}
+		}
+		return bytes;
+	}
+	
+	private static void writeBytes(String clazz, String file, byte[] bytes) {
 		try {
-			File f1 = new File(Main.getGameDir() + "\\FlameASM\\pre\\" + name.replace(".", "\\") + ".class");
+			File f1 = new File(Main.getGameDir() + "\\FlameASM\\" + file + "\\" + clazz.replace(".", "\\") + ".class");
 			if (!f1.exists()) {
 				f1.getParentFile().mkdirs();
 				f1.createNewFile();
@@ -29,38 +54,9 @@ public class ASM {
 			writer1.close();
 		} catch (Throwable err) {
 		}
-		if (fieldNodes.containsKey(name)) {
-			try {
-				ClassReader reader = new ClassReader(bytes);
-//				Writer writer = new Writer(reader, 0);
-				ClassWriter writer = new ClassWriter(reader, 52);
-				fieldNodes.getOrDefault(name, new ArrayList<>()).forEach(node -> {
-					FlameConfig.field.append("Adding node: " + node.name + " to class: " + name + ".\n");
-//					reader.accept(new FieldAdder(Opcodes.ASM4, node.name, node.defaultVal, node.defaultVal.getClass().getName(), node.access),0);
-					org.objectweb.asm.tree.FieldNode node1 = new org.objectweb.asm.tree.FieldNode(Opcodes.ASM4, node.access, node.name, node.defaultVal.getClass().getName(), "", node.defaultVal);
-					node1.visitEnd();
-					node1.accept(writer);
-				});
-				writer.visitEnd();
-				byte[] bytes1 = writer.toByteArray();
-				File f2 = new File(Main.getGameDir() + "\\FlameASM\\post\\" + name.replace(".", "\\") + ".class");
-				if (!f2.exists()) {
-					f2.getParentFile().mkdirs();
-					f2.createNewFile();
-				}
-				//https://www.geeksforgeeks.org/convert-byte-array-to-file-using-java/#:~:text=To%20convert%20byte%5B%5D%20to,and%20write%20in%20a%20file.
-				OutputStream writer2 = new FileOutputStream(f2);
-				writer2.write(bytes1);
-				writer2.close();
-				return bytes1;
-			} catch (Throwable err) {
-				FlameConfig.logError(err);
-			}
-		}
-		return bytes;
 	}
 	
-	public static void addFieldNode(String clazz, FieldNode node) {
+	public static void addFieldNode(String clazz, FieldData node) {
 		if (!fieldNodes.containsKey(clazz)) fieldNodes.put(clazz, new ArrayList<>());
 		fieldNodes.get(clazz).add(node);
 	}
