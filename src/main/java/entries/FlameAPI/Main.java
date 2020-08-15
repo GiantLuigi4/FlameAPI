@@ -4,10 +4,14 @@ import com.tfc.asmlorenzo.MyASM;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
-import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.BlockClass;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -62,8 +66,8 @@ public class Main implements IFlameAPIMod {
 		
 		FlameLauncher.getLoader().getBaseCodeGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
+		//FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
+		//FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
 
 //		try {
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
@@ -71,14 +75,25 @@ public class Main implements IFlameAPIMod {
 //		} catch (Throwable err) {
 //			FlameConfig.logError(err);
 //		}
-		
+
+		InsnList methodInstructions = new InsnList();
+		methodInstructions.add(new InsnNode(Opcodes.ICONST_1));
+		methodInstructions.add(new InsnNode(Opcodes.IRETURN));
+
+		InsnList overrideInstructions = new InsnList();
+		overrideInstructions.add(new LdcInsnNode("flamemc")); 	//LDC "flamemc" load onto the stack the string flamemc(using LDC because String is a class)
+		overrideInstructions.add(new InsnNode(Opcodes.ARETURN));		//ARETURN		return the value on the stack and pop it out
+
 		try {
-			MyASM.addField("net.minecraft.client.ClientBrandRetriever", MyASM.AccessType.PUBLIC, "brand", "I", "I", 1);
+			MyASM.addOrReplaceMethod("net.minecraft.client.ClientBrandRetriever", MyASM.AccessType.PUBLIC, "yes", "()Z", null, null, methodInstructions);
+			MyASM.addOrReplaceMethod("net.minecraft.client.ClientBrandRetriever", MyASM.AccessType.PUBLIC_STATIC, "getClientModName", "()Ljava/lang/String;", null, null, overrideInstructions);
+			MyASM.addField("net.minecraft.client.ClientBrandRetriever", MyASM.AccessType.PUBLIC, "brand", "Ljava/lang/String;", null, "flamemc");
 			//FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
+			MyASM.checkMethodsAndFields("net.minecraft.client.ClientBrandRetriever");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
-		
+
 		try {
 			boolean isAssetIndex = false;
 			boolean isVersion = false;
@@ -117,6 +132,11 @@ public class Main implements IFlameAPIMod {
 	
 	@Override
 	public void preinit(String[] args) {
+		try {
+			MyASM.checkMethodsAndFields("net.minecraft.client.ClientBrandRetriever");
+		} catch (IOException e) {
+			FlameConfig.logError(e);
+		}
 	}
 	
 	@Override
