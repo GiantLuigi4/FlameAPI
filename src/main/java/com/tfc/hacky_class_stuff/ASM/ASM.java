@@ -1,8 +1,8 @@
 package com.tfc.hacky_class_stuff.ASM;
 
 import com.tfc.flame.FlameConfig;
+import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
-import com.tfc.hacky_class_stuff.ASM.API.MethodAccess;
 import entries.FlameAPI.Main;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -19,10 +19,10 @@ import java.util.Iterator;
 public class ASM {
 	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	
-	private static HashMap<String, ArrayList<MethodAccess>> accessValues = new HashMap<>();
+	private static HashMap<String, ArrayList<Access>> accessValues = new HashMap<>();
 	
 	public static byte[] applyFields(String name, byte[] bytes) {
-		if (fieldNodes.containsKey(name)&&bytes!=null) {
+		if (fieldNodes.containsKey(name) && bytes != null) {
 			writeBytes(name, "pre", bytes);
 			try {
 				ClassReader reader = new ClassReader(bytes);
@@ -46,6 +46,7 @@ public class ASM {
 	
 	public static byte[] applyMethodTransformers(String name, byte[] bytes) {
 		if (accessValues.containsKey(name)) {
+			FlameConfig.field.append("Transforming class: " + name + "\n");
 			if (!fieldNodes.containsKey(name)) {
 				writeBytes(name, "pre", bytes);
 			}
@@ -53,7 +54,7 @@ public class ASM {
 			ClassNode node = new ClassNode();
 			reader.accept(node, 0);
 			ClassWriter writer = new ClassWriter(reader, Opcodes.ASM7);
-			for (MethodAccess access : accessValues.get(name)) {
+			for (Access access : accessValues.get(name)) {
 				reader.accept(new MethodAccessTransformer(Opcodes.ASM7, writer, access.method, access.type.level), 0);
 			}
 			node.visitEnd();
@@ -65,17 +66,17 @@ public class ASM {
 		return bytes;
 	}
 	
-	public static void addMethodAT(MethodAccess access, String clazz) {
+	public static void addMethodAT(Access access, String clazz) {
 		Iterator<String> classes = accessValues.keySet().iterator();
-		Iterator<ArrayList<MethodAccess>> valuesA = accessValues.values().iterator();
+		Iterator<ArrayList<Access>> valuesA = accessValues.values().iterator();
 		boolean hasClazz = false;
 		for (int i = 0; i < accessValues.size(); i++) {
 			String clazzCheck = classes.next();
 			if (clazzCheck.equals(clazz)) {
 				hasClazz = true;
-				ArrayList<MethodAccess> accesses = valuesA.next();
+				ArrayList<Access> accesses = valuesA.next();
 				boolean hasMatch = false;
-				for (MethodAccess access1 : accesses) {
+				for (Access access1 : accesses) {
 					if (access1.method.equals(access.method)) {
 						access1.increase(access.type);
 						hasMatch = true;
@@ -87,7 +88,7 @@ public class ASM {
 			}
 		}
 		if (!hasClazz) {
-			ArrayList<MethodAccess> list = new ArrayList<>();
+			ArrayList<Access> list = new ArrayList<>();
 			list.add(access);
 			accessValues.put(clazz, list);
 		}

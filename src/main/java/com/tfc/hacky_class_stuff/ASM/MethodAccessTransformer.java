@@ -6,8 +6,8 @@ import org.objectweb.asm.MethodVisitor;
 
 public class MethodAccessTransformer extends ClassVisitor {
 	private final String methodName;
-	private final int access;
 	private boolean isMethodPresent;
+	private int access;
 	private String methodType = "";
 	private String signature = "";
 	private String[] exceptions;
@@ -31,6 +31,7 @@ public class MethodAccessTransformer extends ClassVisitor {
 			methodType = descriptor;
 			this.signature = signature;
 			this.exceptions = exceptions;
+			this.access = Math.max(this.access, access);
 		}
 		return super.visitMethod(access, name, descriptor, signature, exceptions);
 	}

@@ -9,6 +9,7 @@ import com.tfc.hacky_class_stuff.BlockClass;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -62,24 +63,6 @@ public class Main implements IFlameAPIMod {
 			throw new RuntimeException(err);
 		}
 		
-		FlameLauncher.getLoader().getBaseCodeGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
-		
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
-
-//		try {
-//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
-//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
-//		} catch (Throwable err) {
-//			FlameConfig.logError(err);
-//		}
-		
-		try {
-			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
-		} catch (Throwable err) {
-			FlameConfig.logError(err);
-		}
-		
 		try {
 			boolean isAssetIndex = false;
 			boolean isVersion = false;
@@ -106,11 +89,30 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.logError(err);
 		}
 		
+		FlameLauncher.getLoader().getBaseCodeGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
+		
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
+
+//		try {
+//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
+//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
+//		} catch (Throwable err) {
+//			FlameConfig.logError(err);
+//		}
+		
 		try {
 			registries = (HashMap<String, String>) Class.forName("RegistryHelper").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 			mainRegistry = (String) Class.forName("RegistryHelper").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+		}
+		
+		try {
+			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC_STATIC);
+			FlameASM.transformMethodAccess(mainRegistry.replace(".class", ""), "a", FlameASM.AccessType.PUBLIC_STATIC);
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
@@ -124,8 +126,26 @@ public class Main implements IFlameAPIMod {
 	public void init(String[] args) {
 		try {
 			for (Field f : Class.forName("net.minecraft.client.ClientBrandRetriever").getFields()) {
+				try {
+					FlameConfig.field.append("net.minecraft.client.ClientBrandRetriever%" + f.getName() + "=" + f.get(null) + "\n");
+				} catch (Throwable ignored) {
+				}
 			}
-		} catch (Throwable err) {
+		} catch (Throwable ignored) {
+		}
+		try {
+			for (Method m : Class.forName(mainRegistry.replace(".class", "")).getMethods()) {
+				try {
+//					if (m.getName().equals("a")) {
+					FlameConfig.field.append("method name: " + m.getName() + "\n");
+					FlameConfig.field.append("main level: " + m.getModifiers() + "\n");
+					FlameConfig.field.append("protected static " + FlameASM.AccessType.PROTECTED_STATIC + "\n");
+					FlameConfig.field.append("public static " + FlameASM.AccessType.PUBLIC_STATIC + "\n");
+//					}
+				} catch (Throwable ignored) {
+				}
+			}
+		} catch (Throwable ignored) {
 		}
 	}
 	

@@ -7,6 +7,7 @@ public class Mapping {
 		if (name.startsWith("net.minecraft.init.")) {
 			String s1 = name.replace("net.minecraft.init.", "");
 			s1 = s1.toLowerCase();
+			s1 = "minecraft:" + s1;
 			return Main.getRegistries().get(s1).replace(".class", "").replace("/", ".");
 		}
 //		if (name.equals("net.minecraft.init.Items")) {
