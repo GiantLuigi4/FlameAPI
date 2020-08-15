@@ -12,13 +12,27 @@ public class FlameASM {
 	
 	public static enum AccessType {
 		PUBLIC(org.objectweb.asm.Opcodes.ACC_PUBLIC),
+		PUBLIC_STATIC(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC),
 		PRIVATE(Opcodes.ACC_PRIVATE),
-		PROTECTED(Opcodes.ACC_PROTECTED);
+		//Grudgingly, I add this...
+		//Please don't use it...
+		//I hate private and protected...
+		//Especially on static things.
+		PRIVATE_STATIC(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC),
+		PROTECTED(Opcodes.ACC_PROTECTED),
+		PROTECTED_STATIC(Opcodes.ACC_PROTECTED + Opcodes.ACC_STATIC),
+		;
 		
 		public final int level;
 		
 		AccessType(int level) {
 			this.level = level;
+		}
+		
+		
+		@Override
+		public String toString() {
+			return "level: " + level;
 		}
 	}
 	

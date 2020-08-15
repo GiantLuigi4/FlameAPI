@@ -8,6 +8,7 @@ import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.BlockClass;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -121,6 +122,11 @@ public class Main implements IFlameAPIMod {
 	
 	@Override
 	public void init(String[] args) {
+		try {
+			for (Field f : Class.forName("net.minecraft.client.ClientBrandRetriever").getFields()) {
+			}
+		} catch (Throwable err) {
+		}
 	}
 	
 	@Override
