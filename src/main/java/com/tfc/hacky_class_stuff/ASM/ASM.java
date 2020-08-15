@@ -16,10 +16,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+@Deprecated
+/**
+ * Deprecated
+ * Not deleting it because it could be useful, we'll see it together
+ * My version is better, both in file size (only one) and in code (eh eh daily flex)
+ */
 public class ASM {
 	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	
-	private static HashMap<String, ArrayList<MethodAccess>> accessValues = new HashMap<>();
+	private static final HashMap<String, ArrayList<MethodAccess>> accessValues = new HashMap<>();
 	
 	public static byte[] applyFields(String name, byte[] bytes) {
 		if (fieldNodes.containsKey(name)) {

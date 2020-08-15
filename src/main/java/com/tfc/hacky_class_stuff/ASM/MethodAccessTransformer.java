@@ -4,6 +4,12 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
+@Deprecated
+/**
+ * Deprecated
+ * Not deleting it because it could be useful, we'll see it together
+ * My version is better, both in file size (only one) and in code (eh eh daily flex)
+ */
 public class MethodAccessTransformer extends ClassVisitor {
 	private final String methodName;
 	private final int access;

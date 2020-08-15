@@ -1,42 +1,18 @@
 package com.tfc.API.flamemc;
 
-import com.tfc.hacky_class_stuff.ASM.API.FieldData;
+import com.tfc.asmlorenzo.MyASM;
 import com.tfc.hacky_class_stuff.ASM.API.MethodAccess;
 import com.tfc.hacky_class_stuff.ASM.ASM;
 import org.objectweb.asm.Opcodes;
 
+@Deprecated
+/**
+ * Deprecated
+ * Not deleting it because it could be useful, we'll see it together
+ * My version is better, both in file size (only one) and in code (eh eh daily flex)
+ */
 public class FlameASM  implements Opcodes {
-	public static void addField(String clazz, String name, Object defaultVal, AccessType access) {
-		ASM.addFieldNode(clazz, new FieldData(access.level, name, defaultVal));
-	}
-	
-	public static enum AccessType {
-		PUBLIC(ACC_PUBLIC),
-		PUBLIC_STATIC(ACC_PUBLIC + ACC_STATIC),
-		PRIVATE(ACC_PRIVATE),
-		//Grudgingly, I add this...
-		//Please don't use it...
-		//I hate private and protected...
-		//Especially on static things.
-		PRIVATE_STATIC(ACC_PRIVATE + ACC_STATIC),
-		PROTECTED(ACC_PROTECTED),
-		PROTECTED_STATIC(ACC_PROTECTED + ACC_STATIC),
-		;
-		
-		public final int level;
-		
-		AccessType(int level) {
-			this.level = level;
-		}
-		
-		
-		@Override
-		public String toString() {
-			return "level: " + level;
-		}
-	}
-	
-	public void transformMethodAccess(String clazz, String method, AccessType access) {
+	public void transformMethodAccess(String clazz, String method, MyASM.AccessType access) {
 		ASM.addMethodAT(new MethodAccess(access, clazz), method);
 	}
 }

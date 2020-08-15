@@ -3,6 +3,12 @@ package com.tfc.hacky_class_stuff.ASM;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 
+@Deprecated
+/**
+ * Deprecated
+ * Not deleting it because it could be useful, we'll see it together
+ * My version is better, both in file size (only one) and in code (eh eh daily flex)
+ */
 //https://www.baeldung.com/java-asm#1-working-with-fields
 public class FieldAdder extends ClassVisitor {
 	private final String fieldName;

@@ -1,6 +1,6 @@
 package entries.FlameAPI;
 
-import com.tfc.API.flamemc.FlameASM;
+import com.tfc.asmlorenzo.MyASM;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
@@ -8,7 +8,6 @@ import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.BlockClass;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -53,10 +52,9 @@ public class Main implements IFlameAPIMod {
 			Class.forName("org.objectweb.asm.ClassWriter");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.ASM");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.FieldAdder");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.Writer");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldData");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
-			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
+			MyASM.AccessType type = MyASM.AccessType.PUBLIC;
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 			throw new RuntimeException(err);
@@ -75,7 +73,8 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
-			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
+			MyASM.addField("net.minecraft.client.ClientBrandRetriever", MyASM.AccessType.PUBLIC, "brand", "I", "I", 1);
+			//FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
@@ -122,11 +121,7 @@ public class Main implements IFlameAPIMod {
 	
 	@Override
 	public void init(String[] args) {
-		try {
-			for (Field f : Class.forName("net.minecraft.client.ClientBrandRetriever").getFields()) {
-			}
-		} catch (Throwable err) {
-		}
+
 	}
 	
 	@Override
