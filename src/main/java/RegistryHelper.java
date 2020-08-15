@@ -40,7 +40,6 @@ public class RegistryHelper {
 	private static final String[] entities_12 = new String[]{
 			"player",
 			"lightning_bolt",
-			"fishing_bobber",
 			"pig",
 			"creeper"
 	};
@@ -66,6 +65,19 @@ public class RegistryHelper {
 			"enchantment.",
 			"enchantment.level."
 	};
+	private static final String[] biomes_11 = new String[]{
+			"Ocean",
+			"Plains",
+			"Desert",
+			"MushroomIsland"
+	};
+	private static final String[] biomes_12 = new String[]{
+			"plains",
+			"desert",
+			"mountains",
+			"forest",
+			"taiga"
+	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
@@ -82,6 +94,7 @@ public class RegistryHelper {
 			String[] version_entities = flagLessThan11 ? entities_11 : entities_12;
 			String[] version_tileEntities = flagLessThan11 ? tileEntities_11 : tileEntities_12;
 			String[] version_enchantments = flagLessThan11 ? enchantments_11 : enchantments_12;
+			String[] version_biomes = flagLessThan11 ? biomes_11 : biomes_12;
 			try {
 				for (Iterator<JarEntry> it = file.stream().iterator(); it.hasNext(); ) {
 					JarEntry entry = it.next();
@@ -95,6 +108,7 @@ public class RegistryHelper {
 								HashMap<String, Boolean> tileEntitiesChecks = new HashMap<>();
 								HashMap<String, Boolean> entityChecks = new HashMap<>();
 								HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
+								HashMap<String, Boolean> biomeChecks = new HashMap<>();
 								while (sc.hasNext()) {
 									String s1 = sc.next();
 									for (String s : items)
@@ -112,7 +126,12 @@ public class RegistryHelper {
 									for (String s : version_enchantments)
 										if (!enchantmentChecks.containsKey(s) && s1.contains(s))
 											enchantmentChecks.put(s, true);
+									for (String s : version_biomes)
+										if (!biomeChecks.containsKey(s) && s1.contains(s))
+											biomeChecks.put(s, true);
 								}
+								if (!biomeChecks.isEmpty())
+									FlameConfig.field.append("BiomeChecks: " + biomeChecks + "\n");
 								if (blockChecks.size() == (version_blocks.length)) {
 									registries.put("minecraft:blocks", entry.getName());
 									FlameConfig.field.append("Blocks registry class:" + entry.getName() + "\n");
@@ -128,6 +147,9 @@ public class RegistryHelper {
 								} else if (enchantmentChecks.size() == (version_enchantments.length)) {
 									registries.put("minecraft:enchantments", entry.getName());
 									FlameConfig.field.append("Enchantments registry class:" + entry.getName() + "\n");
+								} else if (biomeChecks.size() == (version_biomes.length)) {
+									registries.put("minecraft:biomes", entry.getName());
+									FlameConfig.field.append("Biomes registry class:" + entry.getName() + "\n");
 								}
 //								FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //								FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
