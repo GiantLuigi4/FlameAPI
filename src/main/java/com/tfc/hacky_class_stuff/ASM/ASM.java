@@ -22,7 +22,7 @@ public class ASM {
 	private static HashMap<String, ArrayList<MethodAccess>> accessValues = new HashMap<>();
 	
 	public static byte[] applyFields(String name, byte[] bytes) {
-		if (fieldNodes.containsKey(name)) {
+		if (fieldNodes.containsKey(name)&&bytes!=null) {
 			writeBytes(name, "pre", bytes);
 			try {
 				ClassReader reader = new ClassReader(bytes);
