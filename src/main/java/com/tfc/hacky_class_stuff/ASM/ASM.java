@@ -18,8 +18,8 @@ public class ASM {
 	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	
 	public static byte[] apply(String name, byte[] bytes) {
-		writeBytes(name, "pre", bytes);
 		if (fieldNodes.containsKey(name)) {
+			writeBytes(name, "pre", bytes);
 			try {
 				ClassReader reader = new ClassReader(bytes);
 				ClassNode node = new ClassNode();
