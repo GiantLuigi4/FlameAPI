@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -183,7 +181,7 @@ public class RegistryHelper {
 			for (String typeClass : registryTypes.values()) {
 				FlameConfig.field.append("Registry Type: " + typeClass + "\n");
 			}
-			forAllFiles(file, (sc, entry) -> {
+			Utils.forAllFiles(file, (sc, entry) -> {
 				HashMap<String, Boolean> types = new HashMap<>();
 				while (sc.hasNextLine()) {
 					String s = sc.nextLine();
@@ -200,20 +198,5 @@ public class RegistryHelper {
 		} catch (Throwable ignored) {
 		}
 		return null;
-	}
-	
-	public static void forAllFiles(JarFile file, BiConsumer<Scanner, JarEntry> textConsumer, Function<String, Boolean> fileValidator) {
-		file.stream().forEach(f -> {
-			if (fileValidator.apply(f.getName())) {
-				try {
-					InputStream stream = file.getInputStream(f);
-					Scanner sc = new Scanner(stream);
-					textConsumer.accept(sc, f);
-					sc.close();
-					stream.close();
-				} catch (Throwable ignored) {
-				}
-			}
-		});
 	}
 }
