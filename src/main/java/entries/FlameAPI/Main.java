@@ -18,11 +18,11 @@ public class Main implements IFlameMod {
 	private static String version;
 	private static String assetVersion; //for snapshots
 	private static final String execDir = System.getProperty("user.dir");
-
+	
 	private static String mainRegistry = "";
-
+	
 	private static HashMap<String, String> registries = null;
-
+	
 	public static String getGameDir() {
 		return gameDir;
 	}
@@ -63,13 +63,13 @@ public class Main implements IFlameMod {
 		
 		FlameLauncher.getLoader().getReplacementGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::apply);
-		
-		try {
+
+//		try {
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
-		} catch (Throwable err) {
-			FlameConfig.logError(err);
-		}
+//		} catch (Throwable err) {
+//			FlameConfig.logError(err);
+//		}
 		
 		try {
 			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);

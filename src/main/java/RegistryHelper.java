@@ -31,7 +31,7 @@ public class RegistryHelper {
 			"emerald",
 			"diamond"
 	};
-	private static final String[] entities_11 = new String[] { //1.7.10 has these things starting with uppercase
+	private static final String[] entities_11 = new String[]{ //1.7.10 has these things starting with uppercase
 			"Item",
 			"XPOrb",
 			"LeashKnot",
@@ -62,7 +62,7 @@ public class RegistryHelper {
 			"efficiency",
 			"sharpness"
 	};
-	private static final String[] enchantments_11 = new String[] {  //these are the only strings in aft.class in 1.7.10. They are used for the lang file
+	private static final String[] enchantments_11 = new String[]{  //these are the only strings in aft.class in 1.7.10. They are used for the lang file
 			"enchantment.",
 			"enchantment.level."
 	};
@@ -71,13 +71,13 @@ public class RegistryHelper {
 		try {
 			JarFile file = new JarFile(versionDir);
 			HashMap<String, String> registries = new HashMap<>();
-			String mcAssetVer = Main.getAssetVersion();								//like 1.16, 1.15 or for 1.7.10 and before, the same version number
-			String mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);	//I get everything after 1. (aka 16, 15 or 7.10)
+			String mcAssetVer = Main.getAssetVersion();                                //like 1.16, 1.15 or for 1.7.10 and before, the same version number
+			String mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);    //I get everything after 1. (aka 16, 15 or 7.10)
 			if (mcMajorVer.contains(".")) {
-				mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));		//if there is still a dot, make another substring, so it actually get 7 in case of 7.10
+				mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));        //if there is still a dot, make another substring, so it actually get 7 in case of 7.10
 			}
 			boolean flagGreaterThan12 = Integer.parseInt(mcMajorVer) > 12;
-			boolean flagLessThan11 = Integer.parseInt(mcMajorVer) < 11; 			// 11 is just a placeholder, still gotta check
+			boolean flagLessThan11 = Integer.parseInt(mcMajorVer) < 11;            // 11 is just a placeholder, still gotta check
 			String[] version_blocks = flagGreaterThan12 ? blocks_13 : blocks_12;
 			String[] version_entities = flagLessThan11 ? entities_11 : entities_12;
 			String[] version_tileEntities = flagLessThan11 ? tileEntities_11 : tileEntities_12;
