@@ -78,6 +78,11 @@ public class RegistryHelper {
 			"forest",
 			"taiga"
 	};
+	private static final String[] dimensions_12 = new String[]{
+			"overworld",
+			"the_nether",
+			"the_end"
+	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
