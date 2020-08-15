@@ -1,6 +1,7 @@
 package com.tfc.API.flamemc;
 
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
+import com.tfc.hacky_class_stuff.ASM.API.MethodAccess;
 import com.tfc.hacky_class_stuff.ASM.ASM;
 import org.objectweb.asm.Opcodes;
 
@@ -19,5 +20,9 @@ public class FlameASM {
 		AccessType(int level) {
 			this.level = level;
 		}
+	}
+	
+	public void transformMethodAccess(String clazz, String method, AccessType access) {
+		ASM.addMethodAT(new MethodAccess(access, clazz), method);
 	}
 }

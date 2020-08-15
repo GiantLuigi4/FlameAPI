@@ -2,7 +2,7 @@ package entries.FlameAPI;
 
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.flame.FlameConfig;
-import com.tfc.flame.IFlameMod;
+import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.BlockClass;
@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class Main implements IFlameMod {
+public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
 	private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
 	private static String gameDir;
@@ -45,7 +45,7 @@ public class Main implements IFlameMod {
 	}
 	
 	@Override
-	public void preinit(String[] args) {
+	public void setupAPI(String[] args) {
 		try {
 			Class.forName("org.objectweb.asm.ClassVisitor");
 			Class.forName("org.objectweb.asm.ClassReader");
@@ -61,8 +61,10 @@ public class Main implements IFlameMod {
 			throw new RuntimeException(err);
 		}
 		
-		FlameLauncher.getLoader().getReplacementGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::apply);
+		FlameLauncher.getLoader().getBaseCodeGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
+		
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
 
 //		try {
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
@@ -73,7 +75,6 @@ public class Main implements IFlameMod {
 		
 		try {
 			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC);
-			FlameConfig.field.append(Class.forName("net.minecraft.client.ClientBrandRetriever").getFields().length + "\n");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
@@ -112,6 +113,10 @@ public class Main implements IFlameMod {
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
+	}
+	
+	@Override
+	public void preinit(String[] args) {
 	}
 	
 	@Override

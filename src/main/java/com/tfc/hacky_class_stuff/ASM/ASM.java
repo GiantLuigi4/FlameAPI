@@ -2,6 +2,7 @@ package com.tfc.hacky_class_stuff.ASM;
 
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
+import com.tfc.hacky_class_stuff.ASM.API.MethodAccess;
 import entries.FlameAPI.Main;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -13,11 +14,14 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class ASM {
 	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	
-	public static byte[] apply(String name, byte[] bytes) {
+	private static HashMap<String, ArrayList<MethodAccess>> accessValues = new HashMap<>();
+	
+	public static byte[] applyFields(String name, byte[] bytes) {
 		if (fieldNodes.containsKey(name)) {
 			writeBytes(name, "pre", bytes);
 			try {
@@ -26,19 +30,67 @@ public class ASM {
 				reader.accept(node, 0);
 				ClassWriter writer = new ClassWriter(reader, Opcodes.ASM7);
 				for (FieldData data : fieldNodes.get(name)) {
-//					node.fields.add(new FieldNode(data.access,data.name,"L"+(data.defaultVal.getClass().toString().replace(".","/")),"",data.defaultVal));
 					reader.accept(new FieldAdder(Opcodes.ASM7, writer, data.name, data.defaultVal, data.defaultVal.getClass().getName(), data.access), 0);
 				}
 				node.visitEnd();
 				writer.visitEnd();
 				byte[] bytes1 = writer.toByteArray();
-				writeBytes(name, "post", bytes1);
+				writeBytes(name, "post_fields", bytes1);
 				return bytes1;
 			} catch (Throwable err) {
 				FlameConfig.logError(err);
 			}
 		}
 		return bytes;
+	}
+	
+	public static byte[] applyMethodTransformers(String name, byte[] bytes) {
+		if (accessValues.containsKey(name)) {
+			if (!fieldNodes.containsKey(name)) {
+				writeBytes(name, "pre", bytes);
+			}
+			ClassReader reader = new ClassReader(bytes);
+			ClassNode node = new ClassNode();
+			reader.accept(node, 0);
+			ClassWriter writer = new ClassWriter(reader, Opcodes.ASM7);
+			for (MethodAccess access : accessValues.get(name)) {
+				reader.accept(new MethodAccessTransformer(Opcodes.ASM7, writer, access.method, access.type.level), 0);
+			}
+			node.visitEnd();
+			writer.visitEnd();
+			byte[] bytes1 = writer.toByteArray();
+			writeBytes(name, "post_at", bytes1);
+			return bytes1;
+		}
+		return bytes;
+	}
+	
+	public static void addMethodAT(MethodAccess access, String clazz) {
+		Iterator<String> classes = accessValues.keySet().iterator();
+		Iterator<ArrayList<MethodAccess>> valuesA = accessValues.values().iterator();
+		boolean hasClazz = false;
+		for (int i = 0; i < accessValues.size(); i++) {
+			String clazzCheck = classes.next();
+			if (clazzCheck.equals(clazz)) {
+				hasClazz = true;
+				ArrayList<MethodAccess> accesses = valuesA.next();
+				boolean hasMatch = false;
+				for (MethodAccess access1 : accesses) {
+					if (access1.method.equals(access.method)) {
+						access1.increase(access.type);
+						hasMatch = true;
+					}
+				}
+				if (!hasMatch) {
+					accesses.add(access);
+				}
+			}
+		}
+		if (!hasClazz) {
+			ArrayList<MethodAccess> list = new ArrayList<>();
+			list.add(access);
+			accessValues.put(clazz, list);
+		}
 	}
 	
 	private static void writeBytes(String clazz, String file, byte[] bytes) {
