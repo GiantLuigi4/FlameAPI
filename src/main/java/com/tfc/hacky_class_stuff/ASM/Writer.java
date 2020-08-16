@@ -7,6 +7,11 @@ import org.objectweb.asm.Opcodes;
 import java.util.ArrayList;
 
 //https://www.baeldung.com/java-asm#1-working-with-fields
+/**
+ * idk why this exists tbh
+ * afraid to delete it
+ */
+@Deprecated
 public class Writer extends ClassWriter {
 	ArrayList<FieldAdder> adders = new ArrayList<>();
 	

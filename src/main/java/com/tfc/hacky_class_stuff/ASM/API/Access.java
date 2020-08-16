@@ -21,7 +21,8 @@ public class Access {
 			case PROTECTED:
 				if (type.equals(FlameASM.AccessType.PUBLIC)) this.type = type;
 			case PRIVATE:
-				if (type.equals(FlameASM.AccessType.PUBLIC) || type.equals(FlameASM.AccessType.PROTECTED))	this.type = type;
+				if (type.equals(FlameASM.AccessType.PUBLIC) || type.equals(FlameASM.AccessType.PROTECTED))
+					this.type = type;
 				break;
 			case PRIVATE_STATIC:
 				if (type.equals(FlameASM.AccessType.PROTECTED_STATIC)) this.type = type;

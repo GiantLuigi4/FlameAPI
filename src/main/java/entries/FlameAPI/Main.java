@@ -9,7 +9,6 @@ import com.tfc.hacky_class_stuff.BlockClass;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -22,6 +21,9 @@ public class Main implements IFlameAPIMod {
 	private static final String execDir = System.getProperty("user.dir");
 	
 	private static String mainRegistry = "";
+	private static String blockClass = "";
+	private static String itemClass = "";
+	private static String itemStackClass = "";
 	
 	private static HashMap<String, String> registries = null;
 	
@@ -102,17 +104,23 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
-			registries = (HashMap<String, String>) Class.forName("RegistryHelper").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+			registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
-			mainRegistry = (String) Class.forName("RegistryHelper").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
+			blockClass = (String) Class.forName("GenericClassFinder").getMethod("findBlockClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+			FlameConfig.field.append("Block Class:" + blockClass + "\n");
+			HashMap<String, String> itemClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findItemClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+			itemClass = itemClasses.get("Item");
+			itemStackClass = itemClasses.get("ItemStack");
+			FlameConfig.field.append("Item Class:" + itemClass + "\n");
+			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
 		
 		try {
 			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC_STATIC);
-			FlameASM.transformMethodAccess(mainRegistry.replace(".class", ""), "a", FlameASM.AccessType.PUBLIC_STATIC);
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
@@ -133,20 +141,20 @@ public class Main implements IFlameAPIMod {
 			}
 		} catch (Throwable ignored) {
 		}
-		try {
-			for (Method m : Class.forName(mainRegistry.replace(".class", "")).getMethods()) {
-				try {
-//					if (m.getName().equals("a")) {
-					FlameConfig.field.append("method name: " + m.getName() + "\n");
-					FlameConfig.field.append("main level: " + m.getModifiers() + "\n");
-					FlameConfig.field.append("protected static " + FlameASM.AccessType.PROTECTED_STATIC + "\n");
-					FlameConfig.field.append("public static " + FlameASM.AccessType.PUBLIC_STATIC + "\n");
-//					}
-				} catch (Throwable ignored) {
-				}
-			}
-		} catch (Throwable ignored) {
-		}
+//		try {
+//			for (Method m : Class.forName(mainRegistry.replace(".class", "")).getMethods()) {
+//				try {
+////					if (m.getName().equals("a")) {
+//					FlameConfig.field.append("method name: " + m.getName() + "\n");
+//					FlameConfig.field.append("main level: " + m.getModifiers() + "\n");
+//					FlameConfig.field.append("protected static " + FlameASM.AccessType.PROTECTED_STATIC + "\n");
+//					FlameConfig.field.append("public static " + FlameASM.AccessType.PUBLIC_STATIC + "\n");
+////					}
+//				} catch (Throwable ignored) {
+//				}
+//			}
+//		} catch (Throwable ignored) {
+//		}
 	}
 	
 	@Override

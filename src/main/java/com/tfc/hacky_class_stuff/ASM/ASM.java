@@ -19,7 +19,7 @@ import java.util.Iterator;
 public class ASM {
 	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	
-	private static HashMap<String, ArrayList<Access>> accessValues = new HashMap<>();
+	private static final HashMap<String, ArrayList<Access>> accessValues = new HashMap<>();
 	
 	public static byte[] applyFields(String name, byte[] bytes) {
 		if (fieldNodes.containsKey(name) && bytes != null) {
@@ -105,7 +105,7 @@ public class ASM {
 			OutputStream writer1 = new FileOutputStream(f1);
 			writer1.write(bytes);
 			writer1.close();
-		} catch (Throwable err) {
+		} catch (Throwable ignored) {
 		}
 	}
 	

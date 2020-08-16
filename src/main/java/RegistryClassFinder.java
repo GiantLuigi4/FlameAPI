@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class RegistryHelper {
+public class RegistryClassFinder {
 	private static final String[] blocks_13 = new String[]{ //1.13 refactor
 			"cobblestone",
 			"air",
@@ -183,16 +183,16 @@ public class RegistryHelper {
 			}
 			Utils.forAllFiles(file, (sc, entry) -> {
 				HashMap<String, Boolean> types = new HashMap<>();
-				while (sc.hasNextLine()) {
-					String s = sc.nextLine();
+				Utils.forEachLine(sc, line -> {
 					for (String typeClass : registryTypes.values()) {
-						if (s.contains(typeClass.replace(".class", "").replace("/", ".")) && !types.containsKey(typeClass))
-							types.put(typeClass, true);
+						Utils.checkLine(Utils.toClassName(typeClass), types, line);
+//						if (s.contains(typeClass.replace(".class", "").replace("/", ".")) && !types.containsKey(typeClass))
+//							types.put(typeClass, true);
 					}
 					if (registryTypes.size() == types.size()) {
 						registry.set(entry.getName());
 					}
-				}
+				});
 			}, name -> name.endsWith(".class"));
 			return registry.get();
 		} catch (Throwable ignored) {
