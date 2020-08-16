@@ -15,7 +15,7 @@ import java.util.Iterator;
 
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
-	private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
+	//private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
 	private static String gameDir;
 	private static String version;
 	private static String assetVersion; //for snapshots
@@ -51,6 +51,7 @@ public class Main implements IFlameAPIMod {
 		resourceTypes.put("Block", blockClass);
 		resourceTypes.put("Item", itemClass);
 		resourceTypes.put("ItemStack", itemStackClass);
+		resourceTypes.put("ResourceLocation", resourceLocationClass);
 		return resourceTypes;
 	}
 	
