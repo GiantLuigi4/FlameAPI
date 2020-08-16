@@ -112,10 +112,10 @@ public class RegistryClassFinder {
 			ScanningUtils.forAllFiles(file, (sc, entry) -> {
 				try {
 					InputStream stream = file.getInputStream(entry);
-					HashMap<String, Boolean> blockChecks = new HashMap<>();
 					HashMap<String, Boolean> itemChecks = new HashMap<>();
-					HashMap<String, Boolean> tileEntitiesChecks = new HashMap<>();
+					HashMap<String, Boolean> blockChecks = new HashMap<>();
 					HashMap<String, Boolean> entityChecks = new HashMap<>();
+					HashMap<String, Boolean> tileEntitiesChecks = new HashMap<>();
 					HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
 					HashMap<String, Boolean> biomeChecks = new HashMap<>();
 					HashMap<String, Boolean> dimensionChecks = new HashMap<>();

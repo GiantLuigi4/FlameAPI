@@ -1,7 +1,10 @@
+import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
@@ -25,11 +28,8 @@ public class GenericClassFinder {
 			"RepairCost",
 			"Damage"
 	};
-	//does not work AT ALL
-	private static final String[] rlChecks = new String[]{
-			"minecraft",
-			":"
-	};
+	//Must be done like this, to avoid a literally identical Array for 1.12.2 to 1.7.10, but only location is removed
+	private static final List<String> rlChecks = new ArrayList<>();
 
 	public static HashMap<String, String> findItemClasses(File versionDir) {
 		try {
@@ -38,13 +38,26 @@ public class GenericClassFinder {
 			AtomicReference<String> clazzStack = new AtomicReference<>("null");
 			AtomicReference<String> clazzBlock = new AtomicReference<>("null");
 			AtomicReference<String> clazzRL = new AtomicReference<>("null");
-
+			rlChecks.add("minecraft");
+			rlChecks.add(":");
+			rlChecks.add("hashCode");
+			if (isVersionGreaterThan12)
+				rlChecks.add("location");
 			String[] version_checksBlocks = isVersionGreaterThan12 ? checksBlocks : checksBlocks12;
+			ScanningUtils.forLittleFiles(new JarFile(versionDir), (sc, entry) -> {
+				HashMap<String, Boolean> checksRL = new HashMap<>();
+				ScanningUtils.forEachLine(sc, line -> {
+					for (String s : rlChecks)
+						ScanningUtils.checkLine(s, checksRL, line);
+				});
+				if (checksRL.size() > 2)
+					FlameConfig.field.append("RLChecks: " + checksRL + ", " + entry.getName() + "\n");
+				ScanningUtils.checkGenericClass(checksRL.size(), rlChecks.size(), clazzRL, "ResourceLocation", entry.getName());
+			});
 			ScanningUtils.forAllFiles(new JarFile(versionDir), (sc, entry) -> {
 				HashMap<String, Boolean> checksItem = new HashMap<>();
 				HashMap<String, Boolean> checksStack = new HashMap<>();
 				HashMap<String, Boolean> checksBlock = new HashMap<>();
-				HashMap<String, Boolean> checksRL = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					//Looks like this UUID is always the same in the Item class, this is perfect
 					ScanningUtils.checkLine("CB3F55D3-645C-4F38-A497-9C13A33DB5CF", checksItem, line);
@@ -54,14 +67,11 @@ public class GenericClassFinder {
 					for (String s : version_checksBlocks) {
 						ScanningUtils.checkLine(s, checksBlock, line);
 					}
-					for (String s : rlChecks)
-						ScanningUtils.checkLine(s, checksRL, line);
 				});
 				String entryName = entry.getName();
 				ScanningUtils.checkGenericClass(checksItem.size(), 1, clazzItem, "Item", entryName);
 				ScanningUtils.checkGenericClass(checksBlock.size(), version_checksBlocks.length, clazzBlock, "Block", entryName);
 				ScanningUtils.checkGenericClass(checksStack.size(), itemStackChecks.length, clazzStack, "Stack", entryName);
-				ScanningUtils.checkGenericClass(checksRL.size(), rlChecks.length, clazzRL, "ResourceLocation", entryName);
 			}, name -> name.endsWith(".class") && !name.startsWith("com/tfc"));
 			HashMap<String, String> classes = new HashMap<>();
 			classes.put("Item", clazzItem.get());

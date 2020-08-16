@@ -32,6 +32,22 @@ public class ScanningUtils {
 		isVersionLessThan12 = !isVersionGreaterThan12;            // 11 is just a placeholder, still gotta check
 	}
 
+	public static void forLittleFiles(JarFile file, BiConsumer<Scanner, JarEntry> textConsumer) {
+		file.stream().forEach(f -> {
+			long size = f.getCompressedSize();
+			if (size < 6000 && !f.getName().startsWith("com/tfc") && f.getName().endsWith(".class")) {
+				try {
+					InputStream stream = file.getInputStream(f);
+					Scanner sc = new Scanner(stream);
+					textConsumer.accept(sc, f);
+					sc.close();
+					stream.close();
+				} catch (Throwable ignored) {
+				}
+			}
+		});
+	}
+
 	public static void forAllFiles(JarFile file, BiConsumer<Scanner, JarEntry> textConsumer, Function<String, Boolean> fileValidator) {
 		file.stream().forEach(f -> {
 			if (fileValidator.apply(f.getName())) {
