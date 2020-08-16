@@ -88,6 +88,18 @@ public class RegistryClassFinder {
 			"Invalid shapeless",
 			"###"
 	};
+	private static final String[] furnace = new String[]{
+			"Ljava/lang/Object;",
+			"Ljava/util/Map;",
+			"java/util/Iterator",
+			"java/util/Map$Entry",
+			"java/util/Set",
+			"L%classname%",
+			"getKey",
+			"getValue",
+			"hasNext",
+			"333"
+	};
 	private static final String[] sounds = new String[] {
 			"meta:missing_sound",
 			"File {} does not exist, cannot add it to event {}"
@@ -115,6 +127,7 @@ public class RegistryClassFinder {
 					HashMap<String, Boolean> dimensionChecks = new HashMap<>();
 					HashMap<String, Boolean> recipeChecks = new HashMap<>();
 					HashMap<String, Boolean> soundsChecks = new HashMap<>();
+					HashMap<String, Boolean> furnaceChecks = new HashMap<>();
 					ScanningUtils.forEachLine(sc, line -> {
 						for (String s : items)
 							ScanningUtils.checkLine(s, itemChecks, line);
@@ -134,8 +147,13 @@ public class RegistryClassFinder {
 							ScanningUtils.checkLine(s, recipeChecks, line);
 						for (String s : sounds)
 							ScanningUtils.checkLine(s, soundsChecks, line);
+						for (String s : furnace)
+							ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), furnaceChecks, line);
 					});
 					String entryName = entry.getName();
+					if (furnaceChecks.size() == furnace.length) {
+						FlameConfig.field.append("Probably Furnace Recipes: " + entryName + "\n");
+					}
 					ScanningUtils.checkRegistry(blockChecks.size(), version_blocks.length, registries, "blocks", entryName);
 					ScanningUtils.checkRegistry(itemChecks.size(), items.length, registries, "items", entryName);
 					ScanningUtils.checkRegistry(tileEntitiesChecks.size(), version_tileEntities.length, registries, "tile_entities", entryName);
@@ -144,8 +162,10 @@ public class RegistryClassFinder {
 					ScanningUtils.checkRegistry(biomeChecks.size(), version_biomes.length, registries, "biome", entryName);
 					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions.length, registries, "dimensions", entryName);
 					ScanningUtils.checkRegistry(soundsChecks.size(), sounds.length, registries, "sounds", entryName);
-					if (isVersionLessThan12)
+					if (isVersionLessThan12) {
+						ScanningUtils.checkRegistry(furnaceChecks.size(), furnace.length, registries, "furnaceRecipes", entryName);
 						ScanningUtils.checkRegistry(recipeChecks.size(), craftingRecipes.length, registries, "recipes", entryName);
+					}
 //					FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //					FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
 //					FlameConfig.field.append("checksI:"+itemChecks.size()+"\n");
