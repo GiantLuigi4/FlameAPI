@@ -66,8 +66,8 @@ public class Main implements IFlameAPIMod {
 			Class.forName("com.tfc.hacky_class_stuff.ASM.FieldAdder");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.Writer");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldData");
-			Class.forName("com.tfc.Utils.Bytecode");
-			Class.forName("com.tfc.Utils.ScanningUtils");
+			Class.forName("com.tfc.utils.Bytecode");
+			Class.forName("com.tfc.utils.ScanningUtils");
 			Class.forName("com.tfc.API.flamemc.EmptyClass");
 			Class.forName("RegistryClassFinder");
 			Class.forName("GenericClassFinder");

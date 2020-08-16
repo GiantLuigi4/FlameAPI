@@ -6,6 +6,7 @@ import com.tfc.hacky_class_stuff.ASM.ASM;
 import org.objectweb.asm.Opcodes;
 
 public class FlameASM implements Opcodes {
+
 	public static void addField(String clazz, String name, Object defaultVal, AccessType access) {
 		ASM.addFieldNode(clazz, new FieldData(access.level, name, defaultVal));
 	}
@@ -24,8 +25,7 @@ public class FlameASM implements Opcodes {
 		//Especially on static things.
 		PRIVATE_STATIC(ACC_PRIVATE + ACC_STATIC),
 		PROTECTED(ACC_PROTECTED),
-		PROTECTED_STATIC(ACC_PROTECTED + ACC_STATIC),
-		;
+		PROTECTED_STATIC(ACC_PROTECTED + ACC_STATIC);
 		
 		public final int level;
 		

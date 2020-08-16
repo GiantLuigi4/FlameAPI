@@ -1,4 +1,4 @@
-package com.tfc.Utils;
+package com.tfc.utils;
 
 import entries.FlameAPI.Main;
 

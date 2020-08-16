@@ -1,6 +1,5 @@
-import com.tfc.Utils.ScanningUtils;
 import com.tfc.flame.FlameConfig;
-import entries.FlameAPI.Main;
+import com.tfc.utils.ScanningUtils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -8,7 +7,12 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
+import static com.tfc.utils.ScanningUtils.isVersionGreaterThan12;
+import static com.tfc.utils.ScanningUtils.isVersionLessThan11;
+
 public class RegistryClassFinder {
+	//avi.class is struc reg in 1.7.10
+
 	private static final String[] blocks_13 = new String[]{ //1.13 refactor
 			"cobblestone",
 			"air",
@@ -79,23 +83,21 @@ public class RegistryClassFinder {
 			"the_nether",
 			"the_end"
 	};
-	
+
+	/**
+	 *  Finally I've found a cleaner way to do this.... also I like green comments lol
+	 *  There IS a better way, like making an Array of HashMaps, putting the checks and iterating through them, but idk, I'll let you choose this (Lorenzo)
+	 */
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
+			ScanningUtils.checkVersion();
 			JarFile file = new JarFile(versionDir);
 			HashMap<String, String> registries = new HashMap<>();
-			String mcAssetVer = Main.getAssetVersion();                                //like 1.16, 1.15 or for 1.7.10 and before, the same version number
-			String mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);    //I get everything after 1. (aka 16, 15 or 7.10)
-			if (mcMajorVer.contains(".")) {
-				mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));        //if there is still a dot, make another substring, so it actually get 7 in case of 7.10
-			}
-			boolean flagGreaterThan12 = Integer.parseInt(mcMajorVer) > 12;
-			boolean flagLessThan11 = Integer.parseInt(mcMajorVer) < 11;            // 11 is just a placeholder, still gotta check
-			String[] version_blocks = flagGreaterThan12 ? blocks_13 : blocks_12;
-			String[] version_entities = flagLessThan11 ? entities_11 : entities_12;
-			String[] version_tileEntities = flagLessThan11 ? tileEntities_11 : tileEntities_12;
-			String[] version_enchantments = flagLessThan11 ? enchantments_11 : enchantments_12;
-			String[] version_biomes = flagLessThan11 ? biomes_11 : biomes_12;
+			String[] version_blocks = isVersionGreaterThan12 ? blocks_13 : blocks_12;
+			String[] version_entities = isVersionLessThan11 ? entities_11 : entities_12;
+			String[] version_tileEntities = isVersionLessThan11 ? tileEntities_11 : tileEntities_12;
+			String[] version_enchantments = isVersionLessThan11 ? enchantments_11 : enchantments_12;
+			String[] version_biomes = isVersionLessThan11 ? biomes_11 : biomes_12;
 			ScanningUtils.forAllFiles(file, (sc, entry) -> {
 				try {
 					InputStream stream = file.getInputStream(entry);
@@ -105,6 +107,7 @@ public class RegistryClassFinder {
 					HashMap<String, Boolean> entityChecks = new HashMap<>();
 					HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
 					HashMap<String, Boolean> biomeChecks = new HashMap<>();
+					HashMap<String, Boolean> dimensionChecks = new HashMap<>();
 					ScanningUtils.forEachLine(sc, line -> {
 						for (String s : items)
 							ScanningUtils.checkLine(s, itemChecks, line);
@@ -118,28 +121,19 @@ public class RegistryClassFinder {
 							ScanningUtils.checkLine(s, enchantmentChecks, line);
 						for (String s : version_biomes)
 							ScanningUtils.checkLine(s, biomeChecks, line);
+						for (String s : dimensions_12)
+							ScanningUtils.checkLine(s, dimensionChecks, line);
 					});
-					if (!biomeChecks.isEmpty())
-						FlameConfig.field.append("BiomeChecks: " + biomeChecks + "\n");
-					if (blockChecks.size() == (version_blocks.length)) {
-						registries.put("minecraft:blocks", entry.getName());
-						FlameConfig.field.append("Blocks registry class:" + entry.getName() + "\n");
-					} else if (itemChecks.size() == (items.length)) {
-						registries.put("minecraft:items", entry.getName());
-						FlameConfig.field.append("Items registry class:" + entry.getName() + "\n");
-					} else if (tileEntitiesChecks.size() == (version_tileEntities.length)) {
-						registries.put("minecraft:tile_entities", entry.getName());
-						FlameConfig.field.append("TileEntities registry class:" + entry.getName() + "\n");
-					} else if (entityChecks.size() == (version_entities.length)) {
-						registries.put("minecraft:entities", entry.getName());
-						FlameConfig.field.append("Entities registry class:" + entry.getName() + "\n");
-					} else if (enchantmentChecks.size() == (version_enchantments.length)) {
-						registries.put("minecraft:enchantments", entry.getName());
-						FlameConfig.field.append("Enchantments registry class:" + entry.getName() + "\n");
-					} else if (biomeChecks.size() == (version_biomes.length)) {
-						registries.put("minecraft:biomes", entry.getName());
-						FlameConfig.field.append("Biomes registry class:" + entry.getName() + "\n");
-					}
+					if (!dimensionChecks.isEmpty())
+						FlameConfig.field.append("Dimension checks: " + dimensionChecks + "\n");
+					String entryName = entry.getName();
+					ScanningUtils.checkRegistry(blockChecks.size(), version_blocks.length, registries, "blocks", entryName);
+					ScanningUtils.checkRegistry(itemChecks.size(), items.length, registries, "items", entryName);
+					ScanningUtils.checkRegistry(tileEntitiesChecks.size(), version_tileEntities.length, registries, "tile_entities", entryName);
+					ScanningUtils.checkRegistry(entityChecks.size(), version_tileEntities.length, registries, "entities", entryName);
+					ScanningUtils.checkRegistry(enchantmentChecks.size(), version_enchantments.length, registries, "enchantments", entryName);
+					ScanningUtils.checkRegistry(biomeChecks.size(), version_biomes.length, registries, "biome", entryName);
+					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions_12.length, registries, "dimensions", entryName);
 //					FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //					FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
 //					FlameConfig.field.append("checksI:"+itemChecks.size()+"\n");

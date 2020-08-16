@@ -1,6 +1,6 @@
 package com.tfc.hacky_class_stuff.ASM;
 
-import com.tfc.Utils.Bytecode;
+import com.tfc.utils.Bytecode;
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
