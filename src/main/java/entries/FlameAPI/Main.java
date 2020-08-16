@@ -6,6 +6,7 @@ import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.ASM;
+import com.tfc.hacky_class_stuff.BlockClass;
 import com.tfc.utils.ScanningUtils;
 
 import java.io.File;
@@ -75,6 +76,7 @@ public class Main implements IFlameAPIMod {
 			Class.forName("RegistryClassFinder");
 			Class.forName("GenericClassFinder");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
+			Class.forName("com.tfc.FlameAPIConfigs");
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
@@ -106,8 +108,8 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
-
-//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
+		
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);

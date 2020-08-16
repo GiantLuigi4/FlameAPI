@@ -1,12 +1,12 @@
 package com.tfc.hacky_class_stuff.ASM;
 
-import com.tfc.utils.Bytecode;
+import com.tfc.FlameAPIConfigs;
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
+import com.tfc.utils.Bytecode;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.ArrayList;
@@ -25,9 +25,9 @@ public class ASM {
 				ClassReader reader = new ClassReader(bytes);
 				ClassNode node = new ClassNode();
 				reader.accept(node, 0);
-				ClassWriter writer = new ClassWriter(reader, Opcodes.ASM7);
+				ClassWriter writer = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
 				for (FieldData data : fieldNodes.get(name)) {
-					reader.accept(new FieldAdder(Opcodes.ASM7, writer, data.name, data.defaultVal, data.defaultVal.getClass().getName(), data.access), 0);
+					reader.accept(new FieldAdder(FlameAPIConfigs.ASM_Version, writer, data.name, data.defaultVal, data.defaultVal.getClass().getName(), data.access), 0);
 				}
 				node.visitEnd();
 				writer.visitEnd();
@@ -48,9 +48,9 @@ public class ASM {
 			ClassReader reader = new ClassReader(bytes);
 			ClassNode node = new ClassNode();
 			reader.accept(node, 0);
-			ClassWriter writer = new ClassWriter(reader, Opcodes.ASM7);
+			ClassWriter writer = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
 			for (Access access : accessValues.get(name)) {
-				reader.accept(new MethodAccessTransformer(Opcodes.ASM7, writer, access.method, access.type.level), 0);
+				reader.accept(new MethodAccessTransformer(FlameAPIConfigs.ASM_Version, writer, access.method, access.type.level), 0);
 			}
 			node.visitEnd();
 			writer.visitEnd();
