@@ -16,6 +16,7 @@ import org.objectweb.asm.tree.ClassNode;
 //Idk either.
 //You must tell me how did you manage to get that class, it was hilarious :D
 //No
+//Ok now it has two constructors, both exactly the same, AND it still extends byte.
 public class BlockClass {
 	public static byte[] getBlock(String name, byte[] bytes) {
 		if (name.equals("com.tfc.API.flamemc.Block")) {
