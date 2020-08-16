@@ -25,6 +25,7 @@ public class GenericClassFinder {
 			"RepairCost",
 			"Damage"
 	};
+	//does not work AT ALL
 	private static final String[] rlChecks = new String[]{
 			"minecraft",
 			":"

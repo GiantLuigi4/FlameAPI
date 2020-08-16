@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
 import static com.tfc.utils.ScanningUtils.isVersionGreaterThan12;
-import static com.tfc.utils.ScanningUtils.isVersionLessThan11;
+import static com.tfc.utils.ScanningUtils.isVersionLessThan12;
 
 public class RegistryClassFinder {
 	//avi.class is struc reg in 1.7.10
@@ -88,10 +88,11 @@ public class RegistryClassFinder {
 			"Invalid shapeless",
 			"###"
 	};
+	//does not work for 1.7.10
 	private static final String[] sounds = new String[]{
-			"",
-			"",
-			""
+			"block.anvil.break",
+			"block.anvil.destroy",
+			"entity.arrow.hit"
 	};
 
 	/**
@@ -104,10 +105,10 @@ public class RegistryClassFinder {
 			JarFile file = new JarFile(versionDir);
 			HashMap<String, String> registries = new HashMap<>();
 			String[] version_blocks = isVersionGreaterThan12 ? blocks_13 : blocks_12;
-			String[] version_entities = isVersionLessThan11 ? entities_11 : entities_12;
-			String[] version_tileEntities = isVersionLessThan11 ? tileEntities_11 : tileEntities_12;
-			String[] version_enchantments = isVersionLessThan11 ? enchantments_11 : enchantments_12;
-			String[] version_biomes = isVersionLessThan11 ? biomes_11 : biomes_12;
+			String[] version_entities = isVersionLessThan12 ? entities_11 : entities_12;
+			String[] version_tileEntities = isVersionLessThan12 ? tileEntities_11 : tileEntities_12;
+			String[] version_enchantments = isVersionLessThan12 ? enchantments_11 : enchantments_12;
+			String[] version_biomes = isVersionLessThan12 ? biomes_11 : biomes_12;
 			ScanningUtils.forAllFiles(file, (sc, entry) -> {
 				try {
 					InputStream stream = file.getInputStream(entry);
@@ -119,6 +120,7 @@ public class RegistryClassFinder {
 					HashMap<String, Boolean> biomeChecks = new HashMap<>();
 					HashMap<String, Boolean> dimensionChecks = new HashMap<>();
 					HashMap<String, Boolean> recipeChecks = new HashMap<>();
+					HashMap<String, Boolean> soundsChecks = new HashMap<>();
 					ScanningUtils.forEachLine(sc, line -> {
 						for (String s : items)
 							ScanningUtils.checkLine(s, itemChecks, line);
@@ -136,10 +138,14 @@ public class RegistryClassFinder {
 							ScanningUtils.checkLine(s, dimensionChecks, line);
 						for (String s : craftingRecipes)
 							ScanningUtils.checkLine(s, recipeChecks, line);
+						for (String s : sounds)
+							ScanningUtils.checkLine(s, soundsChecks, line);
 					});
 					/*if (!dimensionChecks.isEmpty())
 						FlameConfig.field.append("Dimension checks: " + dimensionChecks + "\n");
 					*/
+					if (!soundsChecks.isEmpty())
+						FlameConfig.field.append("Sound checks: " + soundsChecks + "\n");
 					String entryName = entry.getName();
 					ScanningUtils.checkRegistry(blockChecks.size(), version_blocks.length, registries, "blocks", entryName);
 					ScanningUtils.checkRegistry(itemChecks.size(), items.length, registries, "items", entryName);
@@ -148,7 +154,8 @@ public class RegistryClassFinder {
 					ScanningUtils.checkRegistry(enchantmentChecks.size(), version_enchantments.length, registries, "enchantments", entryName);
 					ScanningUtils.checkRegistry(biomeChecks.size(), version_biomes.length, registries, "biome", entryName);
 					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions_12.length, registries, "dimensions", entryName);
-					if (isVersionLessThan11)
+					ScanningUtils.checkRegistry(soundsChecks.size(), sounds.length, registries, "sounds", entryName);
+					if (isVersionLessThan12)
 						ScanningUtils.checkRegistry(recipeChecks.size(), craftingRecipes.length, registries, "recipes", entryName);
 //					FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //					FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
@@ -183,7 +190,7 @@ public class RegistryClassFinder {
 						registry.set(entry.getName());
 					}
 				});
-			}, name -> name.endsWith(".class"));
+			}, name -> !name.startsWith("com/tfc") && name.endsWith(".class"));
 			return registry.get();
 		} catch (Throwable ignored) {
 		}
