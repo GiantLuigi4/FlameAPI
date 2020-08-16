@@ -1,4 +1,3 @@
-import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
 
 import java.io.File;
@@ -26,46 +25,48 @@ public class GenericClassFinder {
 			"RepairCost",
 			"Damage"
 	};
-	
+	private static final String[] rlChecks = new String[]{
+			"minecraft",
+			":"
+	};
+
 	public static HashMap<String, String> findItemClasses(File versionDir) {
 		try {
 			ScanningUtils.checkVersion();
 			AtomicReference<String> clazzItem = new AtomicReference<>("null");
 			AtomicReference<String> clazzStack = new AtomicReference<>("null");
 			AtomicReference<String> clazzBlock = new AtomicReference<>("null");
+			AtomicReference<String> clazzRL = new AtomicReference<>("null");
+
 			String[] version_checksBlocks = isVersionGreaterThan12 ? checksBlocks : checksBlocks12;
 			ScanningUtils.forAllFiles(new JarFile(versionDir), (sc, entry) -> {
 				HashMap<String, Boolean> checksItem = new HashMap<>();
 				HashMap<String, Boolean> checksStack = new HashMap<>();
 				HashMap<String, Boolean> checksBlock = new HashMap<>();
+				HashMap<String, Boolean> checksRL = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					//Looks like this UUID is always the same in the Item class, this is perfect
 					ScanningUtils.checkLine("CB3F55D3-645C-4F38-A497-9C13A33DB5CF", checksItem, line);
-					/*for (String s : checksItems) {
-						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksStack, line);
-					}*/
 					for (String s : itemStackChecks) {
 						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksStack, line);
 					}
 					for (String s : version_checksBlocks) {
 						ScanningUtils.checkLine(s, checksBlock, line);
 					}
+					for (String s : rlChecks)
+						ScanningUtils.checkLine(s, checksRL, line);
 				});
-				if (!checksItem.isEmpty() && !clazzItem.get().equals(entry.getName())) {
-					clazzItem.set(entry.getName());
-					FlameConfig.field.append("Potential item class: " + clazzItem.get() + "\n");
-				} else if (checksStack.size() == itemStackChecks.length && !clazzStack.get().equals(entry.getName())) {
-					clazzStack.set(entry.getName());
-					FlameConfig.field.append("Potential item stack class: " + clazzStack.get() + "\n");
-				} else if (checksBlock.size() == version_checksBlocks.length && !clazzBlock.get().equals(entry.getName())) {
-					clazzBlock.set(entry.getName());
-					FlameConfig.field.append("Potential block class: " + clazzBlock.get() + "\n");
-				}
-			}, name -> name.endsWith(".class") && !name.startsWith("com.tfc"));
+				String entryName = entry.getName();
+				ScanningUtils.checkGenericClass(checksItem.size(), 1, clazzItem, "Item", entryName);
+				ScanningUtils.checkGenericClass(checksBlock.size(), version_checksBlocks.length, clazzBlock, "Block", entryName);
+				ScanningUtils.checkGenericClass(checksStack.size(), itemStackChecks.length, clazzStack, "Stack", entryName);
+				ScanningUtils.checkGenericClass(checksRL.size(), rlChecks.length, clazzRL, "ResourceLocation", entryName);
+			}, name -> name.endsWith(".class") && !name.startsWith("com/tfc"));
 			HashMap<String, String> classes = new HashMap<>();
 			classes.put("Item", clazzItem.get());
 			classes.put("ItemStack", clazzStack.get());
 			classes.put("Block", clazzBlock.get());
+			classes.put("ResourceLocation", clazzRL.get());
 			return classes;
 		} catch (Throwable ignored) {
 		}

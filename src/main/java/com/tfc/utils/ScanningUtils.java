@@ -6,6 +6,7 @@ import entries.FlameAPI.Main;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -66,7 +67,14 @@ public class ScanningUtils {
 	public static void checkRegistry(int checksLength, int arrayLength, HashMap<String, String> registries, String registryName, String entryName) {
 		if (checksLength == arrayLength) {
 			registries.put("minecraft:" + registryName, entryName);
-			FlameConfig.field.append(registryName + " registry class:" + entryName + "\n");
+			//FlameConfig.field.append(registryName.toUpperCase() + " registry class:" + entryName + "\n");
+		}
+	}
+
+	public static void checkGenericClass(int checksLength, int arrayLength, AtomicReference<String> clazz, String genericName, String entryName) {
+		if (checksLength == arrayLength && !clazz.get().equals(entryName)) {
+			clazz.set(entryName);
+			FlameConfig.field.append("Potential " + genericName + "class: " + clazz.get() + "\n");
 		}
 	}
 

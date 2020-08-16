@@ -6,6 +6,7 @@ import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.ASM;
+import com.tfc.utils.ScanningUtils;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -24,6 +25,7 @@ public class Main implements IFlameAPIMod {
 	private static String blockClass = "";
 	private static String itemClass = "";
 	private static String itemStackClass = "";
+	private static String resourceLocationClass = "";
 	
 	private static HashMap<String, String> registries = null;
 	
@@ -127,13 +129,15 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
-			HashMap<String, String> itemClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findItemClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
-			itemClass = itemClasses.get("Item");
-			blockClass = itemClasses.get("Block");
-			itemStackClass = itemClasses.get("ItemStack");
+			HashMap<String, String> genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findItemClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+			itemClass = genericClasses.get("Item");
+			blockClass = genericClasses.get("Block");
+			itemStackClass = genericClasses.get("ItemStack");
+			resourceLocationClass = genericClasses.get("ResourceLocation");
 			FlameConfig.field.append("Block Class:" + blockClass + "\n");
 			FlameConfig.field.append("Item Class:" + itemClass + "\n");
 			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
+			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
@@ -184,9 +188,8 @@ public class Main implements IFlameAPIMod {
 		for (int i = 0; i < registries.size(); i++) {
 			try {
 				String name = names.next();
-				String clazz = classes.next();
-				clazz = (clazz.replace(".class", "").replace("/", "."));
-				FlameConfig.field.append("Registry class:   " + name + ":" + clazz + "\n");
+				String clazz = ScanningUtils.toClassName(classes.next());
+				FlameConfig.field.append("Registry class: " + name + ": " + clazz + "\n");
 				registryClassNames.put(name, clazz);
 //				registryClasses.put(name,Class.forName(clazz));
 			} catch (Throwable err) {

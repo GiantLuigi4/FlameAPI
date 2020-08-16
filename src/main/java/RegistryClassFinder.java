@@ -78,10 +78,20 @@ public class RegistryClassFinder {
 			"forest",
 			"taiga"
 	};
+	//does not work for 1.7.10
 	private static final String[] dimensions_12 = new String[]{
 			"overworld",
 			"the_nether",
 			"the_end"
+	};
+	private static final String[] craftingRecipes = new String[]{
+			"Invalid shapeless",
+			"###"
+	};
+	private static final String[] sounds = new String[]{
+			"",
+			"",
+			""
 	};
 
 	/**
@@ -108,6 +118,7 @@ public class RegistryClassFinder {
 					HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
 					HashMap<String, Boolean> biomeChecks = new HashMap<>();
 					HashMap<String, Boolean> dimensionChecks = new HashMap<>();
+					HashMap<String, Boolean> recipeChecks = new HashMap<>();
 					ScanningUtils.forEachLine(sc, line -> {
 						for (String s : items)
 							ScanningUtils.checkLine(s, itemChecks, line);
@@ -123,9 +134,12 @@ public class RegistryClassFinder {
 							ScanningUtils.checkLine(s, biomeChecks, line);
 						for (String s : dimensions_12)
 							ScanningUtils.checkLine(s, dimensionChecks, line);
+						for (String s : craftingRecipes)
+							ScanningUtils.checkLine(s, recipeChecks, line);
 					});
-					if (!dimensionChecks.isEmpty())
+					/*if (!dimensionChecks.isEmpty())
 						FlameConfig.field.append("Dimension checks: " + dimensionChecks + "\n");
+					*/
 					String entryName = entry.getName();
 					ScanningUtils.checkRegistry(blockChecks.size(), version_blocks.length, registries, "blocks", entryName);
 					ScanningUtils.checkRegistry(itemChecks.size(), items.length, registries, "items", entryName);
@@ -134,6 +148,8 @@ public class RegistryClassFinder {
 					ScanningUtils.checkRegistry(enchantmentChecks.size(), version_enchantments.length, registries, "enchantments", entryName);
 					ScanningUtils.checkRegistry(biomeChecks.size(), version_biomes.length, registries, "biome", entryName);
 					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions_12.length, registries, "dimensions", entryName);
+					if (isVersionLessThan11)
+						ScanningUtils.checkRegistry(recipeChecks.size(), craftingRecipes.length, registries, "recipes", entryName);
 //					FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
 //					FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
 //					FlameConfig.field.append("checksI:"+itemChecks.size()+"\n");
@@ -142,14 +158,14 @@ public class RegistryClassFinder {
 					stream.close();
 				} catch (Throwable ignored) {
 				}
-			}, name -> !name.startsWith("com.tfc") && name.endsWith(".class"));
+			}, name -> !name.startsWith("com/tfc") && name.endsWith(".class"));
 			return registries;
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
 		return null;
 	}
-	
+
 	public static String findMainRegistry(HashMap<String, String> registryTypes, File versionDir) {
 		try {
 			JarFile file = new JarFile(versionDir);
