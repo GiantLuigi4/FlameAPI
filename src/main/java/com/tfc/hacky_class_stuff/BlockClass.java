@@ -20,8 +20,6 @@ public class BlockClass {
 				ClassWriter writer = new ClassWriter(reader, Opcodes.ASM7);
 //				ClassNode node = new ClassNode();
 //				node.superName = ScanningUtils.toClassName(Main.getResourceTypeClasses().get("Block"));
-//				node.access = FlameASM.AccessType.PUBLIC.level;
-//				node.module = new ModuleNode("com.tfc.API.flamemc", Opcodes.ACC_OPEN, "null");
 //				node.visitEnd();
 				writer.visit(52, Opcodes.ACC_PUBLIC, name, "FlameAPI", ScanningUtils.toClassName(Main.getResourceTypeClasses().get("Block")), null);
 //				node.accept(writer);
