@@ -1,11 +1,11 @@
 package entries.FlameAPI;
 
+import com.tfc.API.flamemc.Block;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.ASM;
-import com.tfc.hacky_class_stuff.BlockClass;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -44,6 +44,14 @@ public class Main implements IFlameAPIMod {
 	}
 	
 	
+	public static HashMap<String, String> getResourceTypeClasses() {
+		HashMap<String, String> resourceTypes = new HashMap<>();
+		resourceTypes.put("Block", blockClass);
+		resourceTypes.put("Item", itemClass);
+		resourceTypes.put("ItemStack", itemStackClass);
+		return resourceTypes;
+	}
+	
 	public static HashMap<String, String> getRegistries() {
 		return (HashMap<String, String>) registries.clone();
 	}
@@ -58,6 +66,11 @@ public class Main implements IFlameAPIMod {
 			Class.forName("com.tfc.hacky_class_stuff.ASM.FieldAdder");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.Writer");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldData");
+			Class.forName("com.tfc.Utils.Bytecode");
+			Class.forName("com.tfc.Utils.ScanningUtils");
+			Class.forName("com.tfc.API.flamemc.EmptyClass");
+			Class.forName("RegistryClassFinder");
+			Class.forName("GenericClassFinder");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
 		} catch (Throwable err) {
@@ -90,8 +103,8 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
-		
-		FlameLauncher.getLoader().getBaseCodeGetters().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
+
+//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
@@ -104,15 +117,21 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
+			new Block();
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+		}
+		
+		try {
 			registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
-			blockClass = (String) Class.forName("GenericClassFinder").getMethod("findBlockClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
-			FlameConfig.field.append("Block Class:" + blockClass + "\n");
 			HashMap<String, String> itemClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findItemClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			itemClass = itemClasses.get("Item");
+			blockClass = itemClasses.get("Block");
 			itemStackClass = itemClasses.get("ItemStack");
+			FlameConfig.field.append("Block Class:" + blockClass + "\n");
 			FlameConfig.field.append("Item Class:" + itemClass + "\n");
 			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
 		} catch (Throwable err) {

@@ -1,3 +1,5 @@
+package com.tfc.Utils;
+
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -11,7 +13,7 @@ import java.util.jar.JarFile;
  * just to reduce code redundancy, lol
  * also, it can make files vastly smaller if done correctly
  */
-public class Utils {
+public class ScanningUtils {
 	public static void forAllFiles(JarFile file, BiConsumer<Scanner, JarEntry> textConsumer, Function<String, Boolean> fileValidator) {
 		file.stream().forEach(f -> {
 			if (fileValidator.apply(f.getName())) {

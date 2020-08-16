@@ -1,13 +1,11 @@
+import com.tfc.Utils.ScanningUtils;
 import com.tfc.flame.FlameConfig;
 import entries.FlameAPI.Main;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class RegistryClassFinder {
@@ -98,75 +96,59 @@ public class RegistryClassFinder {
 			String[] version_tileEntities = flagLessThan11 ? tileEntities_11 : tileEntities_12;
 			String[] version_enchantments = flagLessThan11 ? enchantments_11 : enchantments_12;
 			String[] version_biomes = flagLessThan11 ? biomes_11 : biomes_12;
-			try {
-				for (Iterator<JarEntry> it = file.stream().iterator(); it.hasNext(); ) {
-					JarEntry entry = it.next();
-					if (!entry.getName().startsWith("com.tfc")) {
-						if (entry.getName().endsWith(".class")) {
-							try {
-								InputStream stream = file.getInputStream(entry);
-								Scanner sc = new Scanner(stream);
-								HashMap<String, Boolean> blockChecks = new HashMap<>();
-								HashMap<String, Boolean> itemChecks = new HashMap<>();
-								HashMap<String, Boolean> tileEntitiesChecks = new HashMap<>();
-								HashMap<String, Boolean> entityChecks = new HashMap<>();
-								HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
-								HashMap<String, Boolean> biomeChecks = new HashMap<>();
-								while (sc.hasNext()) {
-									String s1 = sc.next();
-									for (String s : items)
-										if (!itemChecks.containsKey(s) && s1.contains(s))
-											itemChecks.put(s, true);
-									for (String s : version_blocks)
-										if (!blockChecks.containsKey(s) && s1.contains(s))
-											blockChecks.put(s, true);
-									for (String s : version_entities)
-										if (!entityChecks.containsKey(s) && s1.contains(s))
-											entityChecks.put(s, true);
-									for (String s : version_tileEntities)
-										if (!tileEntitiesChecks.containsKey(s) && s1.contains(s))
-											tileEntitiesChecks.put(s, true);
-									for (String s : version_enchantments)
-										if (!enchantmentChecks.containsKey(s) && s1.contains(s))
-											enchantmentChecks.put(s, true);
-									for (String s : version_biomes)
-										if (!biomeChecks.containsKey(s) && s1.contains(s))
-											biomeChecks.put(s, true);
-								}
-								if (!biomeChecks.isEmpty())
-									FlameConfig.field.append("BiomeChecks: " + biomeChecks + "\n");
-								if (blockChecks.size() == (version_blocks.length)) {
-									registries.put("minecraft:blocks", entry.getName());
-									FlameConfig.field.append("Blocks registry class:" + entry.getName() + "\n");
-								} else if (itemChecks.size() == (items.length)) {
-									registries.put("minecraft:items", entry.getName());
-									FlameConfig.field.append("Items registry class:" + entry.getName() + "\n");
-								} else if (tileEntitiesChecks.size() == (version_tileEntities.length)) {
-									registries.put("minecraft:tile_entities", entry.getName());
-									FlameConfig.field.append("TileEntities registry class:" + entry.getName() + "\n");
-								} else if (entityChecks.size() == (version_entities.length)) {
-									registries.put("minecraft:entities", entry.getName());
-									FlameConfig.field.append("Entities registry class:" + entry.getName() + "\n");
-								} else if (enchantmentChecks.size() == (version_enchantments.length)) {
-									registries.put("minecraft:enchantments", entry.getName());
-									FlameConfig.field.append("Enchantments registry class:" + entry.getName() + "\n");
-								} else if (biomeChecks.size() == (version_biomes.length)) {
-									registries.put("minecraft:biomes", entry.getName());
-									FlameConfig.field.append("Biomes registry class:" + entry.getName() + "\n");
-								}
-//								FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
-//								FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
-//								FlameConfig.field.append("checksI:"+itemChecks.size()+"\n");
-//								FlameConfig.field.append("goalI  :"+(items.length)+"\n");
-								sc.close();
-								stream.close();
-							} catch (Throwable ignored) {
-							}
-						}
+			ScanningUtils.forAllFiles(file, (sc, entry) -> {
+				try {
+					InputStream stream = file.getInputStream(entry);
+					HashMap<String, Boolean> blockChecks = new HashMap<>();
+					HashMap<String, Boolean> itemChecks = new HashMap<>();
+					HashMap<String, Boolean> tileEntitiesChecks = new HashMap<>();
+					HashMap<String, Boolean> entityChecks = new HashMap<>();
+					HashMap<String, Boolean> enchantmentChecks = new HashMap<>();
+					HashMap<String, Boolean> biomeChecks = new HashMap<>();
+					ScanningUtils.forEachLine(sc, line -> {
+						for (String s : items)
+							ScanningUtils.checkLine(s, itemChecks, line);
+						for (String s : version_blocks)
+							ScanningUtils.checkLine(s, blockChecks, line);
+						for (String s : version_entities)
+							ScanningUtils.checkLine(s, entityChecks, line);
+						for (String s : version_tileEntities)
+							ScanningUtils.checkLine(s, tileEntitiesChecks, line);
+						for (String s : version_enchantments)
+							ScanningUtils.checkLine(s, enchantmentChecks, line);
+						for (String s : version_biomes)
+							ScanningUtils.checkLine(s, biomeChecks, line);
+					});
+					if (!biomeChecks.isEmpty())
+						FlameConfig.field.append("BiomeChecks: " + biomeChecks + "\n");
+					if (blockChecks.size() == (version_blocks.length)) {
+						registries.put("minecraft:blocks", entry.getName());
+						FlameConfig.field.append("Blocks registry class:" + entry.getName() + "\n");
+					} else if (itemChecks.size() == (items.length)) {
+						registries.put("minecraft:items", entry.getName());
+						FlameConfig.field.append("Items registry class:" + entry.getName() + "\n");
+					} else if (tileEntitiesChecks.size() == (version_tileEntities.length)) {
+						registries.put("minecraft:tile_entities", entry.getName());
+						FlameConfig.field.append("TileEntities registry class:" + entry.getName() + "\n");
+					} else if (entityChecks.size() == (version_entities.length)) {
+						registries.put("minecraft:entities", entry.getName());
+						FlameConfig.field.append("Entities registry class:" + entry.getName() + "\n");
+					} else if (enchantmentChecks.size() == (version_enchantments.length)) {
+						registries.put("minecraft:enchantments", entry.getName());
+						FlameConfig.field.append("Enchantments registry class:" + entry.getName() + "\n");
+					} else if (biomeChecks.size() == (version_biomes.length)) {
+						registries.put("minecraft:biomes", entry.getName());
+						FlameConfig.field.append("Biomes registry class:" + entry.getName() + "\n");
 					}
+//					FlameConfig.field.append("checksB:"+blockChecks.size()+"\n");
+//					FlameConfig.field.append("goalB  :"+(blocks.length)+"\n");
+//					FlameConfig.field.append("checksI:"+itemChecks.size()+"\n");
+//					FlameConfig.field.append("goalI  :"+(items.length)+"\n");
+					sc.close();
+					stream.close();
+				} catch (Throwable ignored) {
 				}
-			} catch (Throwable ignored) {
-			}
+			}, name -> !name.startsWith("com.tfc") && name.endsWith(".class"));
 			return registries;
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
@@ -181,13 +163,11 @@ public class RegistryClassFinder {
 			for (String typeClass : registryTypes.values()) {
 				FlameConfig.field.append("Registry Type: " + typeClass + "\n");
 			}
-			Utils.forAllFiles(file, (sc, entry) -> {
+			ScanningUtils.forAllFiles(file, (sc, entry) -> {
 				HashMap<String, Boolean> types = new HashMap<>();
-				Utils.forEachLine(sc, line -> {
+				ScanningUtils.forEachLine(sc, line -> {
 					for (String typeClass : registryTypes.values()) {
-						Utils.checkLine(Utils.toClassName(typeClass), types, line);
-//						if (s.contains(typeClass.replace(".class", "").replace("/", ".")) && !types.containsKey(typeClass))
-//							types.put(typeClass, true);
+						ScanningUtils.checkLine(ScanningUtils.toClassName(typeClass), types, line);
 					}
 					if (registryTypes.size() == types.size()) {
 						registry.set(entry.getName());

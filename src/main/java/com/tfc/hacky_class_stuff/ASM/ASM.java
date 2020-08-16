@@ -1,17 +1,14 @@
 package com.tfc.hacky_class_stuff.ASM;
 
+import com.tfc.Utils.Bytecode;
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
-import entries.FlameAPI.Main;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,7 +20,7 @@ public class ASM {
 	
 	public static byte[] applyFields(String name, byte[] bytes) {
 		if (fieldNodes.containsKey(name) && bytes != null) {
-			writeBytes(name, "pre", bytes);
+			Bytecode.writeBytes(name, "pre", bytes);
 			try {
 				ClassReader reader = new ClassReader(bytes);
 				ClassNode node = new ClassNode();
@@ -35,7 +32,7 @@ public class ASM {
 				node.visitEnd();
 				writer.visitEnd();
 				byte[] bytes1 = writer.toByteArray();
-				writeBytes(name, "post_fields", bytes1);
+				Bytecode.writeBytes(name, "post_fields", bytes1);
 				return bytes1;
 			} catch (Throwable err) {
 				FlameConfig.logError(err);
@@ -47,9 +44,7 @@ public class ASM {
 	public static byte[] applyMethodTransformers(String name, byte[] bytes) {
 		if (accessValues.containsKey(name)) {
 			FlameConfig.field.append("Transforming class: " + name + "\n");
-			if (!fieldNodes.containsKey(name)) {
-				writeBytes(name, "pre", bytes);
-			}
+			if (!fieldNodes.containsKey(name)) Bytecode.writeBytes(name, "pre", bytes);
 			ClassReader reader = new ClassReader(bytes);
 			ClassNode node = new ClassNode();
 			reader.accept(node, 0);
@@ -60,7 +55,7 @@ public class ASM {
 			node.visitEnd();
 			writer.visitEnd();
 			byte[] bytes1 = writer.toByteArray();
-			writeBytes(name, "post_at", bytes1);
+			Bytecode.writeBytes(name, "post_at", bytes1);
 			return bytes1;
 		}
 		return bytes;
@@ -91,21 +86,6 @@ public class ASM {
 			ArrayList<Access> list = new ArrayList<>();
 			list.add(access);
 			accessValues.put(clazz, list);
-		}
-	}
-	
-	private static void writeBytes(String clazz, String file, byte[] bytes) {
-		try {
-			File f1 = new File(Main.getGameDir() + "\\FlameASM\\" + file + "\\" + clazz.replace(".", "\\") + ".class");
-			if (!f1.exists()) {
-				f1.getParentFile().mkdirs();
-				f1.createNewFile();
-			}
-			//https://www.geeksforgeeks.org/convert-byte-array-to-file-using-java/#:~:text=To%20convert%20byte%5B%5D%20to,and%20write%20in%20a%20file.
-			OutputStream writer1 = new FileOutputStream(f1);
-			writer1.write(bytes);
-			writer1.close();
-		} catch (Throwable ignored) {
 		}
 	}
 	
