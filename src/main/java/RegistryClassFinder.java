@@ -78,8 +78,8 @@ public class RegistryClassFinder {
 			"forest",
 			"taiga"
 	};
-	//does not work for 1.7.10
-	private static final String[] dimensions_12 = new String[]{
+	//TODO Dimension in 1.7.10 -> https://github.com/MinecraftForge/MinecraftForge/blob/1.7.10/src/main/java/net/minecraftforge/common/DimensionManager.java
+	private static final String[] dimensions = new String[]{
 			"overworld",
 			"the_nether",
 			"the_end"
@@ -88,17 +88,11 @@ public class RegistryClassFinder {
 			"Invalid shapeless",
 			"###"
 	};
-	//does not work for 1.7.10
-	private static final String[] sounds = new String[]{
-			"block.anvil.break",
-			"block.anvil.destroy",
-			"entity.arrow.hit"
+	private static final String[] sounds = new String[] {
+			"meta:missing_sound",
+			"File {} does not exist, cannot add it to event {}"
 	};
 
-	/**
-	 *  Finally I've found a cleaner way to do this.... also I like green comments lol
-	 *  There IS a better way, like making an Array of HashMaps, putting the checks and iterating through them, but idk, I'll let you choose this (Lorenzo)
-	 */
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
 			ScanningUtils.checkVersion();
@@ -134,18 +128,13 @@ public class RegistryClassFinder {
 							ScanningUtils.checkLine(s, enchantmentChecks, line);
 						for (String s : version_biomes)
 							ScanningUtils.checkLine(s, biomeChecks, line);
-						for (String s : dimensions_12)
+						for (String s : dimensions)
 							ScanningUtils.checkLine(s, dimensionChecks, line);
 						for (String s : craftingRecipes)
 							ScanningUtils.checkLine(s, recipeChecks, line);
 						for (String s : sounds)
 							ScanningUtils.checkLine(s, soundsChecks, line);
 					});
-					/*if (!dimensionChecks.isEmpty())
-						FlameConfig.field.append("Dimension checks: " + dimensionChecks + "\n");
-					*/
-					if (!soundsChecks.isEmpty())
-						FlameConfig.field.append("Sound checks: " + soundsChecks + "\n");
 					String entryName = entry.getName();
 					ScanningUtils.checkRegistry(blockChecks.size(), version_blocks.length, registries, "blocks", entryName);
 					ScanningUtils.checkRegistry(itemChecks.size(), items.length, registries, "items", entryName);
@@ -153,7 +142,7 @@ public class RegistryClassFinder {
 					ScanningUtils.checkRegistry(entityChecks.size(), version_tileEntities.length, registries, "entities", entryName);
 					ScanningUtils.checkRegistry(enchantmentChecks.size(), version_enchantments.length, registries, "enchantments", entryName);
 					ScanningUtils.checkRegistry(biomeChecks.size(), version_biomes.length, registries, "biome", entryName);
-					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions_12.length, registries, "dimensions", entryName);
+					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions.length, registries, "dimensions", entryName);
 					ScanningUtils.checkRegistry(soundsChecks.size(), sounds.length, registries, "sounds", entryName);
 					if (isVersionLessThan12)
 						ScanningUtils.checkRegistry(recipeChecks.size(), craftingRecipes.length, registries, "recipes", entryName);
