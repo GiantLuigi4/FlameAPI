@@ -124,7 +124,7 @@ public class Main implements IFlameAPIMod {
 		
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.mixins", ASM::applyMixins);
+//      FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.mixins", ASM::applyMixins);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
 		

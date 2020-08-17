@@ -7,22 +7,15 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
-import static com.tfc.utils.ScanningUtils.isVersionGreaterThan12;
 import static com.tfc.utils.ScanningUtils.isVersionLessThan12;
 
 public class RegistryClassFinder {
 	//avi.class is struc reg in 1.7.10
 
-	private static final String[] blocks_13 = new String[]{ //1.13 refactor
+	private static final String[] blocks = new String[]{
 			"cobblestone",
 			"air",
 			"grass_block",
-			"dirt"
-	};
-	private static final String[] blocks_12 = new String[]{
-			"cobblestone",
-			"air",
-			"grass",
 			"dirt"
 	};
 	private static final String[] items = new String[]{
@@ -110,7 +103,8 @@ public class RegistryClassFinder {
 			ScanningUtils.checkVersion();
 			JarFile file = new JarFile(versionDir);
 			HashMap<String, String> registries = new HashMap<>();
-			String[] version_blocks = isVersionGreaterThan12 ? blocks_13 : blocks_12;
+			if (isVersionLessThan12)
+				blocks[2] = "grass";
 			String[] version_entities = isVersionLessThan12 ? entities_11 : entities_12;
 			String[] version_tileEntities = isVersionLessThan12 ? tileEntities_11 : tileEntities_12;
 			String[] version_enchantments = isVersionLessThan12 ? enchantments_11 : enchantments_12;
@@ -131,7 +125,7 @@ public class RegistryClassFinder {
 					ScanningUtils.forEachLine(sc, line -> {
 						for (String s : items)
 							ScanningUtils.checkLine(s, itemChecks, line);
-						for (String s : version_blocks)
+						for (String s : blocks)
 							ScanningUtils.checkLine(s, blockChecks, line);
 						for (String s : version_entities)
 							ScanningUtils.checkLine(s, entityChecks, line);
@@ -151,10 +145,7 @@ public class RegistryClassFinder {
 							ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), furnaceChecks, line);
 					});
 					String entryName = entry.getName();
-					if (furnaceChecks.size() == furnace.length) {
-						FlameConfig.field.append("Probably Furnace Recipes: " + entryName + "\n");
-					}
-					ScanningUtils.checkRegistry(blockChecks.size(), version_blocks.length, registries, "blocks", entryName);
+					ScanningUtils.checkRegistry(blockChecks.size(), blocks.length, registries, "blocks", entryName);
 					ScanningUtils.checkRegistry(itemChecks.size(), items.length, registries, "items", entryName);
 					ScanningUtils.checkRegistry(tileEntitiesChecks.size(), version_tileEntities.length, registries, "tile_entities", entryName);
 					ScanningUtils.checkRegistry(entityChecks.size(), version_tileEntities.length, registries, "entities", entryName);
