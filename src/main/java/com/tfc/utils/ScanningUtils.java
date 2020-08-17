@@ -18,10 +18,10 @@ import java.util.jar.JarFile;
  * also, it can make files vastly smaller if done correctly
  */
 public class ScanningUtils {
-
+	
 	public static boolean isVersionGreaterThan12 = false;
 	public static boolean isVersionLessThan12 = false;
-
+	
 	public static void checkVersion() {
 		String mcAssetVer = Main.getAssetVersion();                                //like 1.16, 1.15 or for 1.7.10 and before, the same version number
 		String mcMajorVer = mcAssetVer.substring(mcAssetVer.indexOf(".") + 1);    //I get everything after 1. (aka 16, 15 or 7.10)
@@ -31,7 +31,7 @@ public class ScanningUtils {
 		isVersionGreaterThan12 = Integer.parseInt(mcMajorVer) > 12;
 		isVersionLessThan12 = !isVersionGreaterThan12;            // 11 is just a placeholder, still gotta check
 	}
-
+	
 	public static void forLittleFiles(JarFile file, BiConsumer<Scanner, JarEntry> textConsumer) {
 		file.stream().forEach(f -> {
 			long size = f.getCompressedSize();
@@ -47,7 +47,7 @@ public class ScanningUtils {
 			}
 		});
 	}
-
+	
 	public static void forAllFiles(JarFile file, BiConsumer<Scanner, JarEntry> textConsumer, Function<String, Boolean> fileValidator) {
 		file.stream().forEach(f -> {
 			if (fileValidator.apply(f.getName())) {
@@ -78,21 +78,21 @@ public class ScanningUtils {
 		}
 		return false;
 	}
-
+	
 	public static void checkRegistry(int checksLength, int arrayLength, HashMap<String, String> registries, String registryName, String entryName) {
 		if (checksLength == arrayLength) {
 			registries.put("minecraft:" + registryName, entryName);
 			//FlameConfig.field.append(registryName.toUpperCase() + " registry class:" + entryName + "\n");
 		}
 	}
-
+	
 	public static void checkGenericClass(int checksLength, int arrayLength, AtomicReference<String> clazz, String genericName, String entryName) {
 		if (checksLength == arrayLength && !clazz.get().equals(entryName)) {
 			clazz.set(entryName);
 			FlameConfig.field.append("Potential " + genericName + "class: " + clazz.get() + "\n");
 		}
 	}
-
+	
 	public static String toClassName(String s) {
 		return s.replace(".class", "").replace("/", ".");
 	}

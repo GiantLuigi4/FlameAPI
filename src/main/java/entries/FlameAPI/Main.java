@@ -5,6 +5,7 @@ import com.tfc.API.flamemc.FlameASM;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
+import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.BlockClass;
 import com.tfc.utils.ScanningUtils;
@@ -126,6 +127,22 @@ public class Main implements IFlameAPIMod {
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.mixins", ASM::applyMixins);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
+		
+		Access access = new Access(FlameASM.AccessType.PRIVATE, "hello");
+		FlameConfig.field.append(access.type.name() + "\n");
+		FlameConfig.field.append(access.type.level + "\n");
+		
+		access.increase(FlameASM.AccessType.PROTECTED);
+		FlameConfig.field.append(access.type.name() + "\n");
+		FlameConfig.field.append(access.type.level + "\n");
+		
+		access.increase(FlameASM.AccessType.PUBLIC);
+		FlameConfig.field.append(access.type.name() + "\n");
+		FlameConfig.field.append(access.type.level + "\n");
+		
+		access.increase(FlameASM.AccessType.PUBLIC_STATIC);
+		FlameConfig.field.append(access.type.name() + "\n");
+		FlameConfig.field.append(access.type.level + "\n");
 
 //		try {
 //			Class.forName("mixins.FlameAPI.ClientBrandRetriever");

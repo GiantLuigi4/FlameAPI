@@ -1,5 +1,7 @@
 package com.tfc.hacky_class_stuff.ASM;
 
+import com.tfc.API.flamemc.FlameASM;
+import com.tfc.hacky_class_stuff.ASM.API.Access;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -31,7 +33,13 @@ public class MethodAccessTransformer extends ClassVisitor {
 			methodType = descriptor;
 			this.signature = signature;
 			this.exceptions = exceptions;
-			this.access = Math.max(this.access, access);
+			FlameASM.AccessType access1 = FlameASM.AccessType.forLevel(access);
+			FlameASM.AccessType access2 = FlameASM.AccessType.forLevel(this.access);
+			Access access3 = new Access(access1, name);
+			//Get the highest of both accesses.
+			access3.increase(access2);
+			this.access = access3.type.level;
+//			this.access = Math.max(this.access, access);
 		}
 		return super.visitMethod(access, name, descriptor, signature, exceptions);
 	}

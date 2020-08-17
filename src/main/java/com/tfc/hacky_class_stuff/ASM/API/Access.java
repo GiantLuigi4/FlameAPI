@@ -12,8 +12,15 @@ public class Access {
 	}
 	
 	//Better way found (Lorenzo)
-	//TODO:Find a better way to do this, lol
+	//Even better way found (GiantLuigi4)
+	//NVM (GiantLuigi4)
 	public void increase(FlameASM.AccessType type) {
+//		if (
+//				(type.level <= FlameASM.AccessType.PRIVATE.level && this.type.level <= FlameASM.AccessType.PRIVATE.level) ||
+//						(type.level >= FlameASM.AccessType.PRIVATE_STATIC.level && this.type.level >= FlameASM.AccessType.PRIVATE_STATIC.level)
+//		)
+//			this.type = FlameASM.AccessType.forLevel(Math.min(this.type.level,type.level));
+		
 		switch (FlameASM.AccessType.valueOf(this.type.name())) {
 			case PUBLIC:
 			case PUBLIC_STATIC:
