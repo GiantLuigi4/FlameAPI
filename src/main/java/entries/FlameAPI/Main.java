@@ -7,6 +7,7 @@ import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.ASM;
+import com.tfc.hacky_class_stuff.ASM.ClassObject;
 import com.tfc.hacky_class_stuff.BlockClass;
 import com.tfc.utils.ScanningUtils;
 import mixins.FlameAPI.ClientBrandRetriever;
@@ -91,6 +92,7 @@ public class Main implements IFlameAPIMod {
 			Class.forName("org.objectweb.asm.tree.FieldNode");
 			Class.forName("org.objectweb.asm.tree.AnnotationNode");
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
+			Object obj1 = ClassObject.class;
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 			throw new RuntimeException(err);

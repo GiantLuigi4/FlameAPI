@@ -3,8 +3,8 @@ package com.tfc.hacky_class_stuff.ASM;
 import com.tfc.API.flame.Mixin;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.flame.FlameConfig;
+import com.tfc.hacky_class_stuff.ASM.API.FieldData;
 import com.tfc.utils.BiObject;
-import com.tfc.utils.TriObject;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
@@ -20,7 +20,7 @@ public class MixinHandler {
 	private static final HashMap<String, HashMap<String, MethodNode>> replacements = new HashMap<>();
 	private static final HashMap<String, ArrayList<FieldNode>> fields = new HashMap<>();
 	
-	public static TriObject<ClassReader, ClassNode, ClassWriter> getClassNode(String name, byte[] bytes) {
+	public static ClassObject getClassNode(String name, byte[] bytes) {
 		ClassNode node = new ClassNode();
 		ClassReader reader;
 		try {
@@ -28,11 +28,13 @@ public class MixinHandler {
 		} catch (Throwable err) {
 			reader = new ClassReader(bytes);
 		}
+		ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
 		reader.accept(node, 0);
-		return new TriObject<>(reader, node, null);
+		node.accept(writer);
+		return new ClassObject(reader, node, writer);
 	}
 	
-	public static TriObject<ClassReader, ClassNode, ClassWriter> addMethod(TriObject<ClassReader, ClassNode, ClassWriter> clazz, InsnList instructions, String name, FlameASM.AccessType access, String returnType, ArrayList<ParameterNode> nodes) {
+	public static ClassObject addMethod(ClassObject clazz, InsnList instructions, String name, FlameASM.AccessType access, String returnType, ArrayList<ParameterNode> nodes) {
 		MethodNode node = new MethodNode();
 		node.instructions = instructions;
 		node.name = name;
@@ -141,24 +143,34 @@ public class MixinHandler {
 			annotationNodes.addAll(node.visibleAnnotations);
 		} catch (Throwable ignored) {
 		}
-		FlameConfig.field.append("Scanning node: " + node.name + "\n");
-		if (node.visibleAnnotations != null) {
-			for (AnnotationNode node1 : annotationNodes) {
-				FlameConfig.field.append("Annotation: " + node1.desc + "\n");
-				if (node1.desc.contains("AppendField")) {
-					List<Object> values = node1.values;
-					String clazzTarg = (String) values.get(1);
-					if (!fields.containsKey(clazzTarg))
-						fields.put(clazzTarg, new ArrayList<>());
-					fields.get(clazzTarg).add(node);
+		try {
+			FlameConfig.field.append("Scanning node: " + node.name + "\n");
+			if (node.visibleAnnotations != null) {
+				for (AnnotationNode node1 : annotationNodes) {
+					FlameConfig.field.append("Annotation: " + node1.desc + "\n");
+					if (node1.desc.contains("AppendField")) {
+						List<Object> values = node1.values;
+						String clazzTarg = (String) values.get(values.indexOf("targetClass") + 1);
+						String defaultVal = (String) values.get(values.indexOf("defaultVal") + 1);
+						String type = (String) values.get(values.indexOf("type") + 1);
+						if (!fields.containsKey(clazzTarg))
+							fields.put(clazzTarg, new ArrayList<>());
+						node.desc = type;
+						node.value = defaultVal;
+						fields.get(clazzTarg).add(node);
+					}
 				}
 			}
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
 		}
 	}
 	
 	public static boolean hasMixin(String clazz) {
 //		if (clazz.startsWith("net.minecraft.client")) {
+//			FlameConfig.field.append(mixins.size()+"\n");
 //			FlameConfig.field.append(replacements.size()+"\n");
+//			FlameConfig.field.append(fields.size()+"\n");
 //			try {
 //				FlameConfig.field.append(replacements.get(clazz)+"\n");
 //			} catch (Throwable ignored) {
@@ -167,7 +179,7 @@ public class MixinHandler {
 		return mixins.containsKey(clazz) || replacements.containsKey(clazz) || fields.containsKey(clazz);
 	}
 	
-	public static TriObject<ClassReader, ClassNode, ClassWriter> handleMixins(TriObject<ClassReader, ClassNode, ClassWriter> clazz, MethodNode node) {
+	public static ClassObject handleMixins(ClassObject clazz, MethodNode node) {
 		String name = node.name;
 		if (
 				replacements.containsKey(clazz.getObj2().name) &&
@@ -197,11 +209,16 @@ public class MixinHandler {
 		return clazz;
 	}
 	
-	public static TriObject<ClassReader, ClassNode, ClassWriter> applyFields(TriObject<ClassReader, ClassNode, ClassWriter> clazz) {
-		FlameConfig.field.append(clazz.getObj2().name);
-		if (fields.containsKey(clazz.getObj2().name)) {
-			clazz.getObj2().fields.addAll(fields.get(clazz.getObj2().name));
-			clazz.getObj2().visitEnd();
+	public static ClassObject applyFields(ClassObject clazz) {
+		FlameConfig.field.append(clazz.getObj2().name + "\n");
+		if (fields.containsKey(clazz.getObj2().name.replace("/", "."))) {
+			fields.get(clazz.getObj2().name.replace("/", ".")).forEach(node -> {
+				FlameConfig.field.append("Adding field " + node.name + " to class " + clazz.getObj2().name + ".\n");
+//				clazz.getObj1().accept(new FieldAdder(FlameAPIConfigs.ASM_Version,node.name,node.value,node.desc,node.access).setSignature(node.signature),0);
+				ASM.addFieldNode(clazz.getObj2().name.replace("/", "."), new FieldData(
+						node.access, node.name, node.value, node.desc
+				));
+			});
 		}
 		return clazz;
 	}
