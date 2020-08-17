@@ -10,6 +10,7 @@ public class FieldAdder extends ClassVisitor {
 	private final String fieldType;
 	private final int access;
 	private boolean isFieldPresent;
+	private String signature = "null";
 	
 	public FieldAdder(int api, String fieldName, Object fieldDefault, String fieldType, int access) {
 		super(api);
@@ -43,6 +44,11 @@ public class FieldAdder extends ClassVisitor {
 		access = org.objectweb.asm.Opcodes.ACC_PUBLIC;
 	}
 	
+	public FieldAdder setSignature(String signature) {
+		this.signature = signature;
+		return this;
+	}
+	
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 		if (name.equals(this.fieldName)) {
@@ -55,7 +61,7 @@ public class FieldAdder extends ClassVisitor {
 	public void visitEnd() {
 		if (!isFieldPresent) {
 			if (cv != null) {
-				FieldVisitor fv = cv.visitField(access, fieldName, "L" + fieldType.replace(".", "/") + ";", "<init>", fieldDefault);
+				FieldVisitor fv = cv.visitField(access, fieldName, "L" + fieldType.replace(".", "/") + ";", this.signature, fieldDefault);
 				if (fv != null) {
 					fv.visitEnd();
 				}

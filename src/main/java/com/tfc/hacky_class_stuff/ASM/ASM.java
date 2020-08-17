@@ -5,7 +5,6 @@ import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
 import com.tfc.utils.Bytecode;
-import com.tfc.utils.TriObject;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -29,7 +28,17 @@ public class ASM {
 				reader.accept(node, 0);
 				ClassWriter writer = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
 				for (FieldData data : fieldNodes.get(name)) {
-					reader.accept(new FieldAdder(FlameAPIConfigs.ASM_Version, writer, data.name, data.defaultVal, data.defaultVal.getClass().getName(), data.access), 0);
+					if (data == null) {
+						FlameConfig.field.append("Data is " + null + ".\n");
+					} else if (reader == null) {
+						FlameConfig.field.append("Reader is " + null + ".\n");
+					} else if (writer == null) {
+						FlameConfig.field.append("Writer is " + null + ".\n");
+					} else if (data.type == null) {
+						reader.accept(new FieldAdder(FlameAPIConfigs.ASM_Version, writer, data.name, data.defaultVal, data.defaultVal.getClass().getName(), data.access), 0);
+					} else {
+						reader.accept(new FieldAdder(FlameAPIConfigs.ASM_Version, writer, data.name, data.defaultVal, data.type, data.access), 0);
+					}
 				}
 				node.visitEnd();
 				writer.visitEnd();
@@ -64,7 +73,7 @@ public class ASM {
 	}
 	
 	public static byte[] applyMixins(String name, byte[] bytes) {
-		TriObject<ClassReader, ClassNode, ClassWriter> clazz = MixinHandler.getClassNode(name, bytes);
+		ClassObject clazz = MixinHandler.getClassNode(name, bytes);
 		if (name.startsWith("mixin")) {
 			FlameConfig.field.append("Mixin Class: " + name + "\n");
 			try {
@@ -89,13 +98,13 @@ public class ASM {
 				ClassReader reader = clazz.getObj1();
 				ClassNode classNode = clazz.getObj2();
 				ClassWriter writer = clazz.getObj3();
-				classNode.methods.forEach(node ->
-						MixinHandler.handleMixins(clazz, node)
-				);
+//				clazz = new ClassObject(reader,classNode,writer);
+//				writer.visit(52,reader.getAccess(),reader.getClassName(),classNode.signature,reader.getSuperName(),reader.getInterfaces());
+//				classNode.methods.forEach(node ->
+//						MixinHandler.handleMixins(clazz, node)
+//				);
 				MixinHandler.applyFields(clazz);
-//				reader.accept(classNode, 0);
-				writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-				classNode.accept(writer);
+				classNode.visitEnd();
 				writer.visitEnd();
 				byte[] bytes1 = writer.toByteArray();
 				if (!Arrays.toString(bytes).equals(Arrays.toString(bytes1))) {
@@ -103,7 +112,7 @@ public class ASM {
 						Bytecode.writeBytes(name, "pre", bytes);
 					Bytecode.writeBytes(name, "post_mixins", bytes1);
 				}
-				return bytes1;
+				return bytes;
 			} catch (Throwable err) {
 				FlameConfig.logError(err);
 			}
