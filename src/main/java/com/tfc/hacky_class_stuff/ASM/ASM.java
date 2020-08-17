@@ -5,11 +5,13 @@ import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
 import com.tfc.utils.Bytecode;
+import com.tfc.utils.TriObject;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -57,6 +59,54 @@ public class ASM {
 			byte[] bytes1 = writer.toByteArray();
 			Bytecode.writeBytes(name, "post_at", bytes1);
 			return bytes1;
+		}
+		return bytes;
+	}
+	
+	public static byte[] applyMixins(String name, byte[] bytes) {
+		TriObject<ClassReader, ClassNode, ClassWriter> clazz = MixinHandler.getClassNode(name, bytes);
+		if (name.startsWith("mixin")) {
+			FlameConfig.field.append("Mixin Class: " + name + "\n");
+			try {
+				clazz.getObj2().methods.forEach(node -> {
+					try {
+						MixinHandler.handleMethodNode(name, node);
+					} catch (Throwable ignored) {
+					}
+				});
+				clazz.getObj2().fields.forEach(node -> {
+					try {
+						MixinHandler.handleFieldNode(name, node);
+					} catch (Throwable ignored) {
+					}
+				});
+			} catch (Throwable err) {
+				FlameConfig.logError(err);
+			}
+		}
+		if (bytes != null && MixinHandler.hasMixin(name)) {
+			try {
+				ClassReader reader = clazz.getObj1();
+				ClassNode classNode = clazz.getObj2();
+				ClassWriter writer = clazz.getObj3();
+				classNode.methods.forEach(node ->
+						MixinHandler.handleMixins(clazz, node)
+				);
+				MixinHandler.applyFields(clazz);
+//				reader.accept(classNode, 0);
+				writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+				classNode.accept(writer);
+				writer.visitEnd();
+				byte[] bytes1 = writer.toByteArray();
+				if (!Arrays.toString(bytes).equals(Arrays.toString(bytes1))) {
+					if (!accessValues.containsKey(name) && !fieldNodes.containsKey(name))
+						Bytecode.writeBytes(name, "pre", bytes);
+					Bytecode.writeBytes(name, "post_mixins", bytes1);
+				}
+				return bytes1;
+			} catch (Throwable err) {
+				FlameConfig.logError(err);
+			}
 		}
 		return bytes;
 	}

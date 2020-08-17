@@ -8,6 +8,7 @@ import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.BlockClass;
 import com.tfc.utils.ScanningUtils;
+import mixins.FlameAPI.ClientBrandRetriever;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -76,7 +77,18 @@ public class Main implements IFlameAPIMod {
 			Class.forName("RegistryClassFinder");
 			Class.forName("GenericClassFinder");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
+			Class.forName("com.tfc.API.flame.Mixin");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.SupernameSetter");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.MethodAccessTransformer");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.MixinHandler");
+			Class.forName("com.tfc.utils.BiObject");
+			Class.forName("com.tfc.utils.TriObject");
 			Class.forName("com.tfc.FlameAPIConfigs");
+			Class.forName("java.util.function.Consumer");
+			Class.forName("org.objectweb.asm.tree.ClassNode");
+			Class.forName("org.objectweb.asm.tree.MethodNode");
+			Class.forName("org.objectweb.asm.tree.FieldNode");
+			Class.forName("org.objectweb.asm.tree.AnnotationNode");
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
@@ -111,8 +123,13 @@ public class Main implements IFlameAPIMod {
 		
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.mixins", ASM::applyMixins);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
+
+//		try {
+//			Class.forName("mixins.FlameAPI.ClientBrandRetriever");
+//		} catch (Throwable ignored) {}
 
 //		try {
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
@@ -144,12 +161,14 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
+
+//		try {
+//			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC_STATIC);
+//		} catch (Throwable err) {
+//			FlameConfig.logError(err);
+//		}
 		
-		try {
-			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC_STATIC);
-		} catch (Throwable err) {
-			FlameConfig.logError(err);
-		}
+		new ClientBrandRetriever();
 	}
 	
 	@Override

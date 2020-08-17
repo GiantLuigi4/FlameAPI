@@ -32,6 +32,6 @@ public class BlockClass {
 				FlameConfig.logError(err);
 			}
 		}
-		return null;
+		return bytes;
 	}
 }
