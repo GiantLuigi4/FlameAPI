@@ -1,7 +1,7 @@
 package mixins.FlameAPI;
 
 import com.tfc.API.flame.AppendField;
-import com.tfc.API.flame.Replace;
+import com.tfc.API.flame.Hookin;
 
 public class ClientBrandRetriever {
 	@AppendField(
@@ -11,9 +11,10 @@ public class ClientBrandRetriever {
 	)
 	public static String brand = "flamemc";
 	
-	@Replace(
+	@Hookin(
 			targetClass = "net.minecraft.client.ClientBrandRetriever",
-			targetMethod = "getClientModName"
+			targetMethod = "getClientModName",
+			point = "TOP"
 	)
 	public String getClientModName() {
 		return brand;

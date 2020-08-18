@@ -2,6 +2,7 @@ package entries.FlameAPI;
 
 import com.tfc.API.flamemc.Block;
 import com.tfc.API.flamemc.FlameASM;
+import com.tfc.API.flamemc.Registry;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
@@ -14,6 +15,7 @@ import mixins.FlameAPI.ClientBrandRetriever;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -30,6 +32,10 @@ public class Main implements IFlameAPIMod {
 	private static String itemClass = "";
 	private static String itemStackClass = "";
 	private static String resourceLocationClass = "";
+	
+	public static String getMainRegistry() {
+		return mainRegistry;
+	}
 	
 	private static HashMap<String, String> registries = null;
 	
@@ -70,19 +76,19 @@ public class Main implements IFlameAPIMod {
 			Class.forName("org.objectweb.asm.ClassReader");
 			Class.forName("org.objectweb.asm.ClassWriter");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.ASM");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.FieldAdder");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.Writer");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.fields.FieldAdder");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldData");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.API.InstructionData");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAdder");
 			Class.forName("com.tfc.utils.Bytecode");
 			Class.forName("com.tfc.utils.ScanningUtils");
 			Class.forName("com.tfc.API.flamemc.EmptyClass");
 			Class.forName("RegistryClassFinder");
 			Class.forName("GenericClassFinder");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
-			Class.forName("com.tfc.API.flame.Mixin");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.SupernameSetter");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.MethodAccessTransformer");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.MixinHandler");
+			Class.forName("com.tfc.API.flame.Hookin");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAccessTransformer");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.HookinHandler");
 			Class.forName("com.tfc.utils.BiObject");
 			Class.forName("com.tfc.utils.TriObject");
 			Class.forName("com.tfc.FlameAPIConfigs");
@@ -126,7 +132,8 @@ public class Main implements IFlameAPIMod {
 		
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.mixins", ASM::applyMixins);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.hookis", ASM::applyHookins);
+//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.appHookins", ASM::applyMethods);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
 		
@@ -177,6 +184,40 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.field.append("Item Class:" + itemClass + "\n");
 			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
 			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+		}
+		
+		boolean success = false;
+		ArrayList<Throwable> throwables = new ArrayList<>();
+		try {
+			FlameConfig.field.append(Registry.constructResourceLocation("FlameAPI:test").toString() + "\n");
+			success = true;
+		} catch (Throwable err) {
+			throwables.add(err);
+		}
+		try {
+			FlameConfig.field.append(Registry.constructResourceLocation("flame_api:test").toString() + "\n");
+			success = true;
+		} catch (Throwable err) {
+			throwables.add(err);
+		}
+		try {
+			FlameConfig.field.append(Registry.constructResourceLocation("flameapi:test").toString() + "\n");
+			success = true;
+		} catch (Throwable err) {
+			throwables.add(err);
+		}
+		
+		if (!success) {
+			throwables.forEach(err -> {
+				FlameConfig.logError(err);
+			});
+			FlameConfig.field.append("Failed to construct a resource location.\n");
+		}
+		
+		try {
+			Registry.register(new Registry.ResourceLocation("flame_api:test"), Registry.RegistryType.BLOCK);
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}

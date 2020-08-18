@@ -1,4 +1,4 @@
-package com.tfc.hacky_class_stuff.ASM;
+package com.tfc.hacky_class_stuff.ASM.transformers.fields;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;

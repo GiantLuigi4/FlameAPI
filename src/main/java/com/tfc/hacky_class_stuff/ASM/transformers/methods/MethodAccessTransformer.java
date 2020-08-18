@@ -1,4 +1,4 @@
-package com.tfc.hacky_class_stuff.ASM;
+package com.tfc.hacky_class_stuff.ASM.transformers.methods;
 
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.hacky_class_stuff.ASM.API.Access;

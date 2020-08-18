@@ -160,8 +160,8 @@ public class RegistryClassFinder {
 					ScanningUtils.checkRegistry(entityChecks.size(), version_tileEntities.length, registries, "entities", entryName);
 					ScanningUtils.checkRegistry(enchantmentChecks.size(), version_enchantments.length, registries, "enchantments", entryName);
 					ScanningUtils.checkRegistry(biomeChecks.size(), version_biomes.length, registries, "biome", entryName);
-					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions.length, registries, "dimensions", entryName);
-					ScanningUtils.checkRegistry(soundsChecks.size(), sounds.length, registries, "sounds", entryName);
+//					ScanningUtils.checkRegistry(dimensionChecks.size(), dimensions.length, registries, "dimensions", entryName);
+//					ScanningUtils.checkRegistry(soundsChecks.size(), sounds.length, registries, "sounds", entryName);
 					if (isVersionLessThan12) {
 						ScanningUtils.checkRegistry(furnaceChecks.size(), furnace.length, registries, "furnaceRecipes", entryName);
 						ScanningUtils.checkRegistry(recipeChecks.size(), craftingRecipes.length, registries, "recipes", entryName);

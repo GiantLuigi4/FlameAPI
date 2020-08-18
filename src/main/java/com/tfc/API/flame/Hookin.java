@@ -11,7 +11,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Retention(RUNTIME)
 @Target({ElementType.METHOD})
-public @interface Mixin {
+public @interface Hookin {
 	String targetClass();
 	
 	String targetMethod();

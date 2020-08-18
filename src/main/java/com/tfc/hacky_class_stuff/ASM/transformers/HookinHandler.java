@@ -1,10 +1,13 @@
-package com.tfc.hacky_class_stuff.ASM;
+package com.tfc.hacky_class_stuff.ASM.transformers;
 
-import com.tfc.API.flame.Mixin;
+import com.tfc.API.flame.Hookin;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
-import com.tfc.utils.BiObject;
+import com.tfc.hacky_class_stuff.ASM.API.InstructionData;
+import com.tfc.hacky_class_stuff.ASM.ASM;
+import com.tfc.hacky_class_stuff.ASM.ClassObject;
+import com.tfc.utils.TriObject;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
@@ -15,8 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 
 //TODO:COMMENT THE LIFE OUT OF THIS CLASS (not really though)
-public class MixinHandler {
-	private static final HashMap<String, HashMap<String, ArrayList<BiObject<Mixin.Point, MethodNode>>>> mixins = new HashMap<>();
+public class HookinHandler {
+	private static final HashMap<String, HashMap<String, ArrayList<TriObject<Hookin.Point, MethodNode, String>>>> hookins = new HashMap<>();
 	private static final HashMap<String, HashMap<String, MethodNode>> replacements = new HashMap<>();
 	private static final HashMap<String, ArrayList<FieldNode>> fields = new HashMap<>();
 	
@@ -59,17 +62,17 @@ public class MixinHandler {
 			annotationNodes.addAll(node.visibleAnnotations);
 		} catch (Throwable ignored) {
 		}
-		AnnotationNode mixinNode = null;
+		AnnotationNode hookinNode = null;
 		FlameConfig.field.append("Scanning node: " + node.name + "\n");
 		String targetClass = null;
 		String targetMethod = null;
-		Mixin.Point point = null;
+		Hookin.Point point = null;
 		if (node.visibleAnnotations != null) {
 			for (AnnotationNode node1 : annotationNodes) {
 				FlameConfig.field.append("Annotation: " + node1.desc + "\n");
 				try {
-					if (node1.desc.contains("Mixin")) {
-						mixinNode = node1;
+					if (node1.desc.contains("Hookin")) {
+						hookinNode = node1;
 						List<Object> values = node1.values;
 						try {
 							for (int i = 0; i < values.size() / 2; i++) {
@@ -78,13 +81,14 @@ public class MixinHandler {
 								} else if (values.get(i * 2).equals("targetMethod")) {
 									targetMethod = (String) values.get(i * 2 + 1);
 								} else if (values.get(i * 2).equals("point")) {
-									point = Mixin.Point.fromString((String) values.get(i * 2 + 1));
+									point = Hookin.Point.fromString((String) values.get(i * 2 + 1));
 								}
 							}
 						} catch (Throwable err) {
 							FlameConfig.field.append(Arrays.toString(values.toArray()) + "\n");
 						}
-						FlameConfig.field.append("Found Mixin in class: " + clazz + " targeted at class: " + targetClass + " for method: " + targetMethod + " for point: " + point.toString() + "\n");
+						FlameConfig.field.append("Found Hookin in class: " + clazz + " targeted at class: " + targetClass + " for method: " + targetMethod + " for point: " + point.toString() + "\n");
+						ASM.addHookin(new InstructionData(clazz.replaceAll("\\.", "/") + "." + node.name, point, node.name), targetClass);
 					} else if (node1.desc.contains("Replace")) {
 						List<Object> values = node1.values;
 						try {
@@ -112,22 +116,22 @@ public class MixinHandler {
 				}
 			}
 		}
-		if (mixinNode != null) {
-			if (!mixins.containsKey(targetClass)) {
-				HashMap<String, ArrayList<BiObject<Mixin.Point, MethodNode>>> map = new HashMap<>();
-				ArrayList<BiObject<Mixin.Point, MethodNode>> array = new ArrayList<>();
-				array.add(new BiObject<>(point, node));
+		if (hookinNode != null) {
+			if (!hookins.containsKey(targetClass)) {
+				HashMap<String, ArrayList<TriObject<Hookin.Point, MethodNode, String>>> map = new HashMap<>();
+				ArrayList<TriObject<Hookin.Point, MethodNode, String>> array = new ArrayList<>();
+				array.add(new TriObject<>(point, node, clazz));
 				map.put(targetMethod, array);
-				mixins.put(targetClass, map);
+				hookins.put(targetClass, map);
 			} else {
-				HashMap<String, ArrayList<BiObject<Mixin.Point, MethodNode>>> map = mixins.get(targetClass);
+				HashMap<String, ArrayList<TriObject<Hookin.Point, MethodNode, String>>> map = hookins.get(targetClass);
 				if (!map.containsKey(targetMethod)) {
-					ArrayList<BiObject<Mixin.Point, MethodNode>> array = new ArrayList<>();
-					array.add(new BiObject<>(point, node));
+					ArrayList<TriObject<Hookin.Point, MethodNode, String>> array = new ArrayList<>();
+					array.add(new TriObject<>(point, node, clazz));
 					map.put(targetMethod, array);
 				} else {
-					ArrayList<BiObject<Mixin.Point, MethodNode>> array = map.get(targetMethod);
-					array.add(new BiObject<>(point, node));
+					ArrayList<TriObject<Hookin.Point, MethodNode, String>> array = map.get(targetMethod);
+					array.add(new TriObject<>(point, node, clazz));
 				}
 			}
 		}
@@ -166,9 +170,9 @@ public class MixinHandler {
 		}
 	}
 	
-	public static boolean hasMixin(String clazz) {
+	public static boolean hasHookin(String clazz) {
 //		if (clazz.startsWith("net.minecraft.client")) {
-//			FlameConfig.field.append(mixins.size()+"\n");
+//			FlameConfig.field.append(hookins.size()+"\n");
 //			FlameConfig.field.append(replacements.size()+"\n");
 //			FlameConfig.field.append(fields.size()+"\n");
 //			try {
@@ -176,33 +180,40 @@ public class MixinHandler {
 //			} catch (Throwable ignored) {
 //			}
 //		}
-		return mixins.containsKey(clazz) || replacements.containsKey(clazz) || fields.containsKey(clazz);
+		return hookins.containsKey(clazz) || replacements.containsKey(clazz) || fields.containsKey(clazz);
 	}
 	
-	public static ClassObject handleMixins(ClassObject clazz, MethodNode node) {
-		String name = node.name;
-		if (
-				replacements.containsKey(clazz.getObj2().name) &&
-						replacements.get(clazz.getObj2().name).containsKey(name)
-		) {
-			node.instructions = replacements.get(clazz.getObj2().name).get(name).instructions;
-			clazz.getObj2().visitEnd();
-		}
-		if (mixins.containsKey(clazz.getObj2().name)) {
-			if (mixins.get(clazz.getObj2().name).containsKey(node.name)) {
-				for (BiObject<Mixin.Point, MethodNode> mixin : mixins.get(clazz.getObj2().name).get(node.name)) {
-					if (checkParams(mixin.getObj2().parameters, node.parameters)) {
-						InsnList instructions = mixin.getObj2().instructions;
-						if (mixin.getObj1().equals(Mixin.Point.TOP)) {
-							for (int i = instructions.size() - 1; i >= 0; i--) {
-								node.instructions.insertBefore(instructions.get(i), node.instructions.get(0));
-							}
-							clazz.getObj2().visitEnd();
-						} else if (mixin.getObj1().equals(Mixin.Point.BOTTOM)) {
-							node.instructions.add(instructions);
-							clazz.getObj2().visitEnd();
-						}
-					}
+	public static ClassObject handleHookins(ClassObject clazz, MethodNode node) {
+		String name = node.name.replace("/", ".");
+//		if (
+//				replacements.containsKey(clazz.getObj2().name) &&
+//						replacements.get(clazz.getObj2().name).containsKey(name)
+//		) {
+//			node.instructions = replacements.get(clazz.getObj2().name).get(name).instructions;
+//			clazz.getObj2().visitEnd();
+//		}
+//		if (hookins.containsKey(clazz.getObj2().name)) {
+//			if (hookins.get(clazz.getObj2().name).containsKey(node.name)) {
+//				for (BiObject<Hookin.Point, MethodNode> hookin : hookins.get(clazz.getObj2().name).get(node.name)) {
+//					if (checkParams(hookin.getObj2().parameters, node.parameters)) {
+//						InsnList instructions = hookin.getObj2().instructions;
+//						if (hookin.getObj1().equals(Hookin.Point.TOP)) {
+//							for (int i = instructions.size() - 1; i >= 0; i--) {
+//								node.instructions.insertBefore(instructions.get(i), node.instructions.get(0));
+//							}
+//							clazz.getObj2().visitEnd();
+//						} else if (hookin.getObj1().equals(Hookin.Point.BOTTOM)) {
+//							node.instructions.add(instructions);
+//							clazz.getObj2().visitEnd();
+//						}
+//					}
+//				}
+//			}
+//		}
+		if (hookins.containsKey(clazz.getObj2().name)) {
+			if (hookins.get(clazz.getObj2().name).containsKey(name)) {
+				for (TriObject<Hookin.Point, MethodNode, String> hookin : hookins.get(clazz.getObj2().name).get(name)) {
+					ASM.addHookin(new InstructionData(hookin.getObj3().replaceAll("\\.", "/") + "." + hookin.getObj2().name, hookin.getObj1(), node.name), clazz.getObj2().name);
 				}
 			}
 		}
