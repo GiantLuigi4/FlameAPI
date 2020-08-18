@@ -30,8 +30,8 @@ public class GenericClassFinder {
 	};
 	//Must be done like this, to avoid a literally identical Array for 1.12.2 to 1.7.10, but only location is removed
 	private static final List<String> rlChecks = new ArrayList<>();
-
-	public static HashMap<String, String> findItemClasses(File versionDir) {
+	
+	public static HashMap<String, String> findRegistrableClasses(File versionDir) {
 		try {
 			ScanningUtils.checkVersion();
 			AtomicReference<String> clazzItem = new AtomicReference<>("null");
