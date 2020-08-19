@@ -83,7 +83,7 @@ public class Registry {
 					try {
 						registryField.setAccessible(true);
 //					if (registryField.isAccessible()) {
-//						for (Field potentialRegister : registryField.get(null).getClass().getFields()) {
+//						for (Field potentialRegister : registryObj.getClass().getFields()) {
 //							FlameConfig.field.append("potential register: " + potentialRegister.getName() + "\n");
 //							try {
 //								potentialRegister.setAccessible(true);
@@ -100,25 +100,56 @@ public class Registry {
 //								FlameConfig.logError(err);
 //							}
 //						}
+						Object registryObj = registryField.get(null);
 						ArrayList<Method> methods = new ArrayList<>();
-						methods.addAll(Arrays.asList(registryField.get(null).getClass().getMethods()));
-						methods.addAll(Arrays.asList(registryField.get(null).getClass().getDeclaredMethods()));
-						methods.add(registryField.get(null).getClass().getEnclosingMethod());
-						for (Method method : registryField.get(null).getClass().getMethods()) {
+						methods.addAll(Arrays.asList(registryObj.getClass().getMethods()));
+						methods.addAll(Arrays.asList(registryObj.getClass().getDeclaredMethods()));
+						methods.add(registryObj.getClass().getEnclosingMethod());
+						boolean matches = false;
+						
+						ArrayList<Field> fields = new ArrayList<>();
+						fields.addAll(Arrays.asList(registryObj.getClass().getFields()));
+						fields.addAll(Arrays.asList(registryObj.getClass().getDeclaredFields()));
+						for (Field f : fields) {
+							String text = "";
 							try {
-//							FlameConfig.field.append("method: " + method.getName() + "\n");
-								method.setAccessible(true);
-								if (method.getParameterTypes().length == 1) {
-									try {
-										Object o = method.getParameterTypes()[1];
-									} catch (Throwable err) {
-										if (method.getParameterTypes()[0].getName().equals(rlClass)) {
-											Register blocks = new Register(method.invoke(registryField.get(null), new ResourceLocation("blocks").unWrap()));
-											return blocks.register(resourceLocation, null);
-										}
+								try {
+									f.setAccessible(true);
+								} catch (Throwable ignored) {
+								}
+								if (registryField.getName().contains("f")) {
+									text += ("field: " + f.getName());
+									text += " value: " + f.get(registryObj);
+								}
+								if (f.get(registryObj) != null) {
+									if (f.get(registryObj).equals(new ResourceLocation("blocks").unWrap())) {
+										matches = true;
 									}
 								}
-							} catch (Throwable ignored) {
+							} catch (Throwable err) {
+								FlameConfig.logError(err);
+							}
+							if (registryField.getName().contains("f")) {
+								FlameConfig.field.append(text + "\n");
+							}
+						}
+						if (matches) {
+							for (Method method : registryObj.getClass().getMethods()) {
+								try {
+//							FlameConfig.field.append("method: " + method.getName() + "\n");
+									method.setAccessible(true);
+									if (method.getParameterTypes().length == 1) {
+										try {
+											Object o = method.getParameterTypes()[1];
+										} catch (Throwable err) {
+											if (method.getParameterTypes()[0].getName().equals(rlClass)) {
+												Register blocks = new Register(method.invoke(registryObj, new ResourceLocation("blocks").unWrap()));
+												return blocks.register(resourceLocation, null);
+											}
+										}
+									}
+								} catch (Throwable ignored) {
+								}
 							}
 						}
 //					}
