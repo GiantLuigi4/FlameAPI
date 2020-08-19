@@ -15,6 +15,10 @@ public class FlameASM implements Opcodes {
 		ASM.addMethodAT(new Access(access, method), clazz);
 	}
 	
+	public static void transformFieldAccess(String clazz, String field, AccessType access) {
+		ASM.addFeildAT(new Access(access, field), clazz);
+	}
+	
 	//No, I will not add final.
 	//I hate final.
 	//Why would you use asm to define a final value.

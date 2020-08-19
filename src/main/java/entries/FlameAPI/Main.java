@@ -136,6 +136,7 @@ public class Main implements IFlameAPIMod {
 //		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.appHookins", ASM::applyMethods);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atFields", ASM::applyFieldTransformers);
 		
 		Access access = new Access(FlameASM.AccessType.PRIVATE, "hello");
 		FlameConfig.field.append(access.type.name() + "\n");
@@ -217,16 +218,10 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		try {
-			Registry.register(new Registry.ResourceLocation("flame_api:test"), Registry.RegistryType.BLOCK);
+			FlameASM.transformFieldAccess(ScanningUtils.toClassName(mainRegistry), "a", FlameASM.AccessType.PUBLIC_STATIC);
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
-
-//		try {
-//			FlameASM.addField("net.minecraft.client.ClientBrandRetriever", "brand", "flamemc", FlameASM.AccessType.PUBLIC_STATIC);
-//		} catch (Throwable err) {
-//			FlameConfig.logError(err);
-//		}
 		
 		new ClientBrandRetriever();
 	}
@@ -245,6 +240,12 @@ public class Main implements IFlameAPIMod {
 				}
 			}
 		} catch (Throwable ignored) {
+		}
+		
+		try {
+			Registry.registerBlock(new Registry.ResourceLocation("flame_api:test"), Registry.RegistryType.BLOCK);
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
 		}
 //		try {
 //			for (Method m : Class.forName(mainRegistry.replace(".class", "")).getMethods()) {

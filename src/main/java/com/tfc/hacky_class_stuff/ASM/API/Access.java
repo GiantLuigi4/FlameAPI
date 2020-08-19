@@ -3,12 +3,12 @@ package com.tfc.hacky_class_stuff.ASM.API;
 import com.tfc.API.flamemc.FlameASM;
 
 public class Access {
-	public final String method;
+	public final String name;
 	public FlameASM.AccessType type;
 	
 	public Access(FlameASM.AccessType type, String method) {
 		this.type = type;
-		this.method = method;
+		this.name = method;
 	}
 	
 	//Better way found (Lorenzo)

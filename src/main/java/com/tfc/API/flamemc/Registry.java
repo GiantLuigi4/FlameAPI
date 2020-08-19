@@ -1,69 +1,161 @@
 package com.tfc.API.flamemc;
 
+import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
 import entries.FlameAPI.Main;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Registry {
-	public static Object register(ResourceLocation resourceLocation, RegistryType type) {
+	
+	private static String getRegistryClass(String type) {
+		return "minecraft:" + type.toLowerCase() + "s";
+	}
+	
+	public static Object registerBlock(ResourceLocation resourceLocation, RegistryType type) {
 		String rlClass = ScanningUtils.toClassName(Main.getResourceTypeClasses().get("ResourceLocation"));
+		String mainRegistryClass = ScanningUtils.toClassName(Main.getMainRegistry());
 		String typeClass = ScanningUtils.toClassName(Main.getResourceTypeClasses().get(type.name));
-//		try {
-//			for (Field f : Class.forName(ScanningUtils.toClassName(Main.getMainRegistry())).getFields()) {
-//				FlameConfig.field.append(f.getName()+":"+f.get(null).getClass().getFields().length+" fields\n");
-//				for (Field f2 : f.get(null).getClass().getDeclaredFields()) {
-//					try {
-//						if (f2.get(null).getClass().getName().equals(ScanningUtils.toClassName(Main.getResourceTypeClasses().get(type.name)))) {
-//							Object registry = f.get(null);
-//							for (Method m : registry.getClass().getMethods()) {
-//								int params = 0;
-//								for (Class<?> c : m.getParameterTypes()) {
-//									if (c.getName().equals(rlClass)) {
-//										params++;
-//									} else if (c.getName().equals(typeClass)) {
-//										params++;
-//									} else if (c.getName().equals(Main.getMainRegistry())) {
-//										params++;
-//									} else {
-//										params--;
-//									}
-//								}
-//								if (params == 3) {
-//									Constructor<?>[] constructors = Class.forName(rlClass).getConstructors();
-//									for (Constructor<?> constructor:constructors) {
-//										Object[] objects = new Object[constructor.getParameterTypes().length];
-//										int i=0;
-//										for (Class<?> c2 : constructor.getParameterTypes()) {
-//											for (Field f3 : c2.getFields()) {
-//												if (c2.getClass().equals(f3.get(null).getClass())) {
-//													objects[i] = f3.get(null);
-//												}
-//											}
-//											i++;
-//											try {
-//												return m.invoke(null,f.get(null),resourceLocation,constructors,objects);
-//											} catch (Throwable ignored) {
-//												FlameConfig.field.append();
-//											}
+		String registry = ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(type.name)));
+		try {
+			Class<?> toRegister = Class.forName(typeClass);
+			Constructor<?> constructor = toRegister.getConstructors()[0];
+			Class<?> properties = null;
+			for (Class<?> clazz : toRegister.getClasses()) {
+				if (clazz.equals(constructor.getParameterTypes()[0])) {
+					properties = clazz;
+				}
+			}
+			Method matInstance = null;
+			Object material = null;
+			try {
+				for (Method method : properties.getDeclaredMethods()) {
+					if (method.getParameterTypes().length == 1) {
+						Class<?> materialClass = method.getParameterTypes()[0];
+						//TODO:Get this to work on every version.
+						if (Main.getVersion().equals("1.15.2-flame")) {
+							materialClass = Class.forName("coo");
+						}
+						FlameConfig.field.append("Wants class: " + materialClass.getName() + "\n");
+						for (Field test : materialClass.getDeclaredFields()) {
+							try {
+								test.setAccessible(true);
+								material = test.get(null);
+								break;
+							} catch (Throwable err) {
+//								FlameConfig.field.append("Accessing class: " + materialClass.getName()+".\n");
+//								try {
+//									FlameConfig.field.append("Field: " + test.getName()+".\n");
+//								} catch (Throwable ignored) {}
+							}
+							if (material != null && material.getClass().equals(materialClass)) {
+								matInstance = method;
+								break;
+							} else {
+								if (material != null) {
+									FlameConfig.field.append("Got class: " + material.getClass().getName() + "\n");
+									FlameConfig.field.append("Wants class: " + materialClass.getName() + "\n");
+								}
+								material = null;
+							}
+						}
+						if (material != null && material.getClass().equals(materialClass)) {
+							FlameConfig.field.append("Got class: " + material.getClass().getName() + "\n");
+							break;
+						}
+					}
+				}
+			} catch (Throwable err) {
+				FlameConfig.logError(err);
+				throw new RuntimeException(err);
+			}
+			ArrayList<Field> allFields = new ArrayList<>();
+			allFields.addAll(Arrays.asList(Class.forName(mainRegistryClass).getDeclaredFields()));
+//			allFields.addAll(Arrays.asList(Class.forName(mainRegistryClass).getFields()));
+			for (Field registryField : allFields) {
+				FlameConfig.field.append("registry field: " + registryField.getName() + "\n");
+				if (!registryField.getName().equals("f")) {
+					try {
+						registryField.setAccessible(true);
+//					if (registryField.isAccessible()) {
+//						for (Field potentialRegister : registryField.get(null).getClass().getFields()) {
+//							FlameConfig.field.append("potential register: " + potentialRegister.getName() + "\n");
+//							try {
+//								potentialRegister.setAccessible(true);
+//								Object potentialRegisterObject = potentialRegister.get(null);
+//								if (potentialRegisterObject.getClass().getName().equals(registry)) {
+//									for (Method method : potentialRegisterObject.getClass().getMethods()) {
+//										if (method.getName().equals("a")) {
+//											FlameConfig.field.append("Registering block: "+resourceLocation.toString()+"\n");
+//											return method.invoke(resourceLocation.toString(),matInstance.invoke(null,material));
 //										}
 //									}
 //								}
+//							} catch (Throwable err) {
+//								FlameConfig.logError(err);
 //							}
 //						}
-//					} catch (Throwable ignored) {
+						ArrayList<Method> methods = new ArrayList<>();
+						methods.addAll(Arrays.asList(registryField.get(null).getClass().getMethods()));
+						methods.addAll(Arrays.asList(registryField.get(null).getClass().getDeclaredMethods()));
+						methods.add(registryField.get(null).getClass().getEnclosingMethod());
+						for (Method method : registryField.get(null).getClass().getMethods()) {
+							try {
+//							FlameConfig.field.append("method: " + method.getName() + "\n");
+								method.setAccessible(true);
+								if (method.getParameterTypes().length == 1) {
+									try {
+										Object o = method.getParameterTypes()[1];
+									} catch (Throwable err) {
+										if (method.getParameterTypes()[0].getName().equals(rlClass)) {
+											Register blocks = new Register(method.invoke(registryField.get(null), new ResourceLocation("blocks").unWrap()));
+											return blocks.register(resourceLocation, null);
+										}
+									}
+								}
+							} catch (Throwable ignored) {
+							}
+						}
 //					}
-//				}
-//			}
-//		} catch (Throwable err) {
-//			throw new RuntimeException(err);
-//		}
+					} catch (Throwable err) {
+						FlameConfig.logError(err);
+					}
+				}
+			}
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+			throw new RuntimeException(err);
+		}
 		return null;
 	}
 	
 	//If you want to use this with vanilla methods, you need to call ".unwrap()" on the ResourceLocation object this creates.
 	public static ResourceLocation constructResourceLocation(String name) {
 		return new ResourceLocation(name);
+	}
+	
+	public static class Register {
+		private final Object register;
+		
+		public Register(Object register) {
+			this.register = register;
+		}
+		
+		public Object register(ResourceLocation resourceLocation, Object object) throws IllegalAccessException, InvocationTargetException {
+			for (Method method : register.getClass().getMethods()) {
+				if (method.getName().equals("a")) {
+					method.setAccessible(true);
+					FlameConfig.field.append("Registering block: " + resourceLocation.toString() + "\n");
+					return method.invoke(register, resourceLocation.toString(), object);
+				}
+			}
+			return null;
+		}
 	}
 	
 	public enum RegistryType {
