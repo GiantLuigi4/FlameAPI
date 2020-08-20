@@ -23,7 +23,7 @@ public class Registry {
 	
 	private static final TriHashMap<RegistryType, ResourceLocation, Object> registryHash = new TriHashMap<>();
 	
-	public static RegistryObject<?> registerBlock(ResourceLocation resourceLocation, RegistryType type, Object toRegister) {
+	public static RegistryObject<?> register(ResourceLocation resourceLocation, RegistryType type, Object toRegister) {
 		if (registryHash.contains(type, resourceLocation)) {
 			throw new RuntimeException(new IllegalAccessException("Can not register two " + type.name + "s" + " to the same register."));
 		}
