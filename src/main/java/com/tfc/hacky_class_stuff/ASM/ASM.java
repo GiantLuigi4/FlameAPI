@@ -1,17 +1,18 @@
 package com.tfc.hacky_class_stuff.ASM;
 
 import com.tfc.API.flame.annotations.ASM.Unmodifiable;
+import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.FlameAPIConfigs;
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
 import com.tfc.hacky_class_stuff.ASM.API.InstructionData;
+import com.tfc.hacky_class_stuff.ASM.API.MethodVisitorHolder;
 import com.tfc.hacky_class_stuff.ASM.transformers.HookinHandler;
 import com.tfc.hacky_class_stuff.ASM.transformers.fields.FieldAccessTransformer;
 import com.tfc.hacky_class_stuff.ASM.transformers.fields.FieldAdder;
 import com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAccessTransformer;
-import com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAdder;
-import com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodFinalizer;
+import com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodReplacer;
 import com.tfc.utils.Bytecode;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -27,16 +28,41 @@ public class ASM {
 	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	private static final HashMap<String, ArrayList<InstructionData>> hookins = new HashMap<>();
 	
+	private static final HashMap<String, ArrayList<MethodVisitorHolder>> methodReplacements = new HashMap<>();
+	
 	private static final HashMap<String, ArrayList<Access>> accessValues = new HashMap<>();
 	public static final String transformAll = generateKey();
 	
 	public static byte[] applyASM(String name, byte[] bytes) {
 		if (!checkUnmodifiable(name, bytes)) {
 			bytes = applyHookins(name, bytes);
-			bytes = applyMethods(name, bytes);
+//			bytes = applyMethods(name, bytes);
+			bytes = applyMethodReplacements(name, bytes);
 			bytes = applyFields(name, bytes);
 			bytes = applyMethodTransformers(name, bytes);
 			bytes = applyFieldTransformers(name, bytes);
+		}
+		return bytes;
+	}
+	
+	public static byte[] applyMethodReplacements(String name, byte[] bytes) {
+		if (methodReplacements.containsKey(name)) {
+			try {
+				ClassReader reader = new ClassReader(bytes);
+				ClassWriter writer = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
+				for (MethodVisitorHolder visitorHolder : methodReplacements.get(name)) {
+					new MethodReplacer(
+							FlameAPIConfigs.ASM_Version,
+							writer,
+							visitorHolder.visitor,
+							visitorHolder.method
+					);
+				}
+				writer.visitEnd();
+				return writer.toByteArray();
+			} catch (Throwable err) {
+				Logger.logErrFull(err);
+			}
 		}
 		return bytes;
 	}
@@ -82,6 +108,7 @@ public class ASM {
 				ClassNode node = new ClassNode();
 				reader.accept(node, 0);
 				ClassWriter writer = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
+//				writer.visit(52,reader.getAccess(),reader.getClassName(),"none",reader.getSuperName(),reader.getInterfaces());
 				FlameConfig.field.append(hookins.size() + "\n");
 				for (InstructionData data : hookins.get(name)) {
 					try {
@@ -110,9 +137,9 @@ public class ASM {
 						} else if (writer == null) {
 							FlameConfig.field.append("Writer is " + null + ".\n");
 						} else {
-							MethodAdder adder = new MethodAdder(FlameAPIConfigs.ASM_Version, writer.visitMethod(access.get(), data.method, descriptor.get(), signature.get(), exceptions.get()), data.call.split("\\.", 1)[1], data.point, data.call.split("\\.", 1)[0], data.method, data.node);
-							MethodFinalizer finalizer = new MethodFinalizer(FlameAPIConfigs.ASM_Version, writer, adder);
-							reader.accept(finalizer, 0);
+//							HookinApplier adder = new HookinApplier(FlameAPIConfigs.ASM_Version, writer.visitMethod(access.get(), data.method, descriptor.get(), signature.get(), exceptions.get()), data.call.split("\\.", 1)[1], data.point, data.call.split("\\.", 1)[0], data.method, data.node);
+//							MethodFinalizer finalizer = new MethodFinalizer(FlameAPIConfigs.ASM_Version, writer, adder);
+//							reader.accept(finalizer, 0);
 						}
 					} catch (Throwable ignored) {
 					}
@@ -189,7 +216,7 @@ public class ASM {
 				if (!Arrays.toString(bytes).equals(Arrays.toString(bytes1))) {
 					if (!accessValues.containsKey(name) && !fieldNodes.containsKey(name))
 						Bytecode.writeBytes(name, "pre", bytes);
-					Bytecode.writeBytes(name, "post_mixins", bytes1);
+					Bytecode.writeBytes(name, "post_hookins", bytes1);
 				}
 				return bytes;
 			} catch (Throwable err) {

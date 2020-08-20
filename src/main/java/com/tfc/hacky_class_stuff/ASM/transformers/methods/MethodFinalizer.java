@@ -4,14 +4,14 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 public class MethodFinalizer extends ClassVisitor {
-	private final MethodAdder methodVisitor;
+	private final HookinApplier methodVisitor;
 	
-	public MethodFinalizer(int api, MethodAdder methodVisitor) {
+	public MethodFinalizer(int api, HookinApplier methodVisitor) {
 		super(api);
 		this.methodVisitor = methodVisitor;
 	}
 	
-	public MethodFinalizer(int api, ClassVisitor classVisitor, MethodAdder methodVisitor) {
+	public MethodFinalizer(int api, ClassVisitor classVisitor, HookinApplier methodVisitor) {
 		super(api, classVisitor);
 		this.methodVisitor = methodVisitor;
 	}
@@ -22,5 +22,22 @@ public class MethodFinalizer extends ClassVisitor {
 			return methodVisitor;
 		}
 		return super.visitMethod(access, name, descriptor, signature, exceptions);
+	}
+	
+	@Override
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		super.visit(version, access, name, signature, superName, interfaces);
+		methodVisitor.visitCode();
+	}
+	
+	@Override
+	public void visitSource(String source, String debug) {
+		super.visitSource(source, debug);
+	}
+	
+	@Override
+	public void visitEnd() {
+		methodVisitor.visitEnd();
+		super.visitEnd();
 	}
 }
