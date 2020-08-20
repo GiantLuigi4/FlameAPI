@@ -294,17 +294,6 @@ public class Main implements IFlameAPIMod {
 					Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice"))
 			);
 			Logger.logLine(properties);
-			blockConstructors.forEach(constructor -> {
-				if (constructor.getParameterTypes().length == 1) {
-					if (constructor.getParameterTypes()[0].equals(blockPropertiesClass)) {
-						try {
-							constructor.setAccessible(true);
-							Logger.logLine(Registry.register(properties.getLocation(), Registry.RegistryType.BLOCK, constructor.newInstance(properties.unwrap())));
-						} catch (Throwable ignored) {
-						}
-					}
-				}
-			});
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
