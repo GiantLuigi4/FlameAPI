@@ -1,4 +1,4 @@
-package com.tfc.API.flame;
+package com.tfc.API.flame.annotations.ASM;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,9 +7,12 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
-@Target({ElementType.METHOD})
-public @interface Replace {
+@Target({ElementType.FIELD})
+@Unmodifiable
+public @interface AppendField {
 	String targetClass();
 	
-	String targetMethod();
+	String defaultVal();
+	
+	String type();
 }

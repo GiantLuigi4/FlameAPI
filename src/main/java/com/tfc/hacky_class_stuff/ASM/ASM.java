@@ -1,5 +1,6 @@
 package com.tfc.hacky_class_stuff.ASM;
 
+import com.tfc.API.flame.annotations.ASM.Unmodifiable;
 import com.tfc.FlameAPIConfigs;
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
@@ -10,21 +11,35 @@ import com.tfc.hacky_class_stuff.ASM.transformers.fields.FieldAccessTransformer;
 import com.tfc.hacky_class_stuff.ASM.transformers.fields.FieldAdder;
 import com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAccessTransformer;
 import com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAdder;
+import com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodFinalizer;
 import com.tfc.utils.Bytecode;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Unmodifiable
 public class ASM {
 	private static final HashMap<String, ArrayList<FieldData>> fieldNodes = new HashMap<>();
 	private static final HashMap<String, ArrayList<InstructionData>> hookins = new HashMap<>();
 	
 	private static final HashMap<String, ArrayList<Access>> accessValues = new HashMap<>();
 	public static final String transformAll = generateKey();
+	
+	public static byte[] applyASM(String name, byte[] bytes) {
+		if (!checkUnmodifiable(name, bytes)) {
+			bytes = applyHookins(name, bytes);
+			bytes = applyMethods(name, bytes);
+			bytes = applyFields(name, bytes);
+			bytes = applyMethodTransformers(name, bytes);
+			bytes = applyFieldTransformers(name, bytes);
+		}
+		return bytes;
+	}
 	
 	public static byte[] applyFields(String name, byte[] bytes) {
 		if (fieldNodes.containsKey(name) && bytes != null) {
@@ -95,7 +110,9 @@ public class ASM {
 						} else if (writer == null) {
 							FlameConfig.field.append("Writer is " + null + ".\n");
 						} else {
-							new MethodAdder(FlameAPIConfigs.ASM_Version, writer.visitMethod(access.get(), data.method, descriptor.get(), signature.get(), exceptions.get()), data.call, data.point, name, data.method).visitEnd();
+							MethodAdder adder = new MethodAdder(FlameAPIConfigs.ASM_Version, writer.visitMethod(access.get(), data.method, descriptor.get(), signature.get(), exceptions.get()), data.call.split("\\.", 1)[1], data.point, data.call.split("\\.", 1)[0], data.method, data.node);
+							MethodFinalizer finalizer = new MethodFinalizer(FlameAPIConfigs.ASM_Version, writer, adder);
+							reader.accept(finalizer, 0);
 						}
 					} catch (Throwable ignored) {
 					}
@@ -270,6 +287,22 @@ public class ASM {
 			list.add(access);
 			accessValuesF.put(clazz, list);
 		}
+	}
+	
+	private static boolean checkUnmodifiable(String name, byte[] bytes) {
+		ClassObject clazz = HookinHandler.getClassNode(name, bytes);
+		ClassNode classNode = clazz.getObj2();
+		ArrayList<AnnotationNode> annotationNodes = new ArrayList<>();
+		if (classNode.invisibleAnnotations != null)
+			annotationNodes.addAll(classNode.invisibleAnnotations);
+		if (classNode.visibleAnnotations != null)
+			annotationNodes.addAll(classNode.visibleAnnotations);
+		annotationNodes.forEach(annotationNode -> {
+			if (annotationNode.desc.contains("Unmodifiable")) {
+				FlameConfig.field.append(annotationNode.desc);
+			}
+		});
+		return false;
 	}
 	
 	private static String generateKey() {

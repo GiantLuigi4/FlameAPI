@@ -1,6 +1,6 @@
 package com.tfc.hacky_class_stuff.ASM.transformers;
 
-import com.tfc.API.flame.Hookin;
+import com.tfc.API.flame.annotations.ASM.Hookin;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.flame.FlameConfig;
 import com.tfc.hacky_class_stuff.ASM.API.FieldData;
@@ -88,7 +88,7 @@ public class HookinHandler {
 							FlameConfig.field.append(Arrays.toString(values.toArray()) + "\n");
 						}
 						FlameConfig.field.append("Found Hookin in class: " + clazz + " targeted at class: " + targetClass + " for method: " + targetMethod + " for point: " + point.toString() + "\n");
-						ASM.addHookin(new InstructionData(clazz.replaceAll("\\.", "/") + "." + node.name, point, node.name), targetClass);
+						ASM.addHookin(new InstructionData(clazz.replaceAll("\\.", "/") + "." + node.name, point, node.name, node), targetClass);
 					} else if (node1.desc.contains("Replace")) {
 						List<Object> values = node1.values;
 						try {
@@ -213,7 +213,7 @@ public class HookinHandler {
 		if (hookins.containsKey(clazz.getObj2().name)) {
 			if (hookins.get(clazz.getObj2().name).containsKey(name)) {
 				for (TriObject<Hookin.Point, MethodNode, String> hookin : hookins.get(clazz.getObj2().name).get(name)) {
-					ASM.addHookin(new InstructionData(hookin.getObj3().replaceAll("\\.", "/") + "." + hookin.getObj2().name, hookin.getObj1(), node.name), clazz.getObj2().name);
+					ASM.addHookin(new InstructionData(hookin.getObj3().replaceAll("\\.", "/") + "." + hookin.getObj2().name, hookin.getObj1(), node.name, node), clazz.getObj2().name);
 				}
 			}
 		}

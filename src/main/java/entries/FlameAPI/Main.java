@@ -1,5 +1,6 @@
 package entries.FlameAPI;
 
+import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flamemc.Block;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
@@ -86,7 +87,7 @@ public class Main implements IFlameAPIMod {
 			Class.forName("RegistryClassFinder");
 			Class.forName("GenericClassFinder");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
-			Class.forName("com.tfc.API.flame.Hookin");
+			Class.forName("com.tfc.API.flame.annotations.ASM.Hookin");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAccessTransformer");
 			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.HookinHandler");
 			Class.forName("com.tfc.utils.BiObject");
@@ -100,7 +101,7 @@ public class Main implements IFlameAPIMod {
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
 			Object obj1 = ClassObject.class;
 		} catch (Throwable err) {
-			FlameConfig.logError(err);
+			Logger.logErrFull(err);
 			throw new RuntimeException(err);
 		}
 		
@@ -127,16 +128,12 @@ public class Main implements IFlameAPIMod {
 				}
 			}
 		} catch (Throwable err) {
-			FlameConfig.logError(err);
+			Logger.logErrFull(err);
 		}
 		
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.hookis", ASM::applyHookins);
-//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.appHookins", ASM::applyMethods);
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.addField", ASM::applyFields);
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atMethod", ASM::applyMethodTransformers);
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM.atFields", ASM::applyFieldTransformers);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::applyASM);
 		
 		Access access = new Access(FlameASM.AccessType.PRIVATE, "hello");
 		FlameConfig.field.append(access.type.name() + "\n");
@@ -162,13 +159,13 @@ public class Main implements IFlameAPIMod {
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
 //			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
 //		} catch (Throwable err) {
-//			FlameConfig.logError(err);
+//			Logger.logErrFull();(err);
 //		}
 		
 		try {
 			new Block();
 		} catch (Throwable err) {
-			FlameConfig.logError(err);
+			Logger.logErrFull(err);
 		}
 		
 		try {
@@ -186,7 +183,7 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
 			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
 		} catch (Throwable err) {
-			FlameConfig.logError(err);
+			Logger.logErrFull(err);
 		}
 		
 		boolean success = false;
@@ -211,17 +208,15 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		if (!success) {
-			throwables.forEach(err -> {
-				FlameConfig.logError(err);
-			});
+			throwables.forEach(Logger::logErrFull);
 			FlameConfig.field.append("Failed to construct a resource location.\n");
 		}
-		
-		try {
-			FlameASM.transformFieldAccess(ScanningUtils.toClassName(mainRegistry), "a", FlameASM.AccessType.PUBLIC_STATIC);
-		} catch (Throwable err) {
-			FlameConfig.logError(err);
-		}
+
+//		try {
+//			FlameASM.transformFieldAccess(ScanningUtils.toClassName(mainRegistry), "a", FlameASM.AccessType.PUBLIC_STATIC);
+//		} catch (Throwable err) {
+//			Logger.logErrFull(err);
+//		}
 		
 		new ClientBrandRetriever();
 	}
@@ -241,12 +236,13 @@ public class Main implements IFlameAPIMod {
 			}
 		} catch (Throwable ignored) {
 		}
-		
-		try {
-			Registry.registerBlock(new Registry.ResourceLocation("flame_api:test"), Registry.RegistryType.BLOCK);
-		} catch (Throwable err) {
-			FlameConfig.logError(err);
-		}
+
+//		try {
+//			Registry.registerBlock(new Registry.ResourceLocation("flame_api:test"), Registry.RegistryType.BLOCK);
+//		} catch (Throwable err) {
+//			Logger.logErrFull(err);
+//		}
+
 //		try {
 //			for (Method m : Class.forName(mainRegistry.replace(".class", "")).getMethods()) {
 //				try {
@@ -276,7 +272,7 @@ public class Main implements IFlameAPIMod {
 				registryClassNames.put(name, clazz);
 //				registryClasses.put(name,Class.forName(clazz));
 			} catch (Throwable err) {
-				FlameConfig.logError(err);
+				Logger.logErrFull(err);
 			}
 		}
 	}
