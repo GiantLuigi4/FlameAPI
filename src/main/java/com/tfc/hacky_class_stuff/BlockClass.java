@@ -16,17 +16,14 @@ import org.objectweb.asm.ClassWriter;
 //No
 //Ok now it has two constructors, both exactly the same, AND it still extends byte.
 //Ok I'm just gonna... not do this rn...
+//HEY! IT WORKS!
 public class BlockClass {
 	public static byte[] getBlock(String name, byte[] bytes) {
 		if (name.equals("com.tfc.API.flamemc.Block")) {
 			try {
-//				ClassWriter blankWriter = new ClassWriter(FlameAPIConfigs.ASM_Version);
-//				Logger.logLine(ScanningUtils.toClassName(Main.getBlockClass()));
 				ClassReader reader = new ClassReader(bytes);
 				ClassWriter blankWriter = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
 				blankWriter.visit(52, FlameASM.AccessType.PUBLIC.level, reader.getClassName(), "none", ScanningUtils.toClassName(Main.getBlockClass()), null);
-//				blankWriter.visitModule(name.substring(0, name.lastIndexOf(".")), FlameASM.AccessType.PUBLIC.level, null);
-//				blankWriter.newPackage(name.substring(0, name.lastIndexOf(".")));
 				blankWriter.visitEnd();
 				byte[] bytes1 = blankWriter.toByteArray();
 				Bytecode.writeBytes(name, "fabrication", bytes1);

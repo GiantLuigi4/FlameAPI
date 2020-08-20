@@ -3,9 +3,11 @@ package com.tfc.API.flamemc;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
+import com.tfc.utils.TriHashMap;
 import entries.FlameAPI.Main;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -18,7 +20,12 @@ public class Registry {
 		return "minecraft:" + type.toLowerCase() + "s";
 	}
 	
+	private static final TriHashMap<RegistryType, ResourceLocation, Object> registryHash = new TriHashMap<>();
+	
 	public static Object registerBlock(ResourceLocation resourceLocation, RegistryType type) {
+		if (registryHash.contains(type, resourceLocation)) {
+			throw new RuntimeException(new IllegalAccessException("Can not register two " + type.name + "s" + " to the same register."));
+		}
 		try {
 			Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
 			Class<?> registry = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(type.name))));
@@ -42,7 +49,44 @@ public class Registry {
 				}
 //				}
 			});
+			registryHash.add(type, resourceLocation, returnVal.get());
 			return returnVal.get();
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+		}
+		return null;
+	}
+	
+	public static Object get(RegistryType registry, ResourceLocation name) {
+		if (registryHash.contains(registry, name))
+			return registryHash.get(registry, name);
+		try {
+			Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
+			Class<?> registryClass = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(registry.name))));
+			for (Field f : registryClass.getDeclaredFields()) {
+//				Logger.logLine(f.getName());
+				try {
+					f.setAccessible(true);
+					Object item = f.get(null);
+					for (Field itemField : item.getClass().getDeclaredFields()) {
+						try {
+							itemField.setAccessible(true);
+							Object check = itemField.get(item);
+//							Logger.logLine("itemField: " + check);
+							if (check.toString().equals(name.toString())) {
+								registryHash.add(registry, name, item);
+								return item;
+							}
+						} catch (Throwable ignored) {
+						}
+					}
+					if (item.toString().contains(name.toString())) {
+						registryHash.add(registry, name, item);
+						return item;
+					}
+				} catch (Throwable ignored) {
+				}
+			}
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
 		}
@@ -127,6 +171,11 @@ public class Registry {
 		
 		public String getPath() {
 			return location.toString().split(":", 2)[1].replace(":", "");
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			return obj.toString().equals(this.toString());
 		}
 		
 		@Override
