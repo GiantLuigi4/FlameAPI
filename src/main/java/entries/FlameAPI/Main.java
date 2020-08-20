@@ -3,6 +3,7 @@ package entries.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
+import com.tfc.API.flamemc.blocks.BlockPropeteries;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
@@ -22,6 +23,9 @@ import java.util.Iterator;
 
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
+	
+	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
+	
 	//private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
 	private static String gameDir;
 	private static String version;
@@ -234,6 +238,14 @@ public class Main implements IFlameAPIMod {
 	public void preinit(String[] args) {
 	}
 	
+	//NYI on mod loader's side
+	public static Main instance = null;
+	private static Class<?> blockPropertiesClass = null;
+	
+	public static Class<?> getBlockPropertiesClass() {
+		return blockPropertiesClass;
+	}
+	
 	@Override
 	public void init(String[] args) {
 		try {
@@ -261,7 +273,11 @@ public class Main implements IFlameAPIMod {
 				for (Class<?> clazz : c.getParameterTypes()) {
 					params += num + ": " + clazz.getName() + ", ";
 					num++;
+					if (clazz.getName().contains(ScanningUtils.toClassName(getBlockClass()))) {
+						blockPropertiesClass = clazz;
+					}
 				}
+				blockConstructors.add(c);
 				Logger.logLine(params.substring(0, params.length() - 2));
 			}
 		} catch (Throwable err) {
@@ -271,6 +287,27 @@ public class Main implements IFlameAPIMod {
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:stone")));
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:bedrock")));
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice")));
+		
+		try {
+			BlockPropeteries properties = new BlockPropeteries(
+					new Registry.ResourceLocation("flameapi:test"),
+					Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice"))
+			);
+			Logger.logLine(properties);
+			blockConstructors.forEach(constructor -> {
+				if (constructor.getParameterTypes().length == 1) {
+					if (constructor.getParameterTypes()[0].equals(blockPropertiesClass)) {
+						try {
+							constructor.setAccessible(true);
+							Logger.logLine(Registry.registerBlock(properties.getLocation(), Registry.RegistryType.BLOCK, constructor.newInstance(properties.unwrap())));
+						} catch (Throwable ignored) {
+						}
+					}
+				}
+			});
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
 
 //		try {
 //			Registry.registerBlock(new Registry.ResourceLocation("flame_api:test"), Registry.RegistryType.BLOCK);

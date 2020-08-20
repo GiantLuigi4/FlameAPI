@@ -1,6 +1,7 @@
 package com.tfc.API.flamemc;
 
 import com.tfc.API.flame.utils.logging.Logger;
+import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
 import com.tfc.utils.TriHashMap;
@@ -22,7 +23,7 @@ public class Registry {
 	
 	private static final TriHashMap<RegistryType, ResourceLocation, Object> registryHash = new TriHashMap<>();
 	
-	public static Object registerBlock(ResourceLocation resourceLocation, RegistryType type) {
+	public static RegistryObject<?> registerBlock(ResourceLocation resourceLocation, RegistryType type, Object toRegister) {
 		if (registryHash.contains(type, resourceLocation)) {
 			throw new RuntimeException(new IllegalAccessException("Can not register two " + type.name + "s" + " to the same register."));
 		}
@@ -30,26 +31,28 @@ public class Registry {
 			Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
 			Class<?> registry = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(type.name))));
 			AtomicReference<RegistryObject<?>> returnVal = new AtomicReference<>(null);
-			ArrayList<Method> allMethods = new ArrayList<>(Arrays.asList(registry.getDeclaredMethods()));
-//			allMethods.addAll(Arrays.asList(registry.getMethods()));
+			ArrayList<Method> allMethods = Methods.getAllMethods(registry);
 			FlameConfig.field.append(allMethods.size() + "\n");
-			allMethods.forEach(method -> {
+			for (Method method : allMethods) {
 //				if (returnVal.get()!=null) {
 				try {
 					FlameConfig.field.append("method: " + method.getName() + "\n");
 					FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
-					Object o = registry.getDeclaredField("a").get(null);
-					FlameConfig.field.append(o.toString() + "\n");
+//					Object o = registry.getDeclaredField("a").get(null);
+//					FlameConfig.field.append(o.toString() + "\n");
 					method.setAccessible(true);
-					returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), o)));
-					FlameConfig.field.append(returnVal.get() + "\n");
-					FlameConfig.field.append(resourceLocation.unWrap().toString() + "\n");
+					returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister)));
+					if (returnVal != null) {
+						registryHash.add(type, resourceLocation, returnVal.get());
+						return returnVal.get();
+					}
+//					FlameConfig.field.append(returnVal.get() + "\n");
+//					FlameConfig.field.append(resourceLocation.unWrap().toString() + "\n");
 				} catch (Throwable err) {
 					Logger.logErrFull(err);
 				}
 //				}
-			});
-			registryHash.add(type, resourceLocation, returnVal.get());
+			}
 			return returnVal.get();
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
@@ -103,6 +106,11 @@ public class Registry {
 		
 		protected RegistryObject(A object) {
 			this.object = object;
+		}
+		
+		@Override
+		public String toString() {
+			return "RegistryObject:{" + object.toString() + "}";
 		}
 		
 		public A get() {

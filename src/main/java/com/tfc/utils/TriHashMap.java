@@ -3,6 +3,7 @@ package com.tfc.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+//Leaving this open to ASM for if someone wants to optimize it
 public class TriHashMap<V, K, T> extends HashMap<V, HashMap<K, T>> {
 	public TriHashMap(int initialCapacity, float loadFactor) {
 		super(initialCapacity, loadFactor);

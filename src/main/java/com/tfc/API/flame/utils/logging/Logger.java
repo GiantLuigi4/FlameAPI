@@ -1,7 +1,9 @@
 package com.tfc.API.flame.utils.logging;
 
+import com.tfc.API.flame.annotations.ASM.Unmodifiable;
 import com.tfc.flame.FlameConfig;
 
+@Unmodifiable
 public class Logger {
 	public static void log(Object obj) {
 		if (obj instanceof String) {

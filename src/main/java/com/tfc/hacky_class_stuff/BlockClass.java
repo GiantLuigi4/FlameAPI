@@ -19,7 +19,7 @@ import org.objectweb.asm.ClassWriter;
 //HEY! IT WORKS!
 public class BlockClass {
 	public static byte[] getBlock(String name, byte[] bytes) {
-		if (name.equals("com.tfc.API.flamemc.Block")) {
+		if (name.equals("com.tfc.API.flamemc.blocks.Block")) {
 			try {
 				ClassReader reader = new ClassReader(bytes);
 				ClassWriter blankWriter = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);

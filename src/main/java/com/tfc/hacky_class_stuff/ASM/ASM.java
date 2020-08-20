@@ -325,7 +325,7 @@ public class ASM {
 		if (classNode.visibleAnnotations != null)
 			annotationNodes.addAll(classNode.visibleAnnotations);
 		annotationNodes.forEach(annotationNode -> {
-			if (annotationNode.desc.contains("Unmodifiable")) {
+			if (annotationNode.desc.equals("Lcom/tfc/API/flame/annotations/ASM/Unmodifiable;")) {
 				FlameConfig.field.append(annotationNode.desc);
 			}
 		});
