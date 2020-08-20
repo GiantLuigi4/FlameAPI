@@ -57,6 +57,22 @@ public class Main implements IFlameAPIMod {
 	}
 	
 	
+	public static String getBlockClass() {
+		return blockClass;
+	}
+	
+	public static String getItemClass() {
+		return itemClass;
+	}
+	
+	public static String getItemStackClass() {
+		return itemStackClass;
+	}
+	
+	public static String getResourceLocationClass() {
+		return resourceLocationClass;
+	}
+	
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
@@ -163,12 +179,6 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
-			new Block();
-		} catch (Throwable err) {
-			Logger.logErrFull(err);
-		}
-		
-		try {
 			registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
@@ -182,6 +192,12 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.field.append("Item Class:" + itemClass + "\n");
 			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
 			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
+		try {
+			new Block();
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}

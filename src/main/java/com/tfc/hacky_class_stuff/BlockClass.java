@@ -1,6 +1,13 @@
 package com.tfc.hacky_class_stuff;
 
+import com.tfc.API.flamemc.FlameASM;
+import com.tfc.FlameAPIConfigs;
 import com.tfc.flame.FlameConfig;
+import com.tfc.utils.Bytecode;
+import com.tfc.utils.ScanningUtils;
+import entries.FlameAPI.Main;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 
 //ASM is cool...
 //When it doesn't... magically generate classes... that extend byte..?
@@ -13,21 +20,17 @@ public class BlockClass {
 	public static byte[] getBlock(String name, byte[] bytes) {
 		if (name.equals("com.tfc.API.flamemc.Block")) {
 			try {
-//				String superName = ScanningUtils.toClassName(Main.getResourceTypeClasses().get("Block")).replace(".", "/");
-//				FlameConfig.field.append(name + "\n");
-////				ClassReader reader = new ClassReader(new byte[]{0,0,0,0,0,0,0,0});
-////				FlameConfig.field.append(reader.getSuperName() + "\n");
-////				ClassWriter writer = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
-//				ClassWriter writer = new ClassWriter(FlameAPIConfigs.ASM_Version);
-////				reader.accept(new SupernameSetter(FlameAPIConfigs.ASM_Version, writer, superName,0);
-//				writer.newPackage("com.tfc.API.flamemc");
-//				writer.visit(52, FlameASM.AccessType.PUBLIC.level, "Block", "FlameAPI", superName, null);
-//				writer.visitEnd();
-//				byte[] bytes1 = writer.toByteArray();
-//				ClassReader reader2 = new ClassReader(bytes1);
-//				FlameConfig.field.append(reader2.getSuperName() + "\n");
-//				Bytecode.writeBytes(name, "fabrication", bytes1);
-//				return bytes1;
+//				ClassWriter blankWriter = new ClassWriter(FlameAPIConfigs.ASM_Version);
+//				Logger.logLine(ScanningUtils.toClassName(Main.getBlockClass()));
+				ClassReader reader = new ClassReader(bytes);
+				ClassWriter blankWriter = new ClassWriter(reader, FlameAPIConfigs.ASM_Version);
+				blankWriter.visit(52, FlameASM.AccessType.PUBLIC.level, reader.getClassName(), "none", ScanningUtils.toClassName(Main.getBlockClass()), null);
+//				blankWriter.visitModule(name.substring(0, name.lastIndexOf(".")), FlameASM.AccessType.PUBLIC.level, null);
+//				blankWriter.newPackage(name.substring(0, name.lastIndexOf(".")));
+				blankWriter.visitEnd();
+				byte[] bytes1 = blankWriter.toByteArray();
+				Bytecode.writeBytes(name, "fabrication", bytes1);
+				return bytes1;
 			} catch (Throwable err) {
 				FlameConfig.logError(err);
 			}
