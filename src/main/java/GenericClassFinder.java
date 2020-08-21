@@ -1,4 +1,6 @@
+import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.utils.ScanningUtils;
+import entries.FlameAPI.Main;
 
 import java.io.File;
 import java.util.HashMap;
@@ -43,7 +45,6 @@ public class GenericClassFinder {
 	};
 	private static final String[] fireChecks = new String[]{
 			"doFireTick",
-			";L%block%;",
 			"Ljava/util/Random;",
 			"age",
 			"north",
@@ -60,13 +61,7 @@ public class GenericClassFinder {
 			AtomicReference<String> clazzStack = new AtomicReference<>("null");
 			AtomicReference<String> clazzBlock = new AtomicReference<>("null");
 			AtomicReference<String> clazzRL = new AtomicReference<>("null");
-//			rlChecks.add("minecraft");
-//			rlChecks.add(":");
-//			rlChecks.add("hashCode");
-//			if (isVersionGreaterThan12)
-//				rlChecks.add("location");
 			if (isVersionLessThan12)
-//				rlChecks.add("append");
 				rlChecks[3] = "append";
 			String[] version_checksBlocks = isVersionGreaterThan12 ? checksBlocks : checksBlocks12;
 			ScanningUtils.forLittleFiles(new JarFile(versionDir), (sc, entry) -> {
@@ -112,9 +107,9 @@ public class GenericClassFinder {
 		AtomicReference<String> blockItemClass = new AtomicReference<>("null");
 		AtomicReference<String> blockFireClass = new AtomicReference<>("null");
 		if (mcMajorVersion == 7) {
-			fireChecks[3] = "largesmoke";
-			fireChecks[4] = "_layer_0";
-			fireChecks[5] = "fire.fire";
+			fireChecks[2] = "largesmoke";
+			fireChecks[3] = "_layer_0";
+			fireChecks[4] = "fire.fire";
 		}
 		try {
 			ScanningUtils.forAllFiles(new JarFile(versionDir), (sc, entry) -> {
@@ -129,10 +124,13 @@ public class GenericClassFinder {
 					}
 				});
 				String entryName = entry.getName();
+				if (!Main.getBlockClass().equals(entryName))
+					ScanningUtils.checkGenericClass(checksFire.size(), fireChecks.length, blockFireClass, "BlockFire", entryName);
 				ScanningUtils.checkGenericClass(checksBlockItem.size(), BlockItemChecks.length, blockItemClass, "BlockItem", entryName);
-				ScanningUtils.checkGenericClass(checksFire.size(), fireChecks.length, blockFireClass, "BlockFire", entryName);
-				}, ClassFindingUtils::checkName);
-
+				if (checksFire.size() == 5) {
+					Logger.logLine("\nFire: " + checksFire + ", " + entryName);
+				}
+			}, ClassFindingUtils::checkName);
 			normal.put("BlockItem", blockItemClass.get());
 			normal.put("BlockFire", blockFireClass.get());
 			return normal;

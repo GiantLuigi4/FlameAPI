@@ -105,6 +105,7 @@ public class RegistryClassFinder {
 			"<init>",
 			"%classname%",
 			"(L%block%;)L%item%;",
+			"%fire%",
 			//"Â",
 			//"9",
 			//"€"
@@ -244,7 +245,8 @@ public class RegistryClassFinder {
 							else if (s.contains("%item%")) {
 								s = s.replace("%item%", ScanningUtils.toClassName(Main.getItemClass()));
 								s = s.replace("%block%", ScanningUtils.toClassName(Main.getBlockClass()));
-							}
+							} else if (s.contains("%fire%"))
+								s = s.replace("%fire%", ScanningUtils.toClassName(Main.getBlockFireClass()));
 							ScanningUtils.checkLine(s, checks, line);
 						}
 						if (bootstrap.length >= (checks.size() - 1) && bootstrap.length <= checks.size()) {
@@ -254,6 +256,7 @@ public class RegistryClassFinder {
 					if (bootstrap.length == checks.size())
 						Logger.logLine(checks + ", " + ScanningUtils.toClassName(entry.getName()));
 				}, ClassFindingUtils::checkName);
+
 			}
 			Logger.logLine(builder.toString());
 			return registry.get();

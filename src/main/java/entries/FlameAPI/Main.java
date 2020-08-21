@@ -84,7 +84,11 @@ public class Main implements IFlameAPIMod {
 	public static String getResourceLocationClass() {
 		return resourceLocationClass;
 	}
-	
+
+	public static String getBlockFireClass() {
+		return blockFireClass;
+	}
+
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
@@ -98,10 +102,6 @@ public class Main implements IFlameAPIMod {
 	
 	public static HashMap<String, String> getRegistries() {
 		return (HashMap<String, String>) registries.clone();
-	}
-
-	public static String getBlockFireClass() {
-		return blockFireClass;
 	}
 
 	@Override
