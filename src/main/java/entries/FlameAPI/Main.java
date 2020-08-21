@@ -1,5 +1,7 @@
 package entries.FlameAPI;
 
+import com.tfc.API.flame.FlameAPI;
+import com.tfc.API.flame.event.initsteps.RegistryStep;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
@@ -264,13 +266,6 @@ public class Main implements IFlameAPIMod {
 		
 		try {
 			Logger.logLine("Block Class Constructors");
-//			for (Constructor<?> c : Block.class.getConstructors()) {
-//				String params = "";
-//				for (Class<?> clazz : c.getParameterTypes()) {
-//					params += clazz.getName() + ", ";
-//				}
-//				Logger.logLine(params.substring(0,params.length()-2));
-//			}
 			for (Constructor<?> c : Class.forName(ScanningUtils.toClassName(getBlockClass())).getConstructors()) {
 				String params = "";
 				int num = 0;
@@ -301,27 +296,8 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
-
-//		try {
-//			Registry.registerBlock(new Registry.ResourceLocation("flame_api:test"), Registry.RegistryType.BLOCK);
-//		} catch (Throwable err) {
-//			Logger.logErrFull(err);
-//		}
-
-//		try {
-//			for (Method m : Class.forName(mainRegistry.replace(".class", "")).getMethods()) {
-//				try {
-////					if (m.getName().equals("a")) {
-//					FlameConfig.field.append("method name: " + m.getName() + "\n");
-//					FlameConfig.field.append("main level: " + m.getModifiers() + "\n");
-//					FlameConfig.field.append("protected static " + FlameASM.AccessType.PROTECTED_STATIC + "\n");
-//					FlameConfig.field.append("public static " + FlameASM.AccessType.PUBLIC_STATIC + "\n");
-////					}
-//				} catch (Throwable ignored) {
-//				}
-//			}
-//		} catch (Throwable ignored) {
-//		}
+		
+		FlameAPI.instance.bus.post(RegistryStep.class, new RegistryStep());
 	}
 	
 	@Override
@@ -335,7 +311,6 @@ public class Main implements IFlameAPIMod {
 				String clazz = ScanningUtils.toClassName(classes.next());
 				FlameConfig.field.append("Registry class: " + name + ": " + clazz + "\n");
 				registryClassNames.put(name, clazz);
-//				registryClasses.put(name,Class.forName(clazz));
 			} catch (Throwable err) {
 				Logger.logErrFull(err);
 			}
