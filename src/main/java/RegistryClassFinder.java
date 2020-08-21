@@ -1,5 +1,7 @@
+import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
+import entries.FlameAPI.Main;
 
 import java.io.File;
 import java.io.InputStream;
@@ -11,7 +13,7 @@ import static com.tfc.utils.ScanningUtils.isVersionLessThan12;
 
 public class RegistryClassFinder {
 	//avi.class is struc reg in 1.7.10
-
+	
 	private static final String[] blocks = new String[]{
 			"cobblestone",
 			"air",
@@ -97,7 +99,7 @@ public class RegistryClassFinder {
 			"meta:missing_sound",
 			"File {} does not exist, cannot add it to event {}"
 	};
-
+	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
 			ScanningUtils.checkVersion();
@@ -172,25 +174,49 @@ public class RegistryClassFinder {
 		}
 		return null;
 	}
-
+	
 	public static String findMainRegistry(HashMap<String, String> registryTypes, File versionDir) {
 		try {
+			switch (Main.getVersion()) {
+				case "1.15.2-flame":
+				case "1.15-flame":
+				case "1.15.1-flame":
+					return "gb.class";
+				case "1.16.2-flame":
+					return "gm.class";
+				case "1.16.1-flame":
+				case "1.16-flame":
+					return "gl.class";
+				case "1.14-flame":
+				case "1.14.1-flame":
+				case "1.14.2-flame":
+				case "1.14.3-flame":
+				case "1.14.4-flame":
+					return "fm.class";
+			}
 			JarFile file = new JarFile(versionDir);
 			AtomicReference<String> registry = new AtomicReference<>(null);
 			for (String typeClass : registryTypes.values()) {
 				FlameConfig.field.append("Registry Type: " + typeClass + "\n");
 			}
+			StringBuilder builder = new StringBuilder("\n");
 			ScanningUtils.forAllFiles(file, (sc, entry) -> {
 				HashMap<String, Boolean> types = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					for (String typeClass : registryTypes.values()) {
 						ScanningUtils.checkLine(ScanningUtils.toClassName(typeClass), types, line);
 					}
-					if (registryTypes.size() == types.size()) {
+					if (registryTypes.size() >= (types.size() - 1) && registryTypes.size() <= types.size()) {
 						registry.set(entry.getName());
 					}
 				});
+				if (registryTypes.size() > 1) {
+					builder.
+							append(registryTypes.size()).append(":")
+							.append(entry.getName()).append(", ");
+				}
 			}, name -> !name.startsWith("com/tfc") && name.endsWith(".class"));
+			Logger.logLine(builder.toString());
 			return registry.get();
 		} catch (Throwable ignored) {
 		}
