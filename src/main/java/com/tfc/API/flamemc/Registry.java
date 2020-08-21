@@ -2,6 +2,8 @@ package com.tfc.API.flamemc;
 
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flame.utils.reflection.Methods;
+import com.tfc.API.flamemc.items.BlockItem;
+import com.tfc.API.flamemc.items.ItemProperties;
 import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
 import com.tfc.utils.TriHashMap;
@@ -34,24 +36,24 @@ public class Registry {
 			ArrayList<Method> allMethods = Methods.getAllMethods(registry);
 			FlameConfig.field.append(allMethods.size() + "\n");
 			for (Method method : allMethods) {
-//				if (returnVal.get()!=null) {
-				try {
-					FlameConfig.field.append("method: " + method.getName() + "\n");
-					FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
+				if (returnVal.get() == null) {
+					try {
+						FlameConfig.field.append("method: " + method.getName() + "\n");
+						FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
 //					Object o = registry.getDeclaredField("a").get(null);
 //					FlameConfig.field.append(o.toString() + "\n");
-					method.setAccessible(true);
-					returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister)));
-					if (returnVal.get() != null) {
-						registryHash.add(type, resourceLocation, returnVal.get());
-						return returnVal.get();
-					}
+						method.setAccessible(true);
+						returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister)));
+						if (returnVal.get() != null) {
+							registryHash.add(type, resourceLocation, returnVal.get());
+							return returnVal.get();
+						}
 //					FlameConfig.field.append(returnVal.get() + "\n");
 //					FlameConfig.field.append(resourceLocation.unWrap().toString() + "\n");
-				} catch (Throwable err) {
-					Logger.logErrFull(err);
+					} catch (Throwable err) {
+						Logger.logErrFull(err);
+					}
 				}
-//				}
 			}
 			return returnVal.get();
 		} catch (Throwable err) {
@@ -65,29 +67,29 @@ public class Registry {
 			return registryHash.get(registry, name);
 		try {
 //			if (ScanningUtils.isVersionGreaterThan12) {
-				try {
-					if (ScanningUtils.isVersionLessThan12) {
-						Methods.forEach(
-								Class.forName(ScanningUtils.toClassName(Main.getMainRegistry())),
-								method -> {
-									try {
-										method.setAccessible(true);
-										method.invoke(null);
-									} catch (Throwable ignored) {
-									}
+			try {
+				if (ScanningUtils.isVersionLessThan12) {
+					Methods.forEach(
+							Class.forName(ScanningUtils.toClassName(Main.getMainRegistry())),
+							method -> {
+								try {
+									method.setAccessible(true);
+									method.invoke(null);
+								} catch (Throwable ignored) {
 								}
-						);
-					} else {
-						Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
-					}
-				} catch (Throwable err) {
-					Logger.logLine("Failed to find Main Registry class.");
-					Logger.logLine("The game will probably crash.");
-					try {
-						Thread.sleep(1000);
-					} catch (Throwable ignored) {
-					}
+							}
+					);
+				} else {
+					Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
 				}
+			} catch (Throwable err) {
+				Logger.logLine("Failed to find Main Registry class.");
+				Logger.logLine("The game will probably crash.");
+				try {
+					Thread.sleep(1000);
+				} catch (Throwable ignored) {
+				}
+			}
 //			}
 			Logger.logLine(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(registry.name))));
 			Class<?> registryClass = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(registry.name))));
@@ -119,6 +121,39 @@ public class Registry {
 			Logger.logErrFull(err);
 		}
 		return null;
+	}
+	
+	public static RegistryObject<?> registerBlockItem(ResourceLocation location, RegistryObject<?> block) {
+		Object returnVal = null;
+		if (registryHash.contains(RegistryType.ITEM, location)) {
+			throw new RuntimeException(new IllegalAccessException("Can not register two " + RegistryType.BLOCK.name + "s" + " to the same register."));
+		}
+		try {
+			Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
+			Class<?> registry = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(RegistryType.BLOCK.name))));
+			ArrayList<Method> allMethods = Methods.getAllMethods(registry);
+			FlameConfig.field.append(allMethods.size() + "\n");
+			for (Method method : allMethods) {
+				if (returnVal == null) {
+					try {
+						FlameConfig.field.append("method: " + method.getName() + "\n");
+						FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
+						method.setAccessible(true);
+						returnVal = new RegistryObject<>(method.invoke(null, block));
+						registryHash.add(RegistryType.ITEM, location, returnVal);
+					} catch (Throwable err) {
+						Logger.logErrFull(err);
+					}
+				}
+			}
+		} catch (Throwable err) {
+			FlameConfig.logError(err);
+		}
+		if (returnVal == null) {
+			return register(location, RegistryType.ITEM, BlockItem.instance(block, new ItemProperties(location, block.get())));
+		} else {
+			return new RegistryObject<>(returnVal);
+		}
 	}
 	
 	//If you want to use this with vanilla methods, you need to call ".unwrap()" on the ResourceLocation object this creates.
