@@ -3,7 +3,7 @@ package com.tfc.API.flamemc;
 import entries.FlameAPI.Main;
 
 public class Mapping {
-
+	
 	public static String getUnmappedFor(String name) {
 		if (name.startsWith("net.minecraft.init.")) {
 			String s1 = name.replace("net.minecraft.init.", "");

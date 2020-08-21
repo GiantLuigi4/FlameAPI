@@ -256,7 +256,6 @@ public class RegistryClassFinder {
 					if (bootstrap.length == checks.size())
 						Logger.logLine(checks + ", " + ScanningUtils.toClassName(entry.getName()));
 				}, ClassFindingUtils::checkName);
-
 			}
 			Logger.logLine(builder.toString());
 			return registry.get();

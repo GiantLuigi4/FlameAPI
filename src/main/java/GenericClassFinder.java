@@ -53,7 +53,7 @@ public class GenericClassFinder {
 	//Must be done like this, to avoid a literally identical Array for 1.12.2 to 1.7.10, but only location is removed
 	//I disagree (GiantLuigi4)
 	//lol
-
+	
 	public static HashMap<String, String> findRegistrableClasses(File versionDir) {
 		try {
 			ScanningUtils.checkVersion();
