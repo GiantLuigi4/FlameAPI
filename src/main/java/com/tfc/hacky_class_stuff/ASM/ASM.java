@@ -20,6 +20,7 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -324,12 +325,14 @@ public class ASM {
 			annotationNodes.addAll(classNode.invisibleAnnotations);
 		if (classNode.visibleAnnotations != null)
 			annotationNodes.addAll(classNode.visibleAnnotations);
+		AtomicBoolean isUnmodifiable = new AtomicBoolean(false);
 		annotationNodes.forEach(annotationNode -> {
 			if (annotationNode.desc.equals("Lcom/tfc/API/flame/annotations/ASM/Unmodifiable;")) {
-				FlameConfig.field.append(annotationNode.desc);
+				isUnmodifiable.set(true);
+//				FlameConfig.field.append(annotationNode.desc);
 			}
 		});
-		return false;
+		return isUnmodifiable.get();
 	}
 	
 	private static String generateKey() {
