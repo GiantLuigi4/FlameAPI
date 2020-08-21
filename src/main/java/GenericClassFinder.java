@@ -5,8 +5,7 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
-import static com.tfc.utils.ScanningUtils.isVersionGreaterThan12;
-import static com.tfc.utils.ScanningUtils.isVersionLessThan12;
+import static com.tfc.utils.ScanningUtils.*;
 
 public class GenericClassFinder {
 	
@@ -42,10 +41,18 @@ public class GenericClassFinder {
 			"hashCode",
 			"location"
 	};
+	private static final String[] fireChecks = new String[]{
+			"doFireTick",
+			";L%block%;",
+			"Ljava/util/Random;",
+			"age",
+			"north",
+			"south"
+	};
 	//Must be done like this, to avoid a literally identical Array for 1.12.2 to 1.7.10, but only location is removed
 	//I disagree (GiantLuigi4)
-//	private static final List<String> rlChecks = new ArrayList<>();
-	
+	//lol
+
 	public static HashMap<String, String> findRegistrableClasses(File versionDir) {
 		try {
 			ScanningUtils.checkVersion();
@@ -103,18 +110,31 @@ public class GenericClassFinder {
 	
 	public static HashMap<String, String> findExtensionClasses(File versionDir, HashMap<String, String> normal) {
 		AtomicReference<String> blockItemClass = new AtomicReference<>("null");
+		AtomicReference<String> blockFireClass = new AtomicReference<>("null");
+		if (mcMajorVersion == 7) {
+			fireChecks[3] = "largesmoke";
+			fireChecks[4] = "_layer_0";
+			fireChecks[5] = "fire.fire";
+		}
 		try {
 			ScanningUtils.forAllFiles(new JarFile(versionDir), (sc, entry) -> {
 				HashMap<String, Boolean> checksBlockItem = new HashMap<>();
+				HashMap<String, Boolean> checksFire = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					for (String s : BlockItemChecks) {
 						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())).replace("%baseclass%", ScanningUtils.toClassName(normal.get("Item"))), checksBlockItem, line);
 					}
+					for (String s : fireChecks) {
+						ScanningUtils.checkLine(s.replace("%block%", ScanningUtils.toClassName(normal.get("Block"))), checksFire, line);
+					}
 				});
 				String entryName = entry.getName();
 				ScanningUtils.checkGenericClass(checksBlockItem.size(), BlockItemChecks.length, blockItemClass, "BlockItem", entryName);
-			}, ClassFindingUtils::checkName);
+				ScanningUtils.checkGenericClass(checksFire.size(), fireChecks.length, blockFireClass, "BlockFire", entryName);
+				}, ClassFindingUtils::checkName);
+
 			normal.put("BlockItem", blockItemClass.get());
+			normal.put("BlockFire", blockFireClass.get());
 			return normal;
 		} catch (Throwable ignored) {
 		}

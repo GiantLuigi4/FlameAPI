@@ -104,10 +104,10 @@ public class RegistryClassFinder {
 			"<clinit>",
 			"<init>",
 			"%classname%",
-			"(L%item%;",
-			"Â",
-			"9",
-			""
+			"(L%block%;)L%item%;",
+			//"Â",
+			//"9",
+			//"€"
 	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
@@ -241,8 +241,10 @@ public class RegistryClassFinder {
 						for (String s : bootstrap) {
 							if (s.equals("%classname%"))
 								s = s.replace("%classname%", ScanningUtils.toClassName(entry.getName()));
-							else if (s.contains("%item%"))
+							else if (s.contains("%item%")) {
 								s = s.replace("%item%", ScanningUtils.toClassName(Main.getItemClass()));
+								s = s.replace("%block%", ScanningUtils.toClassName(Main.getBlockClass()));
+							}
 							ScanningUtils.checkLine(s, checks, line);
 						}
 						if (bootstrap.length >= (checks.size() - 1) && bootstrap.length <= checks.size()) {

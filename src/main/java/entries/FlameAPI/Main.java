@@ -41,6 +41,7 @@ public class Main implements IFlameAPIMod {
 	private static String blockItemClass = "";
 	private static String itemStackClass = "";
 	private static String resourceLocationClass = "";
+	private static String blockFireClass = "";
 	
 	public static String getMainRegistry() {
 		return mainRegistry;
@@ -91,13 +92,18 @@ public class Main implements IFlameAPIMod {
 		resourceTypes.put("BlockItem", itemClass);
 		resourceTypes.put("ItemStack", itemStackClass);
 		resourceTypes.put("ResourceLocation", resourceLocationClass);
+		resourceTypes.put("BlockFire", blockFireClass);
 		return resourceTypes;
 	}
 	
 	public static HashMap<String, String> getRegistries() {
 		return (HashMap<String, String>) registries.clone();
 	}
-	
+
+	public static String getBlockFireClass() {
+		return blockFireClass;
+	}
+
 	@Override
 	public void setupAPI(String[] args) {
 		try {
@@ -201,11 +207,13 @@ public class Main implements IFlameAPIMod {
 			blockClass = genericClasses.get("Block");
 			itemStackClass = genericClasses.get("ItemStack");
 			resourceLocationClass = genericClasses.get("ResourceLocation");
+			blockFireClass = genericClasses.get("BlockFire");
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Block Class:" + blockClass + "\n");
 			FlameConfig.field.append("Item Class:" + itemClass + "\n");
 			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
 			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
+			FlameConfig.field.append("Block Fire: " + blockFireClass + "\n");
 			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);

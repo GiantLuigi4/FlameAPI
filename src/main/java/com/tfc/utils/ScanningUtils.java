@@ -21,6 +21,7 @@ public class ScanningUtils {
 	
 	public static boolean isVersionGreaterThan12 = false;
 	public static boolean isVersionLessThan12 = false;
+	public static int mcMajorVersion = 16;
 	
 	public static void checkVersion() {
 		String mcAssetVer = Main.getAssetVersion();                                //like 1.16, 1.15 or for 1.7.10 and before, the same version number
@@ -28,6 +29,7 @@ public class ScanningUtils {
 		if (mcMajorVer.contains(".")) {
 			mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));        //if there is still a dot, make another substring, so it actually get 7 in case of 7.10
 		}
+		mcMajorVersion = Integer.parseInt(mcMajorVer);
 		isVersionGreaterThan12 = Integer.parseInt(mcMajorVer) > 12;
 		isVersionLessThan12 = !isVersionGreaterThan12;            // 11 is just a placeholder, still gotta check
 	}
