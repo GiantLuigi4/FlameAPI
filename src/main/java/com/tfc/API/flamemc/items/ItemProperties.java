@@ -8,19 +8,22 @@ import com.tfc.API.flamemc.Registry;
 import java.lang.reflect.Method;
 
 public class ItemProperties {
-	protected static String itemProperties = null;
+	protected static Class<?> itemProperties = null;
 	private Registry.ResourceLocation location;
 	private Object properties;
 	
 	public ItemProperties(Registry.ResourceLocation location, Object propertiesSource) {
+		if (itemProperties == null) {
+			BlockItem.init();
+		}
 		this.location = location;
 		try {
-			for (Method m : Methods.getAllMethods(Class.forName(itemProperties))) {
+			for (Method m : Methods.getAllMethods(itemProperties)) {
 				try {
 					m.setAccessible(true);
 					if (properties == null) {
 						if (m.getParameterTypes().length == 1) {
-							if (m.getReturnType().equals(Class.forName(itemProperties))) {
+							if (m.getReturnType().equals(itemProperties)) {
 								this.properties = m.invoke(null, propertiesSource);
 							}
 						}
@@ -30,6 +33,13 @@ public class ItemProperties {
 				}
 			}
 		} catch (Throwable ignored) {
+		}
+		if (properties == null) {
+			try {
+				properties = itemProperties.newInstance();
+			} catch (Throwable err) {
+				Logger.logErrFull(err);
+			}
 		}
 		rename(location);
 	}

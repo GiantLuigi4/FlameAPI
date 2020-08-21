@@ -96,7 +96,7 @@ public class RegistryClassFinder {
 			"hasNext",
 			"333"
 	};
-	private static final String[] sounds = new String[] {
+	private static final String[] sounds = new String[]{
 			"meta:missing_sound",
 			"File {} does not exist, cannot add it to event {}"
 	};
@@ -252,7 +252,6 @@ public class RegistryClassFinder {
 					if (bootstrap.length == checks.size())
 						Logger.logLine(checks + ", " + ScanningUtils.toClassName(entry.getName()));
 				}, ClassFindingUtils::checkName);
-
 			}
 			Logger.logLine(builder.toString());
 			return registry.get();

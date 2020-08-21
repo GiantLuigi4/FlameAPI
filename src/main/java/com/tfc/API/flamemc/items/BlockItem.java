@@ -25,8 +25,8 @@ public class BlockItem {
 				for (Class<?> clazz : c.getParameterTypes()) {
 					params += num + ": " + clazz.getName() + ", ";
 					num++;
-					if (clazz.getName().contains(ScanningUtils.toClassName(Main.getBlockItemClass()))) {
-						ItemProperties.itemProperties = clazz.getName();
+					if (!clazz.getName().equals(ScanningUtils.toClassName(Main.getItemClass())) && clazz.getName().contains(ScanningUtils.toClassName(Main.getItemClass()))) {
+						ItemProperties.itemProperties = clazz;
 					}
 				}
 				blockItemConstructors.add(c);
@@ -39,15 +39,21 @@ public class BlockItem {
 	}
 	
 	public static Object instance(Registry.RegistryObject<?> block, ItemProperties properties) {
-		for (Constructor<?> constructor : Main.blockConstructors) {
-			if (constructor.getParameterTypes().length == 1) {
-				if (constructor.getParameterTypes()[0].equals(Main.getBlockPropertiesClass())) {
-					try {
-						constructor.setAccessible(true);
-						return constructor.newInstance(block.get(), properties.unwrap());
-					} catch (Throwable ignored) {
-					}
+		for (Constructor<?> constructor : blockItemConstructors) {
+			Logger.logLine(constructor);
+			Logger.logLine("arg1: " + block.get());
+			Logger.logLine("arg2: " + properties.unwrap());
+			if (constructor.getParameterTypes().length == 2) {
+//				if (constructor.getParameterTypes()[0].equals(Main.getBlockPropertiesClass())) {
+				try {
+					constructor.setAccessible(true);
+					Object o = constructor.newInstance(block.get(), properties.unwrap());
+					Logger.logLine(o);
+					return o;
+				} catch (Throwable err) {
+					Logger.logErrFull(err);
 				}
+//				}
 			}
 		}
 		return null;

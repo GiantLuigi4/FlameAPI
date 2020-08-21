@@ -26,6 +26,9 @@ public class Registry {
 	private static final TriHashMap<RegistryType, ResourceLocation, Object> registryHash = new TriHashMap<>();
 	
 	public static RegistryObject<?> register(ResourceLocation resourceLocation, RegistryType type, Object toRegister) {
+		if (toRegister == null) {
+			throw new RuntimeException(new NullPointerException("The object being registered is null."));
+		}
 		if (registryHash.contains(type, resourceLocation)) {
 			throw new RuntimeException(new IllegalAccessException("Can not register two " + type.name + "s" + " to the same register."));
 		}
@@ -36,22 +39,20 @@ public class Registry {
 			ArrayList<Method> allMethods = Methods.getAllMethods(registry);
 			FlameConfig.field.append(allMethods.size() + "\n");
 			for (Method method : allMethods) {
-				if (returnVal.get() == null) {
-					try {
-						FlameConfig.field.append("method: " + method.getName() + "\n");
-						FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
-//					Object o = registry.getDeclaredField("a").get(null);
-//					FlameConfig.field.append(o.toString() + "\n");
-						method.setAccessible(true);
-						returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister)));
-						if (returnVal.get() != null) {
-							registryHash.add(type, resourceLocation, returnVal.get());
-							return returnVal.get();
+				if (method.getParameterTypes().length == 2) {
+					if (returnVal.get() == null) {
+						try {
+							FlameConfig.field.append("method: " + method.getName() + "\n");
+							FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
+							method.setAccessible(true);
+							returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister)));
+							if (returnVal.get() != null) {
+								registryHash.add(type, resourceLocation, returnVal.get());
+								return returnVal.get();
+							}
+						} catch (Throwable err) {
+							Logger.logErrFull(err);
 						}
-//					FlameConfig.field.append(returnVal.get() + "\n");
-//					FlameConfig.field.append(resourceLocation.unWrap().toString() + "\n");
-					} catch (Throwable err) {
-						Logger.logErrFull(err);
 					}
 				}
 			}
@@ -124,6 +125,7 @@ public class Registry {
 	}
 	
 	public static RegistryObject<?> registerBlockItem(ResourceLocation location, RegistryObject<?> block) {
+		Logger.logLine(block.get());
 		Object returnVal = null;
 		if (registryHash.contains(RegistryType.ITEM, location)) {
 			throw new RuntimeException(new IllegalAccessException("Can not register two " + RegistryType.BLOCK.name + "s" + " to the same register."));
@@ -134,15 +136,19 @@ public class Registry {
 			ArrayList<Method> allMethods = Methods.getAllMethods(registry);
 			FlameConfig.field.append(allMethods.size() + "\n");
 			for (Method method : allMethods) {
-				if (returnVal == null) {
-					try {
-						FlameConfig.field.append("method: " + method.getName() + "\n");
-						FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
-						method.setAccessible(true);
-						returnVal = new RegistryObject<>(method.invoke(null, block));
-						registryHash.add(RegistryType.ITEM, location, returnVal);
-					} catch (Throwable err) {
-						Logger.logErrFull(err);
+				if (method.getParameterTypes().length == 1) {
+					if (method.getParameterTypes()[0].equals(block.get().getClass())) {
+						if (returnVal == null) {
+							try {
+								FlameConfig.field.append("method: " + method.getName() + "\n");
+								FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
+								method.setAccessible(true);
+								returnVal = new RegistryObject<>(method.invoke(null, block));
+								registryHash.add(RegistryType.ITEM, location, returnVal);
+							} catch (Throwable err) {
+								Logger.logErrFull(err);
+							}
+						}
 					}
 				}
 			}

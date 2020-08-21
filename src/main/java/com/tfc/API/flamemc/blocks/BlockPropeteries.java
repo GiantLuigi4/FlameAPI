@@ -32,6 +32,12 @@ public class BlockPropeteries {
 				Logger.logErrFull(err);
 			}
 		}
+		if (properties == null) {
+			try {
+				properties = Main.getBlockPropertiesClass().newInstance();
+			} catch (Throwable ignored) {
+			}
+		}
 		rename(location);
 //		Object properties = null;
 //		for (Method m : Main.getBlockPropertiesClass().getMethods()) {
