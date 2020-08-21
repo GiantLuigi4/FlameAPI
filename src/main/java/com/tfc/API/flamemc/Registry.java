@@ -42,7 +42,7 @@ public class Registry {
 //					FlameConfig.field.append(o.toString() + "\n");
 					method.setAccessible(true);
 					returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister)));
-					if (returnVal != null) {
+					if (returnVal.get() != null) {
 						registryHash.add(type, resourceLocation, returnVal.get());
 						return returnVal.get();
 					}
@@ -64,16 +64,19 @@ public class Registry {
 		if (registryHash.contains(registry, name))
 			return registryHash.get(registry, name);
 		try {
-			try {
-				Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
-			} catch (Throwable err) {
-				Logger.logLine("Failed to find Main Registry class.");
-				Logger.logLine("The game will probably crash.");
+			if (ScanningUtils.isVersionGreaterThan12) {
 				try {
-					Thread.sleep(1000);
-				} catch (Throwable ignored) {
+					Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
+				} catch (Throwable err) {
+					Logger.logLine("Failed to find Main Registry class.");
+					Logger.logLine("The game will probably crash.");
+					try {
+						Thread.sleep(1000);
+					} catch (Throwable ignored) {
+					}
 				}
 			}
+			Logger.logLine(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(registry.name))));
 			Class<?> registryClass = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(registry.name))));
 			for (Field f : registryClass.getDeclaredFields()) {
 //				Logger.logLine(f.getName());
@@ -100,7 +103,7 @@ public class Registry {
 				}
 			}
 		} catch (Throwable err) {
-			FlameConfig.logError(err);
+			Logger.logErrFull(err);
 		}
 		return null;
 	}

@@ -149,7 +149,8 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
-		
+
+		ScanningUtils.checkVersion();
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::applyASM);
@@ -184,8 +185,10 @@ public class Main implements IFlameAPIMod {
 		try {
 			registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
-			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
-			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
+			if (ScanningUtils.isVersionGreaterThan12) {
+				mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+				FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
+			}
 			HashMap<String, String> genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findRegistrableClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			itemClass = genericClasses.get("Item");
 			blockClass = genericClasses.get("Block");

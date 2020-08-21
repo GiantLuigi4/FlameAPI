@@ -99,6 +99,7 @@ public class RegistryClassFinder {
 			"meta:missing_sound",
 			"File {} does not exist, cannot add it to event {}"
 	};
+	priav
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
@@ -170,7 +171,7 @@ public class RegistryClassFinder {
 			}, name -> !name.startsWith("com/tfc") && name.endsWith(".class"));
 			return registries;
 		} catch (Throwable err) {
-			FlameConfig.logError(err);
+			Logger.logErrFull(err);
 		}
 		return null;
 	}
@@ -211,9 +212,9 @@ public class RegistryClassFinder {
 					}
 				});
 				if (registryTypes.size() > 1) {
-					builder.
-							append(registryTypes.size()).append(":")
-							.append(entry.getName()).append(", ");
+					builder
+						.append(registryTypes.size()).append(":")
+						.append(entry.getName()).append(", ");
 				}
 			}, name -> !name.startsWith("com/tfc") && name.endsWith(".class"));
 			Logger.logLine(builder.toString());

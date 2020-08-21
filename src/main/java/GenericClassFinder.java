@@ -1,4 +1,3 @@
-import com.tfc.flame.FlameConfig;
 import com.tfc.utils.ScanningUtils;
 
 import java.io.File;
@@ -43,6 +42,8 @@ public class GenericClassFinder {
 			rlChecks.add("hashCode");
 			if (isVersionGreaterThan12)
 				rlChecks.add("location");
+			else
+				rlChecks.add("append");
 			String[] version_checksBlocks = isVersionGreaterThan12 ? checksBlocks : checksBlocks12;
 			ScanningUtils.forLittleFiles(new JarFile(versionDir), (sc, entry) -> {
 				HashMap<String, Boolean> checksRL = new HashMap<>();
@@ -50,8 +51,6 @@ public class GenericClassFinder {
 					for (String s : rlChecks)
 						ScanningUtils.checkLine(s, checksRL, line);
 				});
-				if (checksRL.size() > 2)
-					FlameConfig.field.append("RLChecks: " + checksRL + ", " + entry.getName() + "\n");
 				ScanningUtils.checkGenericClass(checksRL.size(), rlChecks.size(), clazzRL, "ResourceLocation", entry.getName());
 			});
 			ScanningUtils.forAllFiles(new JarFile(versionDir), (sc, entry) -> {
