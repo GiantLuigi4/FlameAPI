@@ -195,6 +195,11 @@ public class RegistryClassFinder {
 					return "fm.class";
 				case "1.12-flame":
 					return "ng.class";
+				case "1.8-flame":
+					return "od.class";
+				case "1.8.8-flame":
+				case "1.8.9-flame":
+					return "kb.class";
 			}
 			JarFile file = new JarFile(versionDir);
 			AtomicReference<String> registry = new AtomicReference<>(null);
