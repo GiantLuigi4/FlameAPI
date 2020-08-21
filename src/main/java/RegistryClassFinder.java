@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
+import static com.tfc.utils.ScanningUtils.isVersionGreaterThan12;
 import static com.tfc.utils.ScanningUtils.isVersionLessThan12;
 
 public class RegistryClassFinder {
@@ -98,6 +99,15 @@ public class RegistryClassFinder {
 	private static final String[] sounds = new String[] {
 			"meta:missing_sound",
 			"File {} does not exist, cannot add it to event {}"
+	};
+	private static final String[] bootstrap = new String[]{
+			"<clinit>",
+			"<init>",
+			"%classname%",
+			"(L%item%;",
+			"Â",
+			"9",
+			""
 	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
@@ -207,22 +217,43 @@ public class RegistryClassFinder {
 				FlameConfig.field.append("Registry Type: " + typeClass + "\n");
 			}
 			StringBuilder builder = new StringBuilder("\n");
-			ScanningUtils.forAllFiles(file, (sc, entry) -> {
-				HashMap<String, Boolean> types = new HashMap<>();
-				ScanningUtils.forEachLine(sc, line -> {
-					for (String typeClass : registryTypes.values()) {
-						ScanningUtils.checkLine(ScanningUtils.toClassName(typeClass), types, line);
+			if (isVersionGreaterThan12) {
+				ScanningUtils.forAllFiles(file, (sc, entry) -> {
+					HashMap<String, Boolean> types = new HashMap<>();
+					ScanningUtils.forEachLine(sc, line -> {
+						for (String typeClass : registryTypes.values()) {
+							ScanningUtils.checkLine(ScanningUtils.toClassName(typeClass), types, line);
+						}
+						if (registryTypes.size() >= (types.size() - 1) && registryTypes.size() <= types.size()) {
+							registry.set(entry.getName());
+						}
+					});
+					if (registryTypes.size() > 1) {
+						builder
+								.append(registryTypes.size()).append(":")
+								.append(entry.getName()).append(", ");
 					}
-					if (registryTypes.size() >= (types.size() - 1) && registryTypes.size() <= types.size()) {
-						registry.set(entry.getName());
-					}
-				});
-				if (registryTypes.size() > 1) {
-					builder
-							.append(registryTypes.size()).append(":")
-							.append(entry.getName()).append(", ");
-				}
-			}, ClassFindingUtils::checkName);
+				}, ClassFindingUtils::checkName);
+			} else {
+				ScanningUtils.forAllFiles(file, (sc, entry) -> {
+					HashMap<String, Boolean> checks = new HashMap<>();
+					ScanningUtils.forEachLine(sc, line -> {
+						for (String s : bootstrap) {
+							if (s.equals("%classname%"))
+								s = s.replace("%classname%", ScanningUtils.toClassName(entry.getName()));
+							else if (s.contains("%item%"))
+								s = s.replace("%item%", ScanningUtils.toClassName(Main.getItemClass()));
+							ScanningUtils.checkLine(s, checks, line);
+						}
+						if (bootstrap.length >= (checks.size() - 1) && bootstrap.length <= checks.size()) {
+							registry.set(entry.getName());
+						}
+					});
+					if (bootstrap.length == checks.size())
+						Logger.logLine(checks + ", " + ScanningUtils.toClassName(entry.getName()));
+				}, ClassFindingUtils::checkName);
+
+			}
 			Logger.logLine(builder.toString());
 			return registry.get();
 		} catch (Throwable ignored) {
