@@ -128,6 +128,7 @@ public class Main implements IFlameAPIMod {
 			Class.forName("com.tfc.utils.TriObject");
 			Class.forName("com.tfc.FlameAPIConfigs");
 			Class.forName("java.util.function.Consumer");
+			Class.forName("java.util.concurrent.atomic.AtomicBoolean");
 			Class.forName("org.objectweb.asm.tree.ClassNode");
 			Class.forName("org.objectweb.asm.tree.MethodNode");
 			Class.forName("org.objectweb.asm.tree.FieldNode");
