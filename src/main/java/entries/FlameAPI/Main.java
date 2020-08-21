@@ -6,6 +6,7 @@ import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockPropeteries;
+import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
@@ -37,6 +38,7 @@ public class Main implements IFlameAPIMod {
 	private static String mainRegistry = "";
 	private static String blockClass = "";
 	private static String itemClass = "";
+	private static String blockItemClass = "";
 	private static String itemStackClass = "";
 	private static String resourceLocationClass = "";
 	
@@ -70,6 +72,10 @@ public class Main implements IFlameAPIMod {
 		return itemClass;
 	}
 	
+	public static String getBlockItemClass() {
+		return blockItemClass;
+	}
+	
 	public static String getItemStackClass() {
 		return itemStackClass;
 	}
@@ -82,6 +88,7 @@ public class Main implements IFlameAPIMod {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
 		resourceTypes.put("Item", itemClass);
+		resourceTypes.put("BlockItem", itemClass);
 		resourceTypes.put("ItemStack", itemStackClass);
 		resourceTypes.put("ResourceLocation", resourceLocationClass);
 		return resourceTypes;
@@ -151,7 +158,7 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
-
+		
 		ScanningUtils.checkVersion();
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
 		
@@ -194,6 +201,7 @@ public class Main implements IFlameAPIMod {
 			HashMap<String, String> genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findRegistrableClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findExtensionClasses", File.class, HashMap.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"), genericClasses);
 			itemClass = genericClasses.get("Item");
+			blockItemClass = genericClasses.get("BlockItem");
 			blockClass = genericClasses.get("Block");
 			itemStackClass = genericClasses.get("ItemStack");
 			resourceLocationClass = genericClasses.get("ResourceLocation");
@@ -282,6 +290,7 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
+		BlockItem.init();
 		
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:stone")));
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:bedrock")));
