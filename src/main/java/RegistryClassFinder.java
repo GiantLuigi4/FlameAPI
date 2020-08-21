@@ -167,7 +167,7 @@ public class RegistryClassFinder {
 					stream.close();
 				} catch (Throwable ignored) {
 				}
-			}, name -> !name.startsWith("com/tfc") && name.endsWith(".class"));
+			}, ClassFindingUtils::checkName);
 			return registries;
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
@@ -214,10 +214,10 @@ public class RegistryClassFinder {
 				});
 				if (registryTypes.size() > 1) {
 					builder
-						.append(registryTypes.size()).append(":")
-						.append(entry.getName()).append(", ");
+							.append(registryTypes.size()).append(":")
+							.append(entry.getName()).append(", ");
 				}
-			}, name -> !name.startsWith("com/tfc") && name.endsWith(".class"));
+			}, ClassFindingUtils::checkName);
 			Logger.logLine(builder.toString());
 			return registry.get();
 		} catch (Throwable ignored) {

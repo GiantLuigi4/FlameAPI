@@ -190,6 +190,7 @@ public class Main implements IFlameAPIMod {
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
 			HashMap<String, String> genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findRegistrableClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+			genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findExtensionClasses", File.class, HashMap.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"), genericClasses);
 			itemClass = genericClasses.get("Item");
 			blockClass = genericClasses.get("Block");
 			itemStackClass = genericClasses.get("ItemStack");
