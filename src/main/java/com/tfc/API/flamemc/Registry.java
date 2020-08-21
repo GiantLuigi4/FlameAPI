@@ -64,9 +64,22 @@ public class Registry {
 		if (registryHash.contains(registry, name))
 			return registryHash.get(registry, name);
 		try {
-			if (ScanningUtils.isVersionGreaterThan12) {
+//			if (ScanningUtils.isVersionGreaterThan12) {
 				try {
-					Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
+					if (ScanningUtils.isVersionLessThan12) {
+						Methods.forEach(
+								Class.forName(ScanningUtils.toClassName(Main.getMainRegistry())),
+								method -> {
+									try {
+										method.setAccessible(true);
+										method.invoke(null);
+									} catch (Throwable ignored) {
+									}
+								}
+						);
+					} else {
+						Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
+					}
 				} catch (Throwable err) {
 					Logger.logLine("Failed to find Main Registry class.");
 					Logger.logLine("The game will probably crash.");
@@ -75,7 +88,7 @@ public class Registry {
 					} catch (Throwable ignored) {
 					}
 				}
-			}
+//			}
 			Logger.logLine(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(registry.name))));
 			Class<?> registryClass = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(registry.name))));
 			for (Field f : registryClass.getDeclaredFields()) {

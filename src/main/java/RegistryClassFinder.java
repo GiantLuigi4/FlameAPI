@@ -99,7 +99,6 @@ public class RegistryClassFinder {
 			"meta:missing_sound",
 			"File {} does not exist, cannot add it to event {}"
 	};
-	priav
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
 		try {
@@ -194,6 +193,8 @@ public class RegistryClassFinder {
 				case "1.14.3-flame":
 				case "1.14.4-flame":
 					return "fm.class";
+				case "1.12-flame":
+					return "ng.class";
 			}
 			JarFile file = new JarFile(versionDir);
 			AtomicReference<String> registry = new AtomicReference<>(null);
