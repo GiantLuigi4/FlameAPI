@@ -15,10 +15,10 @@ public class Item {
 	}
 	
 	private static ArrayList<Constructor<?>> getItemConstructors() {
-		ArrayList<Constructor<?>> blockItemConstructors = new ArrayList<>();
+		ArrayList<Constructor<?>> itemConstructors = new ArrayList<>();
 		try {
 			Logger.logLine("Block Item Class Constructors");
-			for (Constructor<?> c : Class.forName(ScanningUtils.toClassName(Main.getBlockItemClass())).getConstructors()) {
+			for (Constructor<?> c : Class.forName(ScanningUtils.toClassName(Main.getItemClass())).getConstructors()) {
 				String params = "";
 				int num = 0;
 				for (Class<?> clazz : c.getParameterTypes()) {
@@ -28,13 +28,13 @@ public class Item {
 						ItemProperties.itemProperties = clazz;
 					}
 				}
-				blockItemConstructors.add(c);
+				itemConstructors.add(c);
 				Logger.logLine(params.substring(0, params.length() - 2));
 			}
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
-		return blockItemConstructors;
+		return itemConstructors;
 	}
 	
 	public static Object instance(ItemProperties properties) {
