@@ -41,7 +41,7 @@ public class Item {
 		for (Constructor<?> constructor : itemConstructors) {
 			Logger.logLine(constructor);
 			Logger.logLine("arg1: " + properties.unwrap());
-			if (constructor.getParameterTypes().length == 2) {
+			if (constructor.getParameterTypes().length == 1) {
 //				if (constructor.getParameterTypes()[0].equals(Main.getBlockPropertiesClass())) {
 				try {
 					constructor.setAccessible(true);
