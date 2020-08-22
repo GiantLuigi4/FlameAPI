@@ -7,6 +7,7 @@ import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockPropeteries;
 import com.tfc.API.flamemc.items.BlockItem;
+import com.tfc.API.flamemc.items.Item;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
@@ -298,6 +299,7 @@ public class Main implements IFlameAPIMod {
 			Logger.logErrFull(err);
 		}
 		BlockItem.init();
+		Item.init();
 		
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:stone")));
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:bedrock")));
