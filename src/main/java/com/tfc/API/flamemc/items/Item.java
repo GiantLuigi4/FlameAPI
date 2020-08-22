@@ -17,7 +17,7 @@ public class Item {
 	private static ArrayList<Constructor<?>> getItemConstructors() {
 		ArrayList<Constructor<?>> itemConstructors = new ArrayList<>();
 		try {
-			Logger.logLine("Block Item Class Constructors");
+			Logger.logLine("Item Class Constructors");
 			for (Constructor<?> c : Class.forName(ScanningUtils.toClassName(Main.getItemClass())).getConstructors()) {
 				String params = "";
 				int num = 0;

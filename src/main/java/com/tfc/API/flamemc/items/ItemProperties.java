@@ -57,6 +57,7 @@ public class ItemProperties {
 			Fields.forEach(properties.getClass(), field -> {
 				try {
 					field.setAccessible(true);
+					Logger.logLine(field.get(properties));
 					if (field.getType().equals(newLoc.unWrap().getClass())) {
 						field.set(properties, newLoc.unWrap());
 					}
@@ -70,7 +71,7 @@ public class ItemProperties {
 	
 	@Override
 	public String toString() {
-		return "BlockPropeteries{" +
+		return "ItemProperties{" +
 				"location=" + location +
 				", properties=" + properties +
 				'}';
