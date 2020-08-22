@@ -105,10 +105,7 @@ public class RegistryClassFinder {
 			"<init>",
 			"%classname%",
 			"(L%block%;)L%item%;",
-			"%fire%",
-			//"Â",
-			//"9",
-			//"€"
+			"%fire%"
 	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {

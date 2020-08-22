@@ -17,6 +17,7 @@ public class ItemProperties {
 			BlockItem.init();
 		}
 		this.location = location;
+		Logger.logLine(propertiesSource);
 		try {
 			for (Method m : Methods.getAllMethods(itemProperties)) {
 				try {
@@ -24,6 +25,7 @@ public class ItemProperties {
 					if (properties == null) {
 						if (m.getParameterTypes().length == 1) {
 							if (m.getReturnType().equals(itemProperties)) {
+								Logger.logLine(m);
 								this.properties = m.invoke(null, propertiesSource);
 							}
 						}

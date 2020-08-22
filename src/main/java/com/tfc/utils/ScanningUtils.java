@@ -30,7 +30,7 @@ public class ScanningUtils {
 			mcMajorVer = mcMajorVer.substring(0, mcMajorVer.indexOf("."));        //if there is still a dot, make another substring, so it actually get 7 in case of 7.10
 		}
 		mcMajorVersion = Integer.parseInt(mcMajorVer);
-		isVersionGreaterThan12 = Integer.parseInt(mcMajorVer) > 12;
+		isVersionGreaterThan12 = mcMajorVersion > 12;
 		isVersionLessThan12 = !isVersionGreaterThan12;            // 11 is just a placeholder, still gotta check
 	}
 	
