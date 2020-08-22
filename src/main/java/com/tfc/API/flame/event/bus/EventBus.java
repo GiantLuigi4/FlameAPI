@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 
 //An forge like event bus
+//Open to ASM for optimizations
 public class EventBus {
 	private final HashMap<String, ArrayList<Consumer<Object>>> consumersMap = new HashMap<>();
 	
