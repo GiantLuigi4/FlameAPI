@@ -1,11 +1,11 @@
 package entries.FlameAPI;
 
 import com.tfc.API.flame.FlameAPI;
-import com.tfc.API.flame.event.initsteps.RegistryStep;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockPropeteries;
+import com.tfc.API.flamemc.event.init_steps.RegistryStep;
 import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
 import com.tfc.flame.FlameConfig;

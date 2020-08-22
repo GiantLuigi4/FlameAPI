@@ -1,4 +1,4 @@
-package com.tfc.API.flame.event.initsteps;
+package com.tfc.API.flamemc.event.init_steps;
 
 import com.tfc.API.flame.event.Event;
 
