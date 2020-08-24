@@ -57,6 +57,7 @@ public class BlockPropeteries {
 			} catch (Throwable ignored) {
 			}
 			if (properties == null) {
+				boolean hasReachedJustBlock = false;
 				for (Method m : Methods.getAllMethods(Main.getBlockPropertiesClass())) {
 					if (properties == null) {
 						for (Field field1 : Fields.getAllFields(propertiesSource.getClass())) {
@@ -72,8 +73,9 @@ public class BlockPropeteries {
 														properties = m.invoke(null, field1.get(propertiesSource), field2.get(propertiesSource));
 													}
 												}
-											} else if (m.getParameterTypes().length == 1) {
+											} else if (!hasReachedJustBlock && m.getParameterTypes().length == 1) {
 												if (m.getParameterTypes()[0].isInstance(propertiesSource)) {
+													hasReachedJustBlock = true;
 													properties = m.invoke(null, propertiesSource);
 												}
 											}
@@ -94,6 +96,7 @@ public class BlockPropeteries {
 						break;
 					}
 				}
+				//It should never get to this point, but it's here just incase.
 				if (properties == null) {
 					Object prop = null;
 					try {
