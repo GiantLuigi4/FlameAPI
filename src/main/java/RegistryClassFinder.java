@@ -109,6 +109,14 @@ public class RegistryClassFinder {
 	};
 	
 	public static HashMap<String, String> findRegistryClass(File versionDir) {
+		if (isVersionGreaterThan12) {
+			if (Main.getVersion().contains("forge")) {
+				HashMap<String, String> map = new HashMap<>();
+				map.put("Blocks", "net/minecraft/block/Blocks.class");
+				map.put("Items", "net/minecraft/item/Items.class");
+				return map;
+			}
+		}
 		try {
 			ScanningUtils.checkVersion();
 			JarFile file = new JarFile(versionDir);
@@ -184,6 +192,11 @@ public class RegistryClassFinder {
 	}
 	
 	public static String findMainRegistry(HashMap<String, String> registryTypes, File versionDir) {
+		if (isVersionGreaterThan12) {
+			if (Main.getVersion().contains("forge")) {
+				return "net/minecraft/util/registry/Registry.class";
+			}
+		}
 		try {
 			switch (Main.getVersion()) {
 				case "1.15.2-flame":

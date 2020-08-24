@@ -31,7 +31,7 @@ public class ItemProperties {
 						}
 					}
 				} catch (Throwable err) {
-					Logger.logErrFull(err);
+//					Logger.logErrFull(err);
 				}
 			}
 		} catch (Throwable ignored) {
@@ -40,7 +40,7 @@ public class ItemProperties {
 			try {
 				properties = itemProperties.newInstance();
 			} catch (Throwable err) {
-				Logger.logErrFull(err);
+//				Logger.logErrFull(err);
 			}
 		}
 		rename(location);

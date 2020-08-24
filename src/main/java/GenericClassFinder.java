@@ -55,8 +55,18 @@ public class GenericClassFinder {
 	//lol
 	
 	public static HashMap<String, String> findRegistrableClasses(File versionDir) {
+		ScanningUtils.checkVersion();
+		if (isVersionGreaterThan12) {
+			if (Main.getVersion().contains("forge")) {
+				HashMap<String, String> map = new HashMap<>();
+				map.put("Item", "net/minecraft/item/Item.class");
+				map.put("ItemStack", "net/minecraft/item/ItemStack.class");
+				map.put("Block", "net/minecraft/block/Block.class");
+				map.put("ResourceLocation", "net/minecraft/util/ResourceLocation.class");
+				return map;
+			}
+		}
 		try {
-			ScanningUtils.checkVersion();
 			AtomicReference<String> clazzItem = new AtomicReference<>("null");
 			AtomicReference<String> clazzStack = new AtomicReference<>("null");
 			AtomicReference<String> clazzBlock = new AtomicReference<>("null");
@@ -104,6 +114,13 @@ public class GenericClassFinder {
 	}
 	
 	public static HashMap<String, String> findExtensionClasses(File versionDir, HashMap<String, String> normal) {
+		if (isVersionGreaterThan12) {
+			if (Main.getVersion().contains("forge")) {
+				normal.put("BlockItem", "net/minecraft/item/BlockItem.class");
+				normal.put("BlockFire", "net/minecraft/block/FireBlock.class");
+				return normal;
+			}
+		}
 		AtomicReference<String> blockItemClass = new AtomicReference<>("null");
 		AtomicReference<String> blockFireClass = new AtomicReference<>("null");
 		if (mcMajorVersion == 7) {
