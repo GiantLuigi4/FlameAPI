@@ -103,15 +103,22 @@ public class Main implements IFlameAPIMod {
 		return (HashMap<String, String>) registries.clone();
 	}
 	
+	public static void addDep(String repo, String path, String name, String version) {
+		FlameLauncher.downloadDep(
+				path.replace(".", File.separatorChar + "") + File.separatorChar + name + File.separatorChar + version + File.separatorChar + name + "-" + version + ".jar",
+				repo + path.replace(".", "/") + "/" + name + "/" + version + "/" + name + "-" + version + ".jar"
+		);
+	}
+	
 	@Override
 	public void setupAPI(String[] args) {
 		
 		try {
-			downloadBytecodeUtils("e033754");
-			FlameLauncher.downloadDep("javassist.jar", "https://repo1.maven.org/maven2/org/javassist/javassist/3.27.0-GA/javassist-3.27.0-GA.jar");
-			FlameLauncher.downloadDep("slf4j-api.jar", "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar");
-			FlameLauncher.downloadDep("slf4j-simple.jar", "https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.30/slf4j-simple-1.7.30.jar");
-			FlameLauncher.downloadDep("slf4j-impl.jar", "https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.13.3/log4j-slf4j-impl-2.13.3.jar");
+			downloadBytecodeUtils("63f84a2");
+			addDep("https://repo1.maven.org/maven2/", "org.javassist", "javassist", "3.27.0-GA");
+			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-api", "1.7.30");
+			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-simple", "1.7.30");
+			addDep("https://repo1.maven.org/maven2/", "org.apache.logging.log4j", "log4j-slf4j-impl", "2.13.3");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -282,10 +289,6 @@ public class Main implements IFlameAPIMod {
 //		}
 	}
 	
-	private void downloadBytecodeUtils(String version) {
-		FlameLauncher.downloadDep("bytecode-utils-" + version + ".jar", "https://jitpack.io/com/github/GiantLuigi4/Bytecode-Utils/" + version + "/Bytecode-Utils-" + version + ".jar");
-	}
-	
 	@Override
 	public void preinit(String[] args) {
 	}
@@ -373,5 +376,15 @@ public class Main implements IFlameAPIMod {
 				Logger.logErrFull(err);
 			}
 		}
+	}
+	
+	private void downloadBytecodeUtils(String version) {
+		addDep(
+				"https://jitpack.io/",
+				"com.github.GiantLuigi4",
+				"Bytecode-Utils",
+				version
+		);
+//		FlameLauncher.downloadDep("bytecode-utils-" + version + ".jar", "https://jitpack.io/com/github/GiantLuigi4/Bytecode-Utils/" + version + "/Bytecode-Utils-" + version + ".jar");
 	}
 }
