@@ -19,6 +19,7 @@ import com.tfc.utils.ScanningUtils;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -124,12 +125,15 @@ public class Main implements IFlameAPIMod {
 	}
 	
 	public static void addDep(String repo, String path, String name, String version) {
-		FlameLauncher.downloadDep(
-				path.replace(".", File.separatorChar + "") + File.separatorChar + name + File.separatorChar + version + File.separatorChar + name + "-" + version + ".jar",
-				repo + path.replace(".", "/") + "/" + name + "/" + version + "/" + name + "-" + version + ".jar"
-		);
+		String url = repo + path.replace(".", "/") + "/" + name + "/" + version + "/" + name + "-" + version + ".jar";
+		String name1 = path.replace(".", File.separatorChar + "") + File.separatorChar + name + File.separatorChar + version + File.separatorChar + name + "-" + version + ".jar";
+		try {
+			Method m = FlameLauncher.dependencyManager.getClass().getMethod("addFromURL", String.class);
+			m.invoke(FlameLauncher.dependencyManager, ("libraries/" + name1 + "," + url));
+		} catch (Throwable err) {
+			FlameLauncher.downloadDep(name1, url);
+		}
 	}
-	
 
 	@Override
 	public void setupAPI(String[] args) {
@@ -186,8 +190,8 @@ public class Main implements IFlameAPIMod {
 			Object obj1 = ClassObject.class;
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
-			Runtime.getRuntime().exit(-1);
-			throw new RuntimeException(err);
+//			Runtime.getRuntime().exit(-1);
+//			throw new RuntimeException(err);
 		}
 		
 		try {
