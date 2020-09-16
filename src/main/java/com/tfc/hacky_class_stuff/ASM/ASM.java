@@ -19,6 +19,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -347,5 +348,18 @@ public class ASM {
 			key.append((char) (r.nextInt(26) + r.nextInt(26) + 26));
 		}
 		return key.toString();
+	}
+	
+	public static byte[] getFromLoader(String name) {
+		try {
+			InputStream stream = ASM.class.getClassLoader().getResourceAsStream(name.replace(".", "/") + ".class");
+			byte[] bytes = new byte[stream.available()];
+			stream.read(bytes);
+			stream.close();
+			return bytes;
+		} catch (Throwable ignored) {
+		
+		}
+		return null;
 	}
 }

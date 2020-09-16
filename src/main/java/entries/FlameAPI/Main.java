@@ -4,7 +4,7 @@ import com.tfc.API.flame.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
-import com.tfc.API.flamemc.blocks.BlockPropeteries;
+import com.tfc.API.flamemc.blocks.BlockProperties;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
 import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
@@ -12,11 +12,9 @@ import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
-import com.tfc.hacky_class_stuff.ASM.ASM;
 import com.tfc.hacky_class_stuff.ASM.ClassObject;
-import com.tfc.hacky_class_stuff.BlockClass;
+import com.tfc.utils.Fabricator;
 import com.tfc.utils.ScanningUtils;
-import mixins.FlameAPI.ClientBrandRetriever;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -107,6 +105,17 @@ public class Main implements IFlameAPIMod {
 	
 	@Override
 	public void setupAPI(String[] args) {
+		
+		try {
+			downloadBytecodeUtils("e033754");
+			FlameLauncher.downloadDep("javassist.jar", "https://repo1.maven.org/maven2/org/javassist/javassist/3.27.0-GA/javassist-3.27.0-GA.jar");
+			FlameLauncher.downloadDep("slf4j-api.jar", "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar");
+			FlameLauncher.downloadDep("slf4j-simple.jar", "https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.30/slf4j-simple-1.7.30.jar");
+			FlameLauncher.downloadDep("slf4j-impl.jar", "https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.13.3/log4j-slf4j-impl-2.13.3.jar");
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
 		try {
 			Class.forName("org.objectweb.asm.ClassVisitor");
 			Class.forName("org.objectweb.asm.ClassReader");
@@ -134,10 +143,23 @@ public class Main implements IFlameAPIMod {
 			Class.forName("org.objectweb.asm.tree.MethodNode");
 			Class.forName("org.objectweb.asm.tree.FieldNode");
 			Class.forName("org.objectweb.asm.tree.AnnotationNode");
+			Class.forName("javassist.NotFoundException");
+			Class.forName("javassist.CannotCompileException");
+			Class.forName("javassist.ClassPool");
+			Class.forName("javassist.ClassPath");
+			Class.forName("javassist.CtClass");
+			Class.forName("javassist.CtField");
+			Class.forName("javassist.CtMethod");
+			Class.forName("javassist.CtConstructor");
+			Class.forName("javassist.CtNewConstructor");
+			Class.forName("javassist.CtNewMethod");
+			Class.forName("javassist.compiler.ast.ASTList");
+			Class.forName("com.tfc.API.flamemc.blocks.Block");
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
 			Object obj1 = ClassObject.class;
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
+			Runtime.getRuntime().exit(-1);
 			throw new RuntimeException(err);
 		}
 		
@@ -168,9 +190,9 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		ScanningUtils.checkVersion();
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
-		
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::applyASM);
+//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
+
+//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::applyASM);
 		
 		Access access = new Access(FlameASM.AccessType.PRIVATE, "hello");
 		FlameConfig.field.append(access.type.name() + "\n");
@@ -246,14 +268,22 @@ public class Main implements IFlameAPIMod {
 			throwables.forEach(Logger::logErrFull);
 			FlameConfig.field.append("Failed to construct a resource location.\n");
 		}
+		
+		try {
+			Fabricator.compileAndLoad("client_brand_retriever.java", (code) -> code);
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
 
 //		try {
 //			FlameASM.transformFieldAccess(ScanningUtils.toClassName(mainRegistry), "a", FlameASM.AccessType.PUBLIC_STATIC);
 //		} catch (Throwable err) {
 //			Logger.logErrFull(err);
 //		}
-		
-		new ClientBrandRetriever();
+	}
+	
+	private void downloadBytecodeUtils(String version) {
+		FlameLauncher.downloadDep("bytecode-utils-" + version + ".jar", "https://jitpack.io/com/github/GiantLuigi4/Bytecode-Utils/" + version + "/Bytecode-Utils-" + version + ".jar");
 	}
 	
 	@Override
@@ -306,11 +336,21 @@ public class Main implements IFlameAPIMod {
 		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice")));
 		
 		try {
-			BlockPropeteries properties = new BlockPropeteries(
+			BlockProperties properties = new BlockProperties(
 					new Registry.ResourceLocation("flameapi:test"),
 					Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice"))
 			);
 			Logger.logLine(properties);
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
+		try {
+			Fabricator.compileAndLoad("block_class.java", (code) -> code
+					.replace("%block_class%", ScanningUtils.toClassName(blockClass))
+					.replace("%callInfoGen_onRemoved%", "com.tfc.API.flamemc.abstraction.CallInfo info = null")
+					.replace("%properties_class%", blockPropertiesClass.getName())
+			);
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}

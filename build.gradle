@@ -16,5 +16,7 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 
-    implementation 'com.github.GiantLuigi4:FlameMC:3b85a1430f'
+    implementation 'com.github.GiantLuigi4:FlameMC:6aa2938'
+    implementation 'com.github.GiantLuigi4:Bytecode-Utils:e033754'
+    compileOnly group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
 }

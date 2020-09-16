@@ -10,11 +10,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public class BlockPropeteries {
+public class BlockProperties {
 	private Registry.ResourceLocation location;
 	private Object properties;
 	
-	public BlockPropeteries(Registry.ResourceLocation location, Object propertiesSource) {
+	public BlockProperties(Registry.ResourceLocation location, Object propertiesSource) {
 		this.location = location;
 		try {
 			for (Field f : propertiesSource.getClass().getFields()) {
@@ -149,7 +149,7 @@ public class BlockPropeteries {
 		return this.properties;
 	}
 	
-	public BlockPropeteries rename(Registry.ResourceLocation newLoc) {
+	public BlockProperties rename(Registry.ResourceLocation newLoc) {
 		if (!newLoc.equals(location)) {
 			Fields.forEach(properties.getClass(), field -> {
 				try {
