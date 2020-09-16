@@ -50,9 +50,33 @@ public class GenericClassFinder {
 			"north",
 			"south"
 	};
+	private static final String[] blockPosChecks = new String[]{
+			"L%classname%",
+			"(DDD)L%classname%",
+			"(III)L%classname%",
+			"(JIIIIIII)V"
+	};
+	private static final String[] blockStateChecks = new String[]{
+			"Name",
+			"Properties",
+			"minecraft:air",
+			"L%rl%;",
+			"L%block%"
+	};
+	private static final String[] worldServerChecks = new String[]{
+			"world border",
+			"weather",
+			"chunkSource",
+			"tickPending",
+			"raid",
+			"blockEvents",
+			"entities",
+			"global"
+	};
 	//Must be done like this, to avoid a literally identical Array for 1.12.2 to 1.7.10, but only location is removed
 	//I disagree (GiantLuigi4)
 	//lol
+
 	
 	public static HashMap<String, String> findRegistrableClasses(File versionDir) {
 		ScanningUtils.checkVersion();
@@ -71,6 +95,9 @@ public class GenericClassFinder {
 			AtomicReference<String> clazzStack = new AtomicReference<>("null");
 			AtomicReference<String> clazzBlock = new AtomicReference<>("null");
 			AtomicReference<String> clazzRL = new AtomicReference<>("null");
+			AtomicReference<String> clazzBlockPos = new AtomicReference<>("null");
+			AtomicReference<String> clazzWorld = new AtomicReference<>("null");
+			AtomicReference<String> clazzWorldServer = new AtomicReference<>("null");
 			if (isVersionLessThan12)
 				rlChecks[3] = "append";
 			String[] version_checksBlocks = isVersionGreaterThan12 ? checksBlocks : checksBlocks12;
@@ -81,12 +108,14 @@ public class GenericClassFinder {
 						ScanningUtils.checkLine(s, checksRL, line);
 				});
 				ScanningUtils.checkGenericClass(checksRL.size(), rlChecks.length, clazzRL, "ResourceLocation", entry.getName());
-//				ScanningUtils.checkGenericClass(checksRL.size(), rlChecks.size(), clazzRL, "ResourceLocation", entry.getName());
 			});
 			ScanningUtils.forAllFiles(new JarFile(versionDir), (sc, entry) -> {
+				HashMap<String, Boolean> checksWorld = new HashMap<>();
+				HashMap<String, Boolean> checksWorldServer = new HashMap<>();
 				HashMap<String, Boolean> checksItem = new HashMap<>();
 				HashMap<String, Boolean> checksStack = new HashMap<>();
 				HashMap<String, Boolean> checksBlock = new HashMap<>();
+				HashMap<String, Boolean> checksBlockPos = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					//Looks like this UUID is always the same in the Item class, this is perfect
 					ScanningUtils.checkLine("CB3F55D3-645C-4F38-A497-9C13A33DB5CF", checksItem, line);
@@ -96,17 +125,35 @@ public class GenericClassFinder {
 					for (String s : version_checksBlocks) {
 						ScanningUtils.checkLine(s, checksBlock, line);
 					}
+					for (String s : blockPosChecks) {
+						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksBlockPos, line);
+					}
+					//in 1.15.2, World class has this string, it's not present in any other classes
+					ScanningUtils.checkLine("Should always be able to create a chunk!", checksWorld, line);
+					if (isVersionGreaterThan12)
+						for (String s : worldServerChecks) {
+							ScanningUtils.checkLine(s, checksWorldServer, line);
+						}
 				});
 				String entryName = entry.getName();
 				ScanningUtils.checkGenericClass(checksItem.size(), 1, clazzItem, "Item", entryName);
 				ScanningUtils.checkGenericClass(checksBlock.size(), version_checksBlocks.length, clazzBlock, "Block", entryName);
 				ScanningUtils.checkGenericClass(checksStack.size(), itemStackChecks.length, clazzStack, "Stack", entryName);
+				ScanningUtils.checkGenericClass(checksBlockPos.size(), blockPosChecks.length, clazzBlockPos, "BlockPos", entryName);
+				ScanningUtils.checkGenericClass(checksWorld.size(), 1, clazzWorld, "World", entryName);
+				ScanningUtils.checkGenericClass(checksWorldServer.size(), worldServerChecks.length, clazzWorldServer, "WorldServer", entryName);
+				if (checksWorldServer.size() > (worldServerChecks.length - 1)) {
+					Logger.logLine(checksWorldServer + ", " + entryName);
+				}
 			}, ClassFindingUtils::checkName);
 			HashMap<String, String> classes = new HashMap<>();
 			classes.put("Item", clazzItem.get());
 			classes.put("ItemStack", clazzStack.get());
 			classes.put("Block", clazzBlock.get());
 			classes.put("ResourceLocation", clazzRL.get());
+			classes.put("BlockPos", clazzBlockPos.get());
+			classes.put("World", clazzWorld.get());
+			classes.put("WorldServer", clazzWorldServer.get());
 			return classes;
 		} catch (Throwable ignored) {
 		}
@@ -121,6 +168,7 @@ public class GenericClassFinder {
 				return normal;
 			}
 		}
+		AtomicReference<String> blockStateClass = new AtomicReference<>("null");
 		AtomicReference<String> blockItemClass = new AtomicReference<>("null");
 		AtomicReference<String> blockFireClass = new AtomicReference<>("null");
 		if (mcMajorVersion == 7) {
@@ -131,6 +179,7 @@ public class GenericClassFinder {
 		try {
 			ScanningUtils.forAllFiles(new JarFile(versionDir), (sc, entry) -> {
 				HashMap<String, Boolean> checksBlockItem = new HashMap<>();
+				HashMap<String, Boolean> checksBlockState = new HashMap<>();
 				HashMap<String, Boolean> checksFire = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					for (String s : BlockItemChecks) {
@@ -139,17 +188,19 @@ public class GenericClassFinder {
 					for (String s : fireChecks) {
 						ScanningUtils.checkLine(s.replace("%block%", ScanningUtils.toClassName(normal.get("Block"))), checksFire, line);
 					}
+					for (String s : blockStateChecks) {
+						ScanningUtils.checkLine(s.replace("%block%", ScanningUtils.toClassName(normal.get("Block"))).replace("%rl%", ScanningUtils.toClassName(normal.get("ResourceLocation"))), checksBlockState, line);
+					}
 				});
 				String entryName = entry.getName();
 				if (!Main.getBlockClass().equals(entryName))
 					ScanningUtils.checkGenericClass(checksFire.size(), fireChecks.length, blockFireClass, "BlockFire", entryName);
 				ScanningUtils.checkGenericClass(checksBlockItem.size(), BlockItemChecks.length, blockItemClass, "BlockItem", entryName);
-				if (checksFire.size() == 5) {
-					Logger.logLine("\nFire: " + checksFire + ", " + entryName);
-				}
+				ScanningUtils.checkGenericClass(checksBlockState.size(), blockStateChecks.length, blockStateClass, "BlockState", entryName);
 			}, ClassFindingUtils::checkName);
 			normal.put("BlockItem", blockItemClass.get());
 			normal.put("BlockFire", blockFireClass.get());
+			normal.put("BlockState", blockStateClass.get());
 			return normal;
 		} catch (Throwable ignored) {
 		}
