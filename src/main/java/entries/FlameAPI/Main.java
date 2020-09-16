@@ -41,6 +41,10 @@ public class Main implements IFlameAPIMod {
 	private static String itemStackClass = "";
 	private static String resourceLocationClass = "";
 	private static String blockFireClass = "";
+	private static String blockPosClass = "";
+	private static String blockStateClass = "";
+	private static String worldClass = "";
+	private static String worldServerClass = "";
 	
 	public static String getMainRegistry() {
 		return mainRegistry;
@@ -87,7 +91,23 @@ public class Main implements IFlameAPIMod {
 	public static String getBlockFireClass() {
 		return blockFireClass;
 	}
-	
+
+	public static String getBlockStateClass() {
+		return blockStateClass;
+	}
+
+	public static String getBlockPosClass() {
+		return blockPosClass;
+	}
+
+	public static String getWorldClass() {
+		return worldClass;
+	}
+
+	public static String getWorldServerClass() {
+		return worldServerClass;
+	}
+
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
@@ -110,9 +130,9 @@ public class Main implements IFlameAPIMod {
 		);
 	}
 	
+
 	@Override
 	public void setupAPI(String[] args) {
-		
 		try {
 			downloadBytecodeUtils("63f84a2");
 			addDep("https://repo1.maven.org/maven2/", "org.javassist", "javassist", "3.27.0-GA");
@@ -238,14 +258,22 @@ public class Main implements IFlameAPIMod {
 			blockClass = genericClasses.get("Block");
 			itemStackClass = genericClasses.get("ItemStack");
 			resourceLocationClass = genericClasses.get("ResourceLocation");
+			blockPosClass = genericClasses.get("BlockPos");
 			blockFireClass = genericClasses.get("BlockFire");
+			blockStateClass = genericClasses.get("BlockState");
+			worldClass = genericClasses.get("World");
+			worldServerClass = genericClasses.get("WorldServer");
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
-			FlameConfig.field.append("Block Class:" + blockClass + "\n");
-			FlameConfig.field.append("Item Class:" + itemClass + "\n");
-			FlameConfig.field.append("Item Stack Class:" + itemStackClass + "\n");
+			FlameConfig.field.append("Block:" + blockClass + "\n");
+			FlameConfig.field.append("Item:" + itemClass + "\n");
+			FlameConfig.field.append("Item Stack:" + itemStackClass + "\n");
 			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
+			FlameConfig.field.append("World: " + worldClass + "\n");
+			FlameConfig.field.append("WorldServer: " + worldServerClass + "\n");
 			FlameConfig.field.append("Block Fire: " + blockFireClass + "\n");
-			FlameConfig.field.append("Main Registry Class:" + mainRegistry + "\n");
+			FlameConfig.field.append("BlockPos:" + blockPosClass + "\n");
+			FlameConfig.field.append("BlockState: " + blockStateClass + "\n");
+			FlameConfig.field.append("Main Registry:" + mainRegistry + "\n");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}

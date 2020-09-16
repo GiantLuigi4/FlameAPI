@@ -91,7 +91,7 @@ public class ScanningUtils {
 	public static void checkGenericClass(int checksLength, int arrayLength, AtomicReference<String> clazz, String genericName, String entryName) {
 		if (checksLength == arrayLength && !clazz.get().equals(entryName)) {
 			clazz.set(entryName);
-			FlameConfig.field.append("Potential " + genericName + "class: " + clazz.get() + "\n");
+			FlameConfig.field.append("Potential " + genericName + " class: " + clazz.get() + "\n");
 		}
 	}
 	

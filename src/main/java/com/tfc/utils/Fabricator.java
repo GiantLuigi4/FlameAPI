@@ -15,6 +15,10 @@ public class Fabricator {
 	private static final File f = new File(Main.getExecDir() + "\\FlameASM\\fabrication");
 	
 	public static byte[] fabricate(String resource, Function<String, String> runtimeCodeReplacer) throws IOException {
+		if (!f.exists()) {
+			f.getParentFile().mkdirs();
+			f.mkdirs();
+		}
 		FileOutputStream stream = new FileOutputStream(new File(f + "\\" + (resource.replace(".java", ".class"))));
 		InputStream inStream = Main.class.getClassLoader().getResourceAsStream(resource);
 		byte[] bytes = new byte[inStream.available()];
