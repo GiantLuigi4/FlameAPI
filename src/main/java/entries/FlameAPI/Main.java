@@ -92,23 +92,23 @@ public class Main implements IFlameAPIMod {
 	public static String getBlockFireClass() {
 		return blockFireClass;
 	}
-
+	
 	public static String getBlockStateClass() {
 		return blockStateClass;
 	}
-
+	
 	public static String getBlockPosClass() {
 		return blockPosClass;
 	}
-
+	
 	public static String getWorldClass() {
 		return worldClass;
 	}
-
+	
 	public static String getWorldServerClass() {
 		return worldServerClass;
 	}
-
+	
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
@@ -124,6 +124,14 @@ public class Main implements IFlameAPIMod {
 		return (HashMap<String, String>) registries.clone();
 	}
 	
+	/**
+	 * downloads a maven artifact from the internet
+	 *
+	 * @param repo    the repo to download from
+	 * @param path    the path
+	 * @param name    artifact name
+	 * @param version version
+	 */
 	public static void addDep(String repo, String path, String name, String version) {
 		String url = repo + path.replace(".", "/") + "/" + name + "/" + version + "/" + name + "-" + version + ".jar";
 		String name1 = path.replace(".", File.separatorChar + "") + File.separatorChar + name + File.separatorChar + version + File.separatorChar + name + "-" + version + ".jar";
@@ -134,7 +142,7 @@ public class Main implements IFlameAPIMod {
 			FlameLauncher.downloadDep(name1, url);
 		}
 	}
-
+	
 	@Override
 	public void setupAPI(String[] args) {
 		try {
