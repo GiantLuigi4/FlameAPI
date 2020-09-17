@@ -2,6 +2,7 @@ package entries.FlameAPI;
 
 import com.tfc.API.flame.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
+import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockProperties;
@@ -45,6 +46,7 @@ public class Main implements IFlameAPIMod {
 	private static String blockPosClass = "";
 	private static String blockStateClass = "";
 	private static String worldClass = "";
+	private static String IWorldClass = "";
 	private static String worldServerClass = "";
 	
 	public static String getMainRegistry() {
@@ -109,6 +111,10 @@ public class Main implements IFlameAPIMod {
 		return worldServerClass;
 	}
 	
+	public static String getIWorldClass() {
+		return IWorldClass;
+	}
+	
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
@@ -146,7 +152,7 @@ public class Main implements IFlameAPIMod {
 	@Override
 	public void setupAPI(String[] args) {
 		try {
-			downloadBytecodeUtils("63f84a2");
+			downloadBytecodeUtils("4e402da");
 			addDep("https://repo1.maven.org/maven2/", "org.javassist", "javassist", "3.27.0-GA");
 			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-api", "1.7.30");
 			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-simple", "1.7.30");
@@ -274,6 +280,7 @@ public class Main implements IFlameAPIMod {
 			blockFireClass = genericClasses.get("BlockFire");
 			blockStateClass = genericClasses.get("BlockState");
 			worldClass = genericClasses.get("World");
+			IWorldClass = genericClasses.get("IWorld");
 			worldServerClass = genericClasses.get("WorldServer");
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Block:" + blockClass + "\n");
@@ -281,6 +288,7 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.field.append("Item Stack:" + itemStackClass + "\n");
 			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
 			FlameConfig.field.append("World: " + worldClass + "\n");
+			FlameConfig.field.append("IWorld: " + IWorldClass + "\n");
 			FlameConfig.field.append("WorldServer: " + worldServerClass + "\n");
 			FlameConfig.field.append("Block Fire: " + blockFireClass + "\n");
 			FlameConfig.field.append("BlockPos:" + blockPosClass + "\n");
@@ -388,12 +396,64 @@ public class Main implements IFlameAPIMod {
 			Logger.logErrFull(err);
 		}
 		
+		String removedMethod = "a()";
+		String argsRemoved = "new Object[]{null}";
 		try {
+			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
+				int numMatched = 0;
+				int num = 0;
+				String params = "";
+				String argsR = "";
+				for (Class<?> param : m.getParameterTypes()) {
+					if (param.getName().equals(ScanningUtils.toClassName(IWorldClass)) && num == 0) {
+						params += param.getName() + " var0";
+						argsR += "var0";
+						if (numMatched != 2) {
+							params += ", ";
+							argsR += ", ";
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockPosClass))) {
+						params += param.getName() + " var1";
+						argsR += "var1";
+						if (numMatched != 2) {
+							params += ", ";
+							argsR += ", ";
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockStateClass))) {
+						params += param.getName() + " var2";
+						argsR += "var2";
+						if (numMatched != 2) {
+							params += ", ";
+							argsR += ", ";
+						}
+						numMatched++;
+					} else {
+						numMatched--;
+					}
+					num++;
+				}
+				if (numMatched == num && num == 3) {
+					removedMethod = m.getName() + "(" + params + ")";
+					argsRemoved = "new Object[]{" + argsR + "}";
+				}
+			}
+		} catch (Throwable ignored) {
+		}
+		try {
+			String finalRemovedMethod = removedMethod;
+			String finalArgsRemoved = argsRemoved;
 			Fabricator.compileAndLoad("block_class.java", (code) -> code
 					.replace("%block_class%", ScanningUtils.toClassName(blockClass))
 					.replace("%callInfoGen_onRemoved%", "com.tfc.API.flamemc.abstraction.CallInfo info = null")
 					.replace("%properties_class%", blockPropertiesClass.getName())
+					.replace("%removedMethod%", finalRemovedMethod)
+					.replace("%argsRemoved%", finalArgsRemoved)
 			);
+			Field f = Class.forName("Block").getDeclaredField("args1");
+			f.setAccessible(true);
+			f.set(null, new java.lang.String[]{"world", "pos", "state"});
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}

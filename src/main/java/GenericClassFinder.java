@@ -73,10 +73,18 @@ public class GenericClassFinder {
 			"entities",
 			"global"
 	};
+	public static final String[] IWorldChecks = new String[]{
+			";DDDDDD)V",
+			";I)V",
+			";Ljava/util/Set;)Ljava/util/stream/Stream;",
+			"(JF)F",
+			"(F)F",
+			"()I"
+	};
 	//Must be done like this, to avoid a literally identical Array for 1.12.2 to 1.7.10, but only location is removed
 	//I disagree (GiantLuigi4)
 	//lol
-
+	
 	
 	public static HashMap<String, String> findRegistrableClasses(File versionDir) {
 		ScanningUtils.checkVersion();
@@ -98,6 +106,7 @@ public class GenericClassFinder {
 			AtomicReference<String> clazzBlockPos = new AtomicReference<>("null");
 			AtomicReference<String> clazzWorld = new AtomicReference<>("null");
 			AtomicReference<String> clazzWorldServer = new AtomicReference<>("null");
+			AtomicReference<String> clazzIWorld = new AtomicReference<>("null");
 			if (isVersionLessThan12)
 				rlChecks[3] = "append";
 			String[] version_checksBlocks = isVersionGreaterThan12 ? checksBlocks : checksBlocks12;
@@ -116,6 +125,7 @@ public class GenericClassFinder {
 				HashMap<String, Boolean> checksStack = new HashMap<>();
 				HashMap<String, Boolean> checksBlock = new HashMap<>();
 				HashMap<String, Boolean> checksBlockPos = new HashMap<>();
+				HashMap<String, Boolean> checksIWorld = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					//Looks like this UUID is always the same in the Item class, this is perfect
 					ScanningUtils.checkLine("CB3F55D3-645C-4F38-A497-9C13A33DB5CF", checksItem, line);
@@ -127,6 +137,9 @@ public class GenericClassFinder {
 					}
 					for (String s : blockPosChecks) {
 						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksBlockPos, line);
+					}
+					for (String s : IWorldChecks) {
+						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksIWorld, line);
 					}
 					//in 1.15.2, World class has this string, it's not present in any other classes
 					ScanningUtils.checkLine("Should always be able to create a chunk!", checksWorld, line);
@@ -142,6 +155,7 @@ public class GenericClassFinder {
 				ScanningUtils.checkGenericClass(checksBlockPos.size(), blockPosChecks.length, clazzBlockPos, "BlockPos", entryName);
 				ScanningUtils.checkGenericClass(checksWorld.size(), 1, clazzWorld, "World", entryName);
 				ScanningUtils.checkGenericClass(checksWorldServer.size(), worldServerChecks.length, clazzWorldServer, "WorldServer", entryName);
+				ScanningUtils.checkGenericClass(checksIWorld.size(), IWorldChecks.length, clazzIWorld, "IWorld", entryName);
 				if (checksWorldServer.size() > (worldServerChecks.length - 1)) {
 					Logger.logLine(checksWorldServer + ", " + entryName);
 				}
@@ -154,6 +168,7 @@ public class GenericClassFinder {
 			classes.put("BlockPos", clazzBlockPos.get());
 			classes.put("World", clazzWorld.get());
 			classes.put("WorldServer", clazzWorldServer.get());
+			classes.put("IWorld", clazzIWorld.get());
 			return classes;
 		} catch (Throwable ignored) {
 		}

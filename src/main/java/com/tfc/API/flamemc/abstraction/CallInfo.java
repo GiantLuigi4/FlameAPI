@@ -13,6 +13,11 @@ public class CallInfo {
 		this.arguments = arguments;
 	}
 	
+	public CallInfo(String[] names, Object[] arguments) {
+		this.arguments = new HashMap<>();
+		for (int i = 0; i < names.length; i++) this.arguments.put(names[i], arguments[i]);
+	}
+	
 	public <A> A get(String name, Class<A> wrapper) {
 		try {
 			Object arg = arguments.get(name);
