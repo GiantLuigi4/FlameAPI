@@ -28,6 +28,7 @@ public class CallInfo {
 			Logger.logLine("A mod tried getting an argument that isn't available: " + name + " of class " + wrapper.getName());
 			Logger.logErrFullNoPrefixFull(err);
 			Logger.logLine("If you see a mod name in this message, please report this to the dev of said mod");
+			Logger.logLine("The highest mod name, if any are present, ist the one you  should contact.");
 			Logger.logLine("-------------------------------------------------------------------------------------------------------");
 			return null;
 		}
