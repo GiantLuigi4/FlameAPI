@@ -2,7 +2,7 @@ package com.tfc.utils;
 
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.bytecode.Compiler;
-import com.tfc.bytecode.compilers.Javassist_Compiler;
+import com.tfc.bytecode.EnumCompiler;
 import com.tfc.bytecode.loading.ForceLoad;
 import com.tfc.bytecode.utils.Formatter;
 import entries.FlameAPI.Main;
@@ -16,10 +16,10 @@ import java.util.function.Function;
 
 public class Fabricator {
 	private static final File f = new File(Main.getExecDir() + "\\FlameASM\\fabrication");
+
+//	private static final Javassist_Compiler compiler = new Javassist_Compiler();
 	
-	private static final Javassist_Compiler compiler = new Javassist_Compiler();
-	
-	public static byte[] fabricate(String resource, Function<String, String> runtimeCodeReplacer) throws IOException {
+	public static byte[] fabricate(EnumCompiler compilerEnum, String resource, Function<String, String> runtimeCodeReplacer) throws IOException {
 		try {
 			if (!f.exists()) {
 				f.getParentFile().mkdirs();
@@ -36,7 +36,7 @@ public class Fabricator {
 			stream1.write(Formatter.formatForCompile(text).getBytes());
 			stream1.close();
 //			byte[] output = compiler.compile(Parser.parse(text));
-			byte[] output = Compiler.compile(text);
+			byte[] output = Compiler.compile(compilerEnum, text);
 			stream.write(output);
 			stream.close();
 			return output;
@@ -47,7 +47,12 @@ public class Fabricator {
 	}
 	
 	public static Class<?> compileAndLoad(String resource, Function<String, String> runtimeCodeReplacer) throws IOException, InvocationTargetException, IllegalAccessException {
-		byte[] bytes = fabricate(resource, runtimeCodeReplacer);
+		byte[] bytes = fabricate(EnumCompiler.JAVASSIST, resource, runtimeCodeReplacer);
+		return ForceLoad.forceLoad(Fabricator.class.getClassLoader(), bytes);
+	}
+	
+	public static Class<?> compileAndLoadJanino(String resource, Function<String, String> runtimeCodeReplacer) throws IOException, InvocationTargetException, IllegalAccessException {
+		byte[] bytes = fabricate(EnumCompiler.JANINO, resource, runtimeCodeReplacer);
 		return ForceLoad.forceLoad(Fabricator.class.getClassLoader(), bytes);
 	}
 }

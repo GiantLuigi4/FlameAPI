@@ -10,6 +10,7 @@ import com.tfc.API.flamemc.blocks.BlockProperties;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
 import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
+import com.tfc.API.flamemc.world.BlockPos;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
@@ -28,6 +29,8 @@ import java.util.Iterator;
 
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
+	
+	private static final String bytecodeUtilsVersion = "7b0b30b686";
 	
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
@@ -164,11 +167,11 @@ public class Main implements IFlameAPIMod {
 	@Override
 	public void setupAPI(String[] args) {
 		try {
-			downloadBytecodeUtils("4e402da");
+			downloadBytecodeUtils(bytecodeUtilsVersion);
 			addDep("https://repo1.maven.org/maven2/", "org.javassist", "javassist", "3.27.0-GA");
-//			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-api", "1.7.30");
-//			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-simple", "1.7.30");
-//			addDep("https://repo1.maven.org/maven2/", "org.apache.logging.log4j", "log4j-slf4j-impl", "2.13.3");
+			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "janino", "3.1.2");
+			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler", "3.1.2");
+			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler-jdk", "3.1.2");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -340,16 +343,16 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		try {
-			Fabricator.compileAndLoad("client_brand_retriever.java", (code) -> code);
+			Fabricator.compileAndLoadJanino("client_brand_retriever.java", (code) -> code);
+			Fabricator.compileAndLoadJanino("block_pos.java", (code) -> code.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass)));
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
+			
+			try {
+				Thread.sleep(5000);
+			} catch (Throwable ignored) {
+			}
 		}
-
-//		try {
-//			FlameASM.transformFieldAccess(ScanningUtils.toClassName(mainRegistry), "a", FlameASM.AccessType.PUBLIC_STATIC);
-//		} catch (Throwable err) {
-//			Logger.logErrFull(err);
-//		}
 	}
 	
 	@Override
@@ -374,6 +377,14 @@ public class Main implements IFlameAPIMod {
 				}
 			}
 		} catch (Throwable ignored) {
+		}
+		
+		try {
+			Logger.logLine(new BlockPos(0, 0, 0));
+			Logger.logLine(new BlockPos(3, 0, 1).offset(1, 2, 3));
+			Logger.logLine(Class.forName("BlockPos"));
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
 		}
 		
 		try {

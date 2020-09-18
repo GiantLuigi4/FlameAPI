@@ -33,7 +33,7 @@ public class Block {
 	}
 	
 	/**
-	 * Arguments are (com.tfc.flamemc.World world, com.tfc.flamemc.BlockPos pos, com.tfc.flamemc.BlockState state)
+	 * Arguments are (com.tfc.flamemc.world.World world, com.tfc.flamemc.world.BlockPos pos, com.tfc.flamemc.block.BlockState state)
 	 *
 	 * @param arguments the list of arguments
 	 */
@@ -47,7 +47,7 @@ public class Block {
 	}
 	
 	/**
-	 * Arguments are (com.tfc.flamemc.World world, com.tfc.flamemc.BlockPos pos, com.tfc.flamemc.BlockState state, %missing%, %missing%)
+	 * Arguments are (com.tfc.flamemc.world.World world, com.tfc.flamemc.world.BlockPos pos, com.tfc.flamemc.block.BlockState state, %missing%, %missing%)
 	 * This is the one you should override, but you can also override the onAdded
 	 *
 	 * @param arguments the list of arguments
