@@ -73,4 +73,8 @@ public class BlockPos {
 	public String toString() {
 		return "BlockPos{" + getX() + ", " + getY() + ", " + getZ() + "}";
 	}
+	
+	public Object unwrap() {
+		return thisBlockPos;
+	}
 }
