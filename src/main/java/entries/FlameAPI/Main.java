@@ -23,7 +23,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -452,12 +451,8 @@ public class Main implements IFlameAPIMod {
 				StringBuilder argsA = new StringBuilder();
 				numMatched = 0;
 				num = 0;
-				boolean isViable = false;
 				for (Class<?> param : m.getParameterTypes()) {
 					if (param.getName().equals(ScanningUtils.toClassName(worldClass)) && num == 0) {
-						Logger.logLine(Arrays.toString(m.getParameterTypes()));
-						if (Arrays.toString(m.getParameterTypes()).equals("[class bjw, class fk, class byj, class akz, class ben]"))
-							isViable = true;
 						paramsA.append(param.getName()).append(" var0");
 						argsA.append("var0");
 						if (numMatched != 4) {
@@ -501,12 +496,6 @@ public class Main implements IFlameAPIMod {
 						numMatched--;
 					}
 					num++;
-				}
-				if (isViable) {
-					Logger.logLine(argsA.toString());
-					Logger.logLine(placedMethod);
-					Logger.logLine(num);
-					Logger.logLine(numMatched);
 				}
 				if (numMatched == num && num == 5) {
 					placedMethod = m.getName() + "(" + paramsA + ")";
