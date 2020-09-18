@@ -50,6 +50,17 @@ public class Main implements IFlameAPIMod {
 	private static String IWorldClass = "";
 	private static String worldServerClass = "";
 	
+	private static Method block$onRemoved = null;
+	private static Method block$onPlaced = null;
+	
+	public static Method getBlock$onRemoved() {
+		return block$onRemoved;
+	}
+	
+	public static Method getBlock$onPlaced() {
+		return block$onPlaced;
+	}
+	
 	public static String getMainRegistry() {
 		return mainRegistry;
 	}
@@ -445,6 +456,7 @@ public class Main implements IFlameAPIMod {
 				if (numMatched == num && num == 3) {
 					removedMethod = m.getName() + "(" + paramsR + ")";
 					argsRemoved = "new Object[]{" + argsR + "}";
+					block$onRemoved = m;
 				}
 				
 				StringBuilder paramsA = new StringBuilder();
@@ -500,6 +512,7 @@ public class Main implements IFlameAPIMod {
 				if (numMatched == num && num == 5) {
 					placedMethod = m.getName() + "(" + paramsA + ")";
 					argsPlaced = "new Object[]{" + argsA + "}";
+					block$onPlaced = m;
 				}
 			}
 		} catch (Throwable ignored) {

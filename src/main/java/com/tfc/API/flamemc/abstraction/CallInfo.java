@@ -33,4 +33,8 @@ public class CallInfo {
 			return null;
 		}
 	}
+	
+	public Object[] getArgs() {
+		return arguments.values().toArray();
+	}
 }

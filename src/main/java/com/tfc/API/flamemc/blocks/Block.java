@@ -28,12 +28,16 @@ public class Block {
 	 */
 	public void onRemoved(CallInfo arguments) {
 		if (thisBlock != null) {
-//			thisBlock.getClass().getMethod()
+			try {
+				Main.getBlock$onRemoved().invoke(thisBlock, arguments.getArgs());
+			} catch (Throwable ignored) {
+			}
 		}
 	}
 	
 	/**
 	 * Arguments are (com.tfc.flamemc.World world, com.tfc.flamemc.BlockPos pos, com.tfc.flamemc.BlockState state, %missing%, %missing%)
+	 * This is the one you should override, but you can also override the onAdded
 	 *
 	 * @param arguments the list of arguments
 	 */
@@ -48,7 +52,10 @@ public class Block {
 	 */
 	public void onAdded(CallInfo arguments) {
 		if (thisBlock != null) {
-//			thisBlock.getClass().getMethod()
+			try {
+				Main.getBlock$onPlaced().invoke(thisBlock, arguments.getArgs());
+			} catch (Throwable ignored) {
+			}
 		}
 	}
 	
