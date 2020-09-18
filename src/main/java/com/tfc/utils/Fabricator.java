@@ -1,5 +1,6 @@
 package com.tfc.utils;
 
+import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.bytecode.Compiler;
 import com.tfc.bytecode.compilers.Javassist_Compiler;
 import com.tfc.bytecode.loading.ForceLoad;
@@ -39,7 +40,8 @@ public class Fabricator {
 			stream.write(output);
 			stream.close();
 			return output;
-		} catch (Throwable ignored) {
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
 			return null;
 		}
 	}

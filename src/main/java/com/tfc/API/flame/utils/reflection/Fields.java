@@ -77,10 +77,10 @@ public class Fields {
 	 */
 	public static Field forName(Class<?> clazz, String name) {
 		try {
-			return clazz.getClass().getField(name);
+			return clazz.getField(name);
 		} catch (Throwable err) {
 			try {
-				return clazz.getClass().getDeclaredField(name);
+				return clazz.getDeclaredField(name);
 			} catch (Throwable err2) {
 				return null;
 			}

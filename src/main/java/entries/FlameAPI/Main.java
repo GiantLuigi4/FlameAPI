@@ -2,6 +2,7 @@ package entries.FlameAPI;
 
 import com.tfc.API.flame.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
+import com.tfc.API.flame.utils.reflection.Fields;
 import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
@@ -22,6 +23,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -154,9 +156,9 @@ public class Main implements IFlameAPIMod {
 		try {
 			downloadBytecodeUtils("4e402da");
 			addDep("https://repo1.maven.org/maven2/", "org.javassist", "javassist", "3.27.0-GA");
-			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-api", "1.7.30");
-			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-simple", "1.7.30");
-			addDep("https://repo1.maven.org/maven2/", "org.apache.logging.log4j", "log4j-slf4j-impl", "2.13.3");
+//			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-api", "1.7.30");
+//			addDep("https://repo1.maven.org/maven2/", "org.slf4j", "slf4j-simple", "1.7.30");
+//			addDep("https://repo1.maven.org/maven2/", "org.apache.logging.log4j", "log4j-slf4j-impl", "2.13.3");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -300,18 +302,21 @@ public class Main implements IFlameAPIMod {
 		
 		boolean success = false;
 		ArrayList<Throwable> throwables = new ArrayList<>();
+
 		try {
 			FlameConfig.field.append(Registry.constructResourceLocation("FlameAPI:test").toString() + "\n");
 			success = true;
 		} catch (Throwable err) {
 			throwables.add(err);
 		}
+		
 		try {
 			FlameConfig.field.append(Registry.constructResourceLocation("flame_api:test").toString() + "\n");
 			success = true;
 		} catch (Throwable err) {
 			throwables.add(err);
 		}
+		
 		try {
 			FlameConfig.field.append(Registry.constructResourceLocation("flameapi:test").toString() + "\n");
 			success = true;
@@ -379,6 +384,7 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
+		
 		BlockItem.init();
 		Item.init();
 		
@@ -397,36 +403,39 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		String removedMethod = "a()";
+		String placedMethod = "a()";
 		String argsRemoved = "new Object[]{null}";
+		String argsPlaced = "new Object[]{null}";
+		
 		try {
 			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
 				int numMatched = 0;
 				int num = 0;
-				String params = "";
-				String argsR = "";
+				StringBuilder paramsR = new StringBuilder();
+				StringBuilder argsR = new StringBuilder();
 				for (Class<?> param : m.getParameterTypes()) {
 					if (param.getName().equals(ScanningUtils.toClassName(IWorldClass)) && num == 0) {
-						params += param.getName() + " var0";
-						argsR += "var0";
+						paramsR.append(param.getName()).append(" var0");
+						argsR.append("var0");
 						if (numMatched != 2) {
-							params += ", ";
-							argsR += ", ";
+							paramsR.append(", ");
+							argsR.append(", ");
 						}
 						numMatched++;
 					} else if (param.getName().equals(ScanningUtils.toClassName(blockPosClass))) {
-						params += param.getName() + " var1";
-						argsR += "var1";
+						paramsR.append(param.getName()).append(" var1");
+						argsR.append("var1");
 						if (numMatched != 2) {
-							params += ", ";
-							argsR += ", ";
+							paramsR.append(", ");
+							argsR.append(", ");
 						}
 						numMatched++;
 					} else if (param.getName().equals(ScanningUtils.toClassName(blockStateClass))) {
-						params += param.getName() + " var2";
-						argsR += "var2";
+						paramsR.append(param.getName()).append(" var2");
+						argsR.append("var2");
 						if (numMatched != 2) {
-							params += ", ";
-							argsR += ", ";
+							paramsR.append(", ");
+							argsR.append(", ");
 						}
 						numMatched++;
 					} else {
@@ -435,25 +444,100 @@ public class Main implements IFlameAPIMod {
 					num++;
 				}
 				if (numMatched == num && num == 3) {
-					removedMethod = m.getName() + "(" + params + ")";
+					removedMethod = m.getName() + "(" + paramsR + ")";
 					argsRemoved = "new Object[]{" + argsR + "}";
+				}
+				
+				StringBuilder paramsA = new StringBuilder();
+				StringBuilder argsA = new StringBuilder();
+				numMatched = 0;
+				num = 0;
+				boolean isViable = false;
+				for (Class<?> param : m.getParameterTypes()) {
+					if (param.getName().equals(ScanningUtils.toClassName(worldClass)) && num == 0) {
+						Logger.logLine(Arrays.toString(m.getParameterTypes()));
+						if (Arrays.toString(m.getParameterTypes()).equals("[class bjw, class fk, class byj, class akz, class ben]"))
+							isViable = true;
+						paramsA.append(param.getName()).append(" var0");
+						argsA.append("var0");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockPosClass))) {
+						paramsA.append(param.getName()).append(" var1");
+						argsA.append("var1");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockStateClass))) {
+						paramsA.append(param.getName()).append(" var2");
+						argsA.append("var2");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(itemStackClass))) {
+						paramsA.append(param.getName()).append(" var5");
+						argsA.append("var5");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (num == 3) {
+						paramsA.append(param.getName()).append(" var4");
+						argsA.append("var4");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else {
+						numMatched--;
+					}
+					num++;
+				}
+				if (isViable) {
+					Logger.logLine(argsA.toString());
+					Logger.logLine(placedMethod);
+					Logger.logLine(num);
+					Logger.logLine(numMatched);
+				}
+				if (numMatched == num && num == 5) {
+					placedMethod = m.getName() + "(" + paramsA + ")";
+					argsPlaced = "new Object[]{" + argsA + "}";
 				}
 			}
 		} catch (Throwable ignored) {
 		}
+		
 		try {
-			String finalRemovedMethod = removedMethod;
-			String finalArgsRemoved = argsRemoved;
+			final String finalRemovedMethod = removedMethod;
+			final String finalArgsRemoved = argsRemoved;
+			final String finalPlacedMethod = placedMethod;
+			final String finalArgsPlaced = argsPlaced;
 			Fabricator.compileAndLoad("block_class.java", (code) -> code
 					.replace("%block_class%", ScanningUtils.toClassName(blockClass))
 					.replace("%callInfoGen_onRemoved%", "com.tfc.API.flamemc.abstraction.CallInfo info = null")
 					.replace("%properties_class%", blockPropertiesClass.getName())
-					.replace("%removedMethod%", finalRemovedMethod)
 					.replace("%argsRemoved%", finalArgsRemoved)
+					.replace("%removedMethod%", finalRemovedMethod)
+					.replace("%placedMethod%", finalPlacedMethod)
+					.replace("%argsPlaced%", finalArgsPlaced)
 			);
-			Field f = Class.forName("Block").getDeclaredField("args1");
-			f.setAccessible(true);
-			f.set(null, new java.lang.String[]{"world", "pos", "state"});
+			Field f0 = Fields.forName(Class.forName("Block"), "argsRemoved");
+			Field f1 = Fields.forName(Class.forName("Block"), "argsPlaced");
+			assert f0 != null;
+			assert f1 != null;
+			f0.setAccessible(true);
+			f1.setAccessible(true);
+			f0.set(null, new java.lang.String[]{"world", "pos", "state"});
+			f1.set(null, new java.lang.String[]{"world", "pos", "state", "placer", "itemStack"});
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}

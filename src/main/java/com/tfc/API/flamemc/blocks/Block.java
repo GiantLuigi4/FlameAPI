@@ -32,6 +32,26 @@ public class Block {
 		}
 	}
 	
+	/**
+	 * Arguments are (com.tfc.flamemc.World world, com.tfc.flamemc.BlockPos pos, com.tfc.flamemc.BlockState state, %missing%, %missing%)
+	 *
+	 * @param arguments the list of arguments
+	 */
+	public void onPlaced(CallInfo arguments) {
+		onAdded(arguments);
+	}
+	
+	/**
+	 * Exact same as onPlaced, I just keep typing this instead of onPlaced, so I added this
+	 *
+	 * @param arguments the list of arguments
+	 */
+	public void onAdded(CallInfo arguments) {
+		if (thisBlock != null) {
+//			thisBlock.getClass().getMethod()
+		}
+	}
+	
 	public final Object toRegisterable() {
 		try {
 			return Class.forName("Block").getConstructor(Block.class, Main.getBlockPropertiesClass()).newInstance(this, this.properties.unwrap());
