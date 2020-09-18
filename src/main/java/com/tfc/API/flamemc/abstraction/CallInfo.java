@@ -5,6 +5,9 @@ import com.tfc.API.flame.utils.logging.Logger;
 
 import java.util.HashMap;
 
+/**
+ * I can't exactly do much without this, so yeah
+ */
 @Unmodifiable
 public class CallInfo {
 	private final HashMap<String, Object> arguments;

@@ -9,14 +9,17 @@ import entries.FlameAPI.Main;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
-//ASM is cool...
-//When it doesn't... magically generate classes... that extend byte..?
-//Idk either.
-//You must tell me how did you manage to get that class, it was hilarious :D
-//No
-//Ok now it has two constructors, both exactly the same, AND it still extends byte.
-//Ok I'm just gonna... not do this rn...
-//HEY! IT WORKS!
+/**
+ * ASM is cool... (GiantLuigi4)
+ * When it doesn't... magically generate classes... that extend byte..? (GiantLuigi4)
+ * Idk either.
+ * You must tell me how did you manage to get that class, it was hilarious :D (Lorenzo)
+ * No (GiantLuigi4)
+ * Ok now it has two constructors, both exactly the same, AND it still extends byte. (GiantLuigi4)
+ * Ok I'm just gonna... not do this rn... (GiantLuigi4)
+ * HEY! IT WORKS! (GiantLuigi4)
+ * Does it though? Not well enough that it's worth while. (GiantLuigi4)
+ */
 public class BlockClass {
 	public static byte[] getBlock(String name, byte[] bytes) {
 		if (name.equals("com.tfc.API.flamemc.blocks.Block")) {

@@ -571,6 +571,5 @@ public class Main implements IFlameAPIMod {
 				"Bytecode-Utils",
 				version
 		);
-//		FlameLauncher.downloadDep("bytecode-utils-" + version + ".jar", "https://jitpack.io/com/github/GiantLuigi4/Bytecode-Utils/" + version + "/Bytecode-Utils-" + version + ".jar");
 	}
 }

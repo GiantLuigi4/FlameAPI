@@ -102,7 +102,7 @@ public class Methods {
 		public boolean equals(Object obj) {
 			return
 					obj.getClass().equals(this.getClass()) &&
-							((ParamList) obj).params.equals(this.params);
+							Arrays.equals(((ParamList) obj).params, this.params);
 		}
 	}
 }
