@@ -24,6 +24,9 @@ public class CallInfo {
 	public <A> A get(String name, Class<A> wrapper) {
 		try {
 			Object arg = arguments.get(name);
+			if (wrapper == Object.class) {
+				return (A) arg;
+			}
 			return wrapper.getConstructor(arg.getClass()).newInstance(arg);
 		} catch (Throwable err) {
 			Logger.logLine("-------------------------------------------------------------------------------------------------------");
