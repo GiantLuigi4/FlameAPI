@@ -1,9 +1,9 @@
 public class World extends %world_class% {
-	public void setBlockState(com.tfc.API.flamemc.BlockPos pos, %block_class% block) {
-		super.%set_block_state%(pos.unWrap(), block);
+	public boolean setBlockState(com.tfc.API.flamemc.BlockPos pos, %block_class% block) {
+		return super.%set_block_state%(pos.unWrap(), block);
 	}
 	
-	public void getBlockState(com.tfc.API.flamemc.BlockPos pos) {
-		super.%get_block_state%(pos.unWrap());
+	public Object getBlockState(com.tfc.API.flamemc.BlockPos pos) {
+		return super.%get_block_state%(pos.unWrap());
 	}
 }

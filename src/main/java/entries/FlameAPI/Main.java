@@ -548,17 +548,15 @@ public class Main implements IFlameAPIMod {
 //					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
 //			});
 			Logger.logLine("Scanning world:");
-			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, new String[]{getBlockPosClass(), getBlockStateClass()});
 			Logger.logLine("Method setBlockState:");
-			Logger.logLine(world$getBlockState.getName());
-			Logger.logLine(world$getBlockState.getParameterTypes());
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, new String[]{getBlockPosClass(), getBlockStateClass()});
 			//TOD0 getBlockState 1.13+ requires AABB class (renamed Box in 1.13+)
 			//AABB is useless for this, it is only useful for entities
-//			if (ScanningUtils.mcMajorVersion == 15) world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_",ScanningUtils.classFor(getBlockPosClass()));
-			world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), new String[]{getBlockPosClass()});
 			Logger.logLine("Method getBlockState:");
-			Logger.logLine(world$getBlockState.getName());
-			Logger.logLine(world$getBlockState.getParameterTypes());
+			if (ScanningUtils.mcMajorVersion == 15)
+				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
+			else
+				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), new String[]{getBlockPosClass()});
 			Thread.sleep(5000);
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
@@ -600,6 +598,13 @@ public class Main implements IFlameAPIMod {
 			f1.setAccessible(true);
 			f0.set(null, new java.lang.String[]{"world", "pos", "state"});
 			f1.set(null, new java.lang.String[]{"world", "pos", "state", "placer", "itemStack"});
+			
+			Fabricator.compileAndLoad("world_class.java", (code) -> code
+					.replace("%get_block_state%", world$getBlockState.getName())
+					.replace("%set_block_state%", world$setBlockState.getName())
+					.replace("%block_class%", blockClass)
+					.replace("%world_class%", worldClass)
+			);
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
