@@ -98,7 +98,7 @@ public class Methods {
 	 * @param classes an Array containing the class names of the parameters
 	 * @return a {@link BiObject} containing the args and the method name and the method
 	 */
-	private static BiObject<String, Method> searchAndGettMethodInfos(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
+	private static BiObject<String, Method> searchAndGettMethodInfos(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
 		try {
 			String methodToSearch;
 			String argumentsToSearch;
@@ -109,9 +109,9 @@ public class Methods {
 				StringBuilder arguments = new StringBuilder();
 				if (possibleMethod.getParameterCount() == totalParameters) {
 					for (Class<?> param : possibleMethod.getParameterTypes()) {
-						for (String s : classes) {
-							if (param.getName().equals(ScanningUtils.toClassName(s))) {
-								parameters.append(param.getName()).append(" var").append(argsMatched);
+						for (BiObject<String, String> o : classes) {
+							if (param.getName().equals(ScanningUtils.toClassName(o.getObject1()))) {
+								parameters.append(param.getName()).append(" ").append(o.getObject2());
 								arguments.append("var").append(argsMatched);
 								if (argsMatched != totalParameters - 1) {
 									parameters.append(", ");
@@ -135,20 +135,20 @@ public class Methods {
 	}
 	
 	/**
-	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[])}.getObject2()
+	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, BiObject[])}.getObject2()
 	 * @return the method
-	 * @see #getMethodNameAndArgs(String, int, Class, String[])
+	 * @see #searchAndGettMethodInfos(String, int, Class, BiObject[])
 	 */
-	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
+	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
 		return Objects.requireNonNull(searchAndGettMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject2();
 	}
 	
 	/**
-	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[])}.getObject1()
+	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, BiObject[])}.getObject1()
 	 * @return the args + the params
-	 * @see #getMethodNameAndArgs(String, int, Class, String[])
+	 * @see #searchAndGettMethodInfos(String, int, Class, BiObject[])
 	 */
-	public static String getMethodNameAndArgs(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
+	public static String getMethodNameAndArgs(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
 		return Objects.requireNonNull(searchAndGettMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject1();
 	}
 

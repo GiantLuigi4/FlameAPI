@@ -16,6 +16,7 @@ import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.ClassObject;
+import com.tfc.utils.BiObject;
 import com.tfc.utils.Fabricator;
 import com.tfc.utils.ScanningUtils;
 
@@ -548,16 +549,20 @@ public class Main implements IFlameAPIMod {
 //					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
 //			});
 			Logger.logLine("Scanning world:");
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, createBiObjectArray(2, new String[]{
+					getBlockPosClass(), getBlockStateClass()
+			}));
 			Logger.logLine("Method setBlockState:");
-			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, new String[]{getBlockPosClass(), getBlockStateClass()});
 			//TOD0 getBlockState 1.13+ requires AABB class (renamed Box in 1.13+)
 			//AABB is useless for this, it is only useful for entities
 			Logger.logLine("Method getBlockState:");
 			if (ScanningUtils.mcMajorVersion == 15)
 				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
 			else
-				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), new String[]{getBlockPosClass()});
-//			Thread.sleep(5000);
+				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), createBiObjectArray(1, new String[]{
+					getBlockPosClass()
+			}));
+			Thread.sleep(5000);
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -637,5 +642,13 @@ public class Main implements IFlameAPIMod {
 				"Bytecode-Utils",
 				version
 		);
+	}
+
+	private BiObject<String, String>[] createBiObjectArray(int size, String[] obj1Array) {
+		BiObject<String, String>[] newArray = new BiObject[size];
+		for (int i = 0; i < size; i++) {
+			newArray[i] = new BiObject(obj1Array[i], "var" + i);
+		}
+		return newArray;
 	}
 }
