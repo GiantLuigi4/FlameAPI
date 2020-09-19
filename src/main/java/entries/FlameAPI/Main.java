@@ -56,6 +56,8 @@ public class Main implements IFlameAPIMod {
 	
 	private static Method block$onRemoved = null;
 	private static Method block$onPlaced = null;
+	private static Method world$setBlockState = null;
+	private static Method world$getBlockState = null;
 	
 	
 	public static String getVec3iClass() {
@@ -135,7 +137,15 @@ public class Main implements IFlameAPIMod {
 	public static String getIWorldClass() {
 		return IWorldClass;
 	}
-	
+
+	public static Method getWorld$setBlockState() {
+		return world$setBlockState;
+	}
+
+	public static Method getWorld$getBlockState() {
+		return world$getBlockState;
+	}
+
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
@@ -169,7 +179,7 @@ public class Main implements IFlameAPIMod {
 			FlameLauncher.downloadDep(name1, url);
 		}
 	}
-	
+
 	@Override
 	public void setupAPI(String[] args) {
 		try {
@@ -533,6 +543,11 @@ public class Main implements IFlameAPIMod {
 					block$onPlaced = m;
 				}
 			}
+
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, new String[]{ getBlockPosClass(), getBlockStateClass() });
+			//TODO getBlockState 1.13+ requires AABB class (renamed Box in 1.13+)
+			if (ScanningUtils.isVersionLessThan12)
+				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), new String[]{ getBlockPosClass() });
 		} catch (Throwable ignored) {
 		}
 		

@@ -1,6 +1,8 @@
 package com.tfc.API.flame.utils.reflection;
 
 import com.tfc.API.flame.annotations.ASM.Unmodifiable;
+import com.tfc.API.flame.utils.logging.Logger;
+import com.tfc.utils.ScanningUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -85,7 +87,51 @@ public class Methods {
 	public static void forEach(Class<?> target, Consumer<Method> function) {
 		getAllMethods(target).forEach(function);
 	}
-	
+
+	/**
+	 * Searched a method in a class
+	 * @param classToSearch the class inside the method is
+	 * @param totalParameters the number of arguments the method has
+	 * @param returnClass the return class of the metho ( int.class, void.class or for non primitives Class.forName(className) )
+	 * @param classes an Array containing the class names of the parameters
+	 * @return the searched method (hopefully)
+	 */
+	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
+		try {
+			String methodToSearch;
+			String argumentsToSearch;
+			int argsMatched;
+			for (Method possibleMethod : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(classToSearch)))) {
+				argsMatched = 0;
+				StringBuilder parameters = new StringBuilder();
+				StringBuilder arguments = new StringBuilder();
+				if (possibleMethod.getParameterCount() == totalParameters) {
+					for (Class<?> param : possibleMethod.getParameterTypes()) {
+						for (String s : classes) {
+							if (param.getName().equals(ScanningUtils.toClassName(s))) {
+								parameters.append(param.getName()).append(" var").append(argsMatched);
+								arguments.append("var").append(argsMatched);
+								if (argsMatched != totalParameters - 1) {
+									parameters.append(", ");
+									arguments.append(", ");
+								}
+								argsMatched++;
+							}
+						}
+					}
+					if (argsMatched == totalParameters && possibleMethod.getReturnType() == returnClass) {
+						methodToSearch = possibleMethod.getName() + "(" + parameters + ")";
+						argumentsToSearch = "new Object[]{" + arguments + "}";
+						Logger.logLine(methodToSearch + "$" + argumentsToSearch);
+						return possibleMethod;
+					}
+				}
+			}
+		} catch (Throwable ignored) {
+		}
+		return null;
+	}
+
 	private static class ParamList {
 		private final Object[] params;
 		
