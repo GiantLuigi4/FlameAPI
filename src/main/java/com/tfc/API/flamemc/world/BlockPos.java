@@ -27,7 +27,7 @@ public class BlockPos {
 			x = Class.forName("BlockPos").getMethod("getX");
 			y = Class.forName("BlockPos").getMethod("getY");
 			z = Class.forName("BlockPos").getMethod("getZ");
-			blockPos = Class.forName(ScanningUtils.toClassName(Main.getBlockPosClass()));
+			blockPos = Class.forName(ScanningUtils.toClassName(Main.getVec3iClass()));
 			bpX = blockPos.getDeclaredField("a");
 			bpX.setAccessible(true);
 			bpY = blockPos.getDeclaredField("b");
@@ -42,15 +42,15 @@ public class BlockPos {
 	
 	private final Object thisBlockPos;
 	
-	private BlockPos(Object thisBlockPos) {
+	public BlockPos(Object thisBlockPos) {
 		if (thisBlockPos.getClass().getName().equals("BlockPos")) {
 			this.thisBlockPos = thisBlockPos;
 		} else {
 			try {
-				int x = (int) bpX.get(thisBlockPos);
-				int y = (int) bpX.get(thisBlockPos);
-				int z = (int) bpX.get(thisBlockPos);
-				this.thisBlockPos = new BlockPos(x, y, z).unwrap();
+				Object x = bpX.get(thisBlockPos);
+				Object y = bpY.get(thisBlockPos);
+				Object z = bpZ.get(thisBlockPos);
+				this.thisBlockPos = new BlockPos((int) x, (int) y, (int) z).unwrap();
 			} catch (Throwable err) {
 				throw new RuntimeException(err);
 			}

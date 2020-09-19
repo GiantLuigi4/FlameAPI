@@ -57,18 +57,12 @@ public class GenericClassFinder {
 			"(JIIIIIII)V"
 	};
 	private static final String[] Vec3iChecks = new String[]{
-			"L%classname%",
-			"'Ljavax/annotation/concurrent/Immutable;",
 			"Ljava/lang/Object;",
 			"(Ljava/lang/Object;)Lcom/google/common/base/MoreObjects$ToStringHelper;",
 			"()Ljava/lang/String;",
-			"-(Ljava/lang/String;)Ljava/lang/StringBuilder;",
 			"append",
 			"RuntimeInvisibleAnnotations",
 			"RuntimeVisibleAnnotations",
-			"\fInnerClasses",
-			"¶",
-			"add",
 			"(Ljava/lang/String;I)Lcom/google/common/base/MoreObjects$ToStringHelper;",
 			"(DDDZ)D",
 			";D)Z",
