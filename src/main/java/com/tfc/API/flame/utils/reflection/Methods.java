@@ -4,7 +4,6 @@ import com.tfc.API.flame.annotations.ASM.Unmodifiable;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.utils.BiObject;
 import com.tfc.utils.ScanningUtils;
-import com.tfc.utils.TriObject;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -136,7 +135,7 @@ public class Methods {
 	}
 
 	/**
-	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[]).getObject2()}
+	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[])}.getObject2()
 	 * @return the method
 	 * @see #getMethodNameAndArgs(String, int, Class, String[])
 	 */
@@ -145,7 +144,7 @@ public class Methods {
 	}
 
 	/**
-	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[]).getObject1()}
+	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[])}.getObject1()
 	 * @return the args + the params
 	 * @see #getMethodNameAndArgs(String, int, Class, String[])
 	 */

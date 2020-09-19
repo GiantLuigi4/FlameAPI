@@ -30,7 +30,7 @@ import java.util.Iterator;
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
 	
-	private static final String bytecodeUtilsVersion = "7b0b30b686";
+	private static final String bytecodeUtilsVersion = "e8be63325c";
 	
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
@@ -450,8 +450,6 @@ public class Main implements IFlameAPIMod {
 
 				StringBuilder paramsA = new StringBuilder();
 				StringBuilder argsA = new StringBuilder();
-				numMatched = 0;
-				num = 0;
 				for (Class<?> param : m.getParameterTypes()) {
 					if (param.getName().equals(ScanningUtils.toClassName(worldClass)) && num == 0) {
 						paramsA.append(param.getName()).append(" var0");
@@ -485,7 +483,7 @@ public class Main implements IFlameAPIMod {
 							argsA.append(", ");
 						}
 						numMatched++;
-					} else if (num == 3) {
+					} else if (num == 3) { //Luigi, wth does this mean
 						paramsA.append(param.getName()).append(" var4");
 						argsA.append("var4");
 						if (numMatched != 4) {
