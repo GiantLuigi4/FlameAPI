@@ -98,4 +98,8 @@ public class ScanningUtils {
 	public static String toClassName(String s) {
 		return s.replace(".class", "").replace("/", ".");
 	}
+	
+	public static Class<?> classFor(String clazz) throws ClassNotFoundException {
+		return Class.forName(toClassName(clazz));
+	}
 }

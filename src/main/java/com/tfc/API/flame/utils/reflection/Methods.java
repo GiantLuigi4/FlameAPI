@@ -133,7 +133,7 @@ public class Methods {
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[])}.getObject2()
 	 * @return the method
@@ -142,7 +142,7 @@ public class Methods {
 	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
 		return Objects.requireNonNull(searchAndGettMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject2();
 	}
-
+	
 	/**
 	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[])}.getObject1()
 	 * @return the args + the params

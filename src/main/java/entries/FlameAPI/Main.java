@@ -440,6 +440,8 @@ public class Main implements IFlameAPIMod {
 			Logger.logErrFull(err);
 		}
 		
+		String removedMethod = "a()";
+		String argsRemoved = "new Object[]{null}";
 		String placedMethod = "a()";
 		String argsPlaced = "new Object[]{null}";
 		
@@ -447,9 +449,48 @@ public class Main implements IFlameAPIMod {
 			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
 				int numMatched = 0;
 				int num = 0;
-
+				StringBuilder paramsR = new StringBuilder();
+				StringBuilder argsR = new StringBuilder();
+				for (Class<?> param : m.getParameterTypes()) {
+					if (param.getName().equals(ScanningUtils.toClassName(IWorldClass)) && num == 0) {
+						paramsR.append(param.getName()).append(" var0");
+						argsR.append("var0");
+						if (numMatched != 2) {
+							paramsR.append(", ");
+							argsR.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockPosClass))) {
+						paramsR.append(param.getName()).append(" var1");
+						argsR.append("var1");
+						if (numMatched != 2) {
+							paramsR.append(", ");
+							argsR.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockStateClass))) {
+						paramsR.append(param.getName()).append(" var2");
+						argsR.append("var2");
+						if (numMatched != 2) {
+							paramsR.append(", ");
+							argsR.append(", ");
+						}
+						numMatched++;
+					} else {
+						numMatched--;
+					}
+					num++;
+				}
+				if (numMatched == num && num == 3) {
+					removedMethod = m.getName() + "(" + paramsR + ")";
+					argsRemoved = "new Object[]{" + argsR + "}";
+					block$onRemoved = m;
+				}
+				
 				StringBuilder paramsA = new StringBuilder();
 				StringBuilder argsA = new StringBuilder();
+				numMatched = 0;
+				num = 0;
 				for (Class<?> param : m.getParameterTypes()) {
 					if (param.getName().equals(ScanningUtils.toClassName(worldClass)) && num == 0) {
 						paramsA.append(param.getName()).append(" var0");
@@ -483,7 +524,7 @@ public class Main implements IFlameAPIMod {
 							argsA.append(", ");
 						}
 						numMatched++;
-					} else if (num == 3) { //Luigi, wth does this mean
+					} else if (num == 3) {
 						paramsA.append(param.getName()).append(" var4");
 						argsA.append("var4");
 						if (numMatched != 4) {
@@ -503,28 +544,51 @@ public class Main implements IFlameAPIMod {
 				}
 			}
 
-			block$onRemoved = Methods.searchMethod(getBlockClass(), 3, void.class, new String[]{
-					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
-			});
-			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, new String[]{ getBlockPosClass(), getBlockStateClass() });
-			//TODO getBlockState 1.13+ requires AABB class (renamed Box in 1.13+)
-			if (ScanningUtils.isVersionLessThan12)
-				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), new String[]{ getBlockPosClass() });
-		} catch (Throwable ignored) {
+//			block$onRemoved = Methods.searchMethod(getBlockClass(), 3, void.class, new String[]{
+//					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
+//			});
+			Logger.logLine("Scanning world:");
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, new String[]{getBlockPosClass(), getBlockStateClass()});
+			Logger.logLine("Method setBlockState:");
+			Logger.logLine(world$getBlockState.getName());
+			Logger.logLine(world$getBlockState.getParameterTypes());
+			//TOD0 getBlockState 1.13+ requires AABB class (renamed Box in 1.13+)
+			//AABB is useless for this, it is only useful for entities
+//			if (ScanningUtils.mcMajorVersion == 15) world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_",ScanningUtils.classFor(getBlockPosClass()));
+			world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), new String[]{getBlockPosClass()});
+			Logger.logLine("Method getBlockState:");
+			Logger.logLine(world$getBlockState.getName());
+			Logger.logLine(world$getBlockState.getParameterTypes());
+			Thread.sleep(5000);
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
 		}
 		
 		try {
-			String block$onRemovedNameAndArgs = Methods.getMethodNameAndArgs(getBlockClass(), 3, void.class, new String[]{
-					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
-			});
+//			String block$onRemovedNameAndArgs = Methods.getMethodNameAndArgs(getBlockClass(), 3, void.class, new String[]{
+//					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
+//			});
+			try {
+				Logger.logLine(world$getBlockState.toString());
+			} catch (Throwable ignored) {
+			}
+			
+			try {
+				Logger.logLine(world$setBlockState.toString());
+			} catch (Throwable ignored) {
+			}
+			
+			Thread.sleep(5000);
+			final String finalRemovedMethod = removedMethod;
+			final String finalArgsRemoved = argsRemoved;
 			final String finalPlacedMethod = placedMethod;
 			final String finalArgsPlaced = argsPlaced;
 			Fabricator.compileAndLoad("block_class.java", (code) -> code
 					.replace("%block_class%", ScanningUtils.toClassName(blockClass))
 					.replace("%callInfoGen_onRemoved%", "com.tfc.API.flamemc.abstraction.CallInfo info = null")
 					.replace("%properties_class%", blockPropertiesClass.getName())
-					.replace("%removedMethod%", block$onRemovedNameAndArgs.split("\\$/\\$")[0])
-					.replace("%argsRemoved%", block$onRemovedNameAndArgs.split("\\$/\\$")[1])
+					.replace("%argsRemoved%", finalArgsRemoved)
+					.replace("%removedMethod%", finalRemovedMethod)
 					.replace("%placedMethod%", finalPlacedMethod)
 					.replace("%argsPlaced%", finalArgsPlaced)
 			);
