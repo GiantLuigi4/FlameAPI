@@ -557,7 +557,7 @@ public class Main implements IFlameAPIMod {
 				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
 			else
 				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), new String[]{getBlockPosClass()});
-			Thread.sleep(5000);
+//			Thread.sleep(5000);
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -575,8 +575,8 @@ public class Main implements IFlameAPIMod {
 				Logger.logLine(world$setBlockState.toString());
 			} catch (Throwable ignored) {
 			}
-			
-			Thread.sleep(5000);
+
+//			Thread.sleep(5000);
 			final String finalRemovedMethod = removedMethod;
 			final String finalArgsRemoved = argsRemoved;
 			final String finalPlacedMethod = placedMethod;
@@ -602,8 +602,9 @@ public class Main implements IFlameAPIMod {
 			Fabricator.compileAndLoad("world_class.java", (code) -> code
 					.replace("%get_block_state%", world$getBlockState.getName())
 					.replace("%set_block_state%", world$setBlockState.getName())
-					.replace("%block_class%", blockClass)
-					.replace("%world_class%", worldClass)
+					.replace("%block_state_class%", ScanningUtils.toClassName(blockStateClass))
+					.replace("%world_class%", ScanningUtils.toClassName(worldClass))
+					.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass))
 			);
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
