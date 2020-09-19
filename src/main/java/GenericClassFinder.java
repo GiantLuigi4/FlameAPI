@@ -56,6 +56,24 @@ public class GenericClassFinder {
 			"(III)L%classname%",
 			"(JIIIIIII)V"
 	};
+	private static final String[] Vec3iChecks = new String[]{
+			"L%classname%",
+			"'Ljavax/annotation/concurrent/Immutable;",
+			"Ljava/lang/Object;",
+			"(Ljava/lang/Object;)Lcom/google/common/base/MoreObjects$ToStringHelper;",
+			"()Ljava/lang/String;",
+			"-(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+			"append",
+			"RuntimeInvisibleAnnotations",
+			"RuntimeVisibleAnnotations",
+			"\fInnerClasses",
+			"¶",
+			"add",
+			"(Ljava/lang/String;I)Lcom/google/common/base/MoreObjects$ToStringHelper;",
+			"(DDDZ)D",
+			";D)Z",
+			"(I)I"
+	};
 	private static final String[] blockStateChecks = new String[]{
 			"Name",
 			"Properties",
@@ -104,6 +122,7 @@ public class GenericClassFinder {
 			AtomicReference<String> clazzBlock = new AtomicReference<>("null");
 			AtomicReference<String> clazzRL = new AtomicReference<>("null");
 			AtomicReference<String> clazzBlockPos = new AtomicReference<>("null");
+			AtomicReference<String> clazzVec3i = new AtomicReference<>("null");
 			AtomicReference<String> clazzWorld = new AtomicReference<>("null");
 			AtomicReference<String> clazzWorldServer = new AtomicReference<>("null");
 			AtomicReference<String> clazzIWorld = new AtomicReference<>("null");
@@ -125,6 +144,7 @@ public class GenericClassFinder {
 				HashMap<String, Boolean> checksStack = new HashMap<>();
 				HashMap<String, Boolean> checksBlock = new HashMap<>();
 				HashMap<String, Boolean> checksBlockPos = new HashMap<>();
+				HashMap<String, Boolean> checksVec3i = new HashMap<>();
 				HashMap<String, Boolean> checksIWorld = new HashMap<>();
 				ScanningUtils.forEachLine(sc, line -> {
 					//Looks like this UUID is always the same in the Item class, this is perfect
@@ -137,6 +157,9 @@ public class GenericClassFinder {
 					}
 					for (String s : blockPosChecks) {
 						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksBlockPos, line);
+					}
+					for (String s : Vec3iChecks) {
+						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksVec3i, line);
 					}
 					for (String s : IWorldChecks) {
 						ScanningUtils.checkLine(s.replace("%classname%", ScanningUtils.toClassName(entry.getName())), checksIWorld, line);
@@ -153,6 +176,7 @@ public class GenericClassFinder {
 				ScanningUtils.checkGenericClass(checksBlock.size(), version_checksBlocks.length, clazzBlock, "Block", entryName);
 				ScanningUtils.checkGenericClass(checksStack.size(), itemStackChecks.length, clazzStack, "Stack", entryName);
 				ScanningUtils.checkGenericClass(checksBlockPos.size(), blockPosChecks.length, clazzBlockPos, "BlockPos", entryName);
+				ScanningUtils.checkGenericClass(checksVec3i.size(), Vec3iChecks.length, clazzVec3i, "Vec3i", entryName);
 				ScanningUtils.checkGenericClass(checksWorld.size(), 1, clazzWorld, "World", entryName);
 				ScanningUtils.checkGenericClass(checksWorldServer.size(), worldServerChecks.length, clazzWorldServer, "WorldServer", entryName);
 				ScanningUtils.checkGenericClass(checksIWorld.size(), IWorldChecks.length, clazzIWorld, "IWorld", entryName);
@@ -166,6 +190,7 @@ public class GenericClassFinder {
 			classes.put("Block", clazzBlock.get());
 			classes.put("ResourceLocation", clazzRL.get());
 			classes.put("BlockPos", clazzBlockPos.get());
+			classes.put("Vec3i", clazzVec3i.get());
 			classes.put("World", clazzWorld.get());
 			classes.put("WorldServer", clazzWorldServer.get());
 			classes.put("IWorld", clazzIWorld.get());

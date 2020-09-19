@@ -48,6 +48,7 @@ public class Main implements IFlameAPIMod {
 	private static String resourceLocationClass = "";
 	private static String blockFireClass = "";
 	private static String blockPosClass = "";
+	private static String Vec3iClass = "";
 	private static String blockStateClass = "";
 	private static String worldClass = "";
 	private static String IWorldClass = "";
@@ -55,6 +56,11 @@ public class Main implements IFlameAPIMod {
 	
 	private static Method block$onRemoved = null;
 	private static Method block$onPlaced = null;
+	
+	
+	public static String getVec3iClass() {
+		return Vec3iClass;
+	}
 	
 	public static Method getBlock$onRemoved() {
 		return block$onRemoved;
@@ -292,6 +298,7 @@ public class Main implements IFlameAPIMod {
 			itemStackClass = genericClasses.get("ItemStack");
 			resourceLocationClass = genericClasses.get("ResourceLocation");
 			blockPosClass = genericClasses.get("BlockPos");
+			Vec3iClass = genericClasses.get("Vec3i");
 			blockFireClass = genericClasses.get("BlockFire");
 			blockStateClass = genericClasses.get("BlockState");
 			worldClass = genericClasses.get("World");
