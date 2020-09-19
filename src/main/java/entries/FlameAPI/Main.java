@@ -562,7 +562,6 @@ public class Main implements IFlameAPIMod {
 				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), createBiObjectArray(1, new String[]{
 					getBlockPosClass()
 			}));
-			Thread.sleep(5000);
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
