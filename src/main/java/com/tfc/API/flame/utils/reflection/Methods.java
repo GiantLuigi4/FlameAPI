@@ -2,11 +2,14 @@ package com.tfc.API.flame.utils.reflection;
 
 import com.tfc.API.flame.annotations.ASM.Unmodifiable;
 import com.tfc.API.flame.utils.logging.Logger;
+import com.tfc.utils.BiObject;
 import com.tfc.utils.ScanningUtils;
+import com.tfc.utils.TriObject;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 //TODO: javadocs
@@ -94,9 +97,9 @@ public class Methods {
 	 * @param totalParameters the number of arguments the method has
 	 * @param returnClass the return class of the metho ( int.class, void.class or for non primitives Class.forName(className) )
 	 * @param classes an Array containing the class names of the parameters
-	 * @return the searched method (hopefully)
+	 * @return a {@link BiObject} containing the args and the method name and the method
 	 */
-	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
+	private static BiObject<String, Method> searchAndGettMethodInfos(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
 		try {
 			String methodToSearch;
 			String argumentsToSearch;
@@ -122,14 +125,32 @@ public class Methods {
 					if (argsMatched == totalParameters && possibleMethod.getReturnType() == returnClass) {
 						methodToSearch = possibleMethod.getName() + "(" + parameters + ")";
 						argumentsToSearch = "new Object[]{" + arguments + "}";
-						Logger.logLine(methodToSearch + "$" + argumentsToSearch);
-						return possibleMethod;
+						Logger.logLine(methodToSearch + "$/$" + argumentsToSearch);
+						return new BiObject<>(methodToSearch + "$/$" + argumentsToSearch, possibleMethod);
 					}
 				}
 			}
 		} catch (Throwable ignored) {
 		}
 		return null;
+	}
+
+	/**
+	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[]).getObject2()}
+	 * @return the method
+	 * @see #getMethodNameAndArgs(String, int, Class, String[])
+	 */
+	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
+		return Objects.requireNonNull(searchAndGettMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject2();
+	}
+
+	/**
+	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, String[]).getObject1()}
+	 * @return the args + the params
+	 * @see #getMethodNameAndArgs(String, int, Class, String[])
+	 */
+	public static String getMethodNameAndArgs(String classToSearch, int totalParameters, Class<?> returnClass, String[] classes) {
+		return Objects.requireNonNull(searchAndGettMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject1();
 	}
 
 	private static class ParamList {
