@@ -553,8 +553,6 @@ public class Main implements IFlameAPIMod {
 					getBlockPosClass(), getBlockStateClass()
 			}));
 			Logger.logLine("Method setBlockState:");
-			//TOD0 getBlockState 1.13+ requires AABB class (renamed Box in 1.13+)
-			//AABB is useless for this, it is only useful for entities
 			Logger.logLine("Method getBlockState:");
 			if (ScanningUtils.mcMajorVersion == 15)
 				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
@@ -567,9 +565,6 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		try {
-//			String block$onRemovedNameAndArgs = Methods.getMethodNameAndArgs(getBlockClass(), 3, void.class, new String[]{
-//					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
-//			});
 			try {
 				Logger.logLine(world$getBlockState.toString());
 			} catch (Throwable ignored) {
@@ -579,8 +574,7 @@ public class Main implements IFlameAPIMod {
 				Logger.logLine(world$setBlockState.toString());
 			} catch (Throwable ignored) {
 			}
-
-//			Thread.sleep(5000);
+			
 			final String finalRemovedMethod = removedMethod;
 			final String finalArgsRemoved = argsRemoved;
 			final String finalPlacedMethod = placedMethod;
