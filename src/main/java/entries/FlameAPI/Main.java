@@ -56,6 +56,8 @@ public class Main implements IFlameAPIMod {
 	private static String worldClass = "";
 	private static String IWorldClass = "";
 	private static String worldServerClass = "";
+	private static String bbClass = "";
+	private static String tessellatorClass = "";
 	
 	private static Method block$onRemoved = null;
 	private static Method block$onPlaced = null;
@@ -329,6 +331,8 @@ public class Main implements IFlameAPIMod {
 			worldClass = genericClasses.get("World");
 			IWorldClass = genericClasses.get("IWorld");
 			worldServerClass = genericClasses.get("WorldServer");
+			bbClass = genericClasses.get("BufferBuilder");
+			tessellatorClass = genericClasses.get("Tessellator");
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Block:" + blockClass + "\n");
 			FlameConfig.field.append("Item:" + itemClass + "\n");
@@ -337,6 +341,8 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.field.append("World: " + worldClass + "\n");
 			FlameConfig.field.append("IWorld: " + IWorldClass + "\n");
 			FlameConfig.field.append("WorldServer: " + worldServerClass + "\n");
+			FlameConfig.field.append("BB: " + bbClass + "\n");
+			FlameConfig.field.append("Tessellator: " + tessellatorClass + "\n");
 			FlameConfig.field.append("Block Fire: " + blockFireClass + "\n");
 			FlameConfig.field.append("BlockPos:" + blockPosClass + "\n");
 			FlameConfig.field.append("BlockState: " + blockStateClass + "\n");
