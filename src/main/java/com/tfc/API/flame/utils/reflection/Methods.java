@@ -89,16 +89,17 @@ public class Methods {
 	public static void forEach(Class<?> target, Consumer<Method> function) {
 		getAllMethods(target).forEach(function);
 	}
-
+	
 	/**
 	 * Searched a method in a class
-	 * @param classToSearch the class inside the method is
+	 *
+	 * @param classToSearch   the class inside the method is
 	 * @param totalParameters the number of arguments the method has
-	 * @param returnClass the return class of the metho ( int.class, void.class or for non primitives Class.forName(className) )
-	 * @param classes an Array containing the class names of the parameters
+	 * @param returnClass     the return class of the metho ( int.class, void.class or for non primitives Class.forName(className) )
+	 * @param classes         an Array containing the class names of the parameters
 	 * @return a {@link BiObject} containing the args and the method name and the method
 	 */
-	private static BiObject<String, Method> searchAndGettMethodInfos(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
+	public static BiObject<String, Method> searchAndGetMethodInfos(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
 		try {
 			String methodToSearch;
 			String argumentsToSearch;
@@ -118,10 +119,11 @@ public class Methods {
 									arguments.append(", ");
 								}
 								argsMatched++;
+								break;
 							}
 						}
 					}
-					if (argsMatched == totalParameters && possibleMethod.getReturnType() == returnClass) {
+					if (argsMatched == totalParameters && (returnClass == null || possibleMethod.getReturnType() == returnClass)) {
 						methodToSearch = possibleMethod.getName() + "(" + parameters + ")";
 						argumentsToSearch = "new Object[]{" + arguments + "}";
 						Logger.logLine(methodToSearch + "$/$" + argumentsToSearch);
@@ -134,24 +136,69 @@ public class Methods {
 		return null;
 	}
 	
-	/**
-	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, BiObject[])}.getObject2()
-	 * @return the method
-	 * @see #searchAndGettMethodInfos(String, int, Class, BiObject[])
-	 */
-	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
-		return Objects.requireNonNull(searchAndGettMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject2();
+	public static BiObject<String, Method> searchAndGetMethodInfosPrecise(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
+		try {
+			String methodToSearch;
+			String argumentsToSearch;
+			int argsMatched;
+			for (Method possibleMethod : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(classToSearch)))) {
+				argsMatched = 0;
+				StringBuilder parameters = new StringBuilder();
+				StringBuilder arguments = new StringBuilder();
+				ArrayList<Integer> usedArgs = new ArrayList<>();
+				if (possibleMethod.getParameterCount() == totalParameters) {
+					for (Class<?> param : possibleMethod.getParameterTypes()) {
+						int index = 0;
+						for (BiObject<String, String> o : classes) {
+							index++;
+							if (!usedArgs.contains(index)) {
+								if (param.getName().equals(ScanningUtils.toClassName(o.getObject1()))) {
+									parameters.append(param.getName()).append(" ").append(o.getObject2());
+									arguments.append("var").append(argsMatched);
+									if (argsMatched != totalParameters - 1) {
+										parameters.append(", ");
+										arguments.append(", ");
+									}
+									usedArgs.add(index);
+									argsMatched++;
+									break;
+								}
+							}
+						}
+					}
+					if (argsMatched == totalParameters && (returnClass == null || possibleMethod.getReturnType() == returnClass)) {
+						methodToSearch = possibleMethod.getName() + "(" + parameters + ")";
+						argumentsToSearch = "new Object[]{" + arguments + "}";
+						Logger.logLine(methodToSearch + "/" + argumentsToSearch);
+						return new BiObject<>(methodToSearch + "/" + argumentsToSearch, possibleMethod);
+					}
+				}
+			}
+		} catch (Throwable ignored) {
+		}
+		return null;
 	}
 	
 	/**
-	 * Shortcut to {@link #searchAndGettMethodInfos(String, int, Class, BiObject[])}.getObject1()
+	 * Shortcut to {@link #searchAndGetMethodInfos(String, int, Class, BiObject[])}.getObject2()
+	 *
+	 * @return the method
+	 * @see #searchAndGetMethodInfos(String, int, Class, BiObject[])
+	 */
+	public static Method searchMethod(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
+		return Objects.requireNonNull(searchAndGetMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject2();
+	}
+	
+	/**
+	 * Shortcut to {@link #searchAndGetMethodInfos(String, int, Class, BiObject[])}.getObject1()
+	 *
 	 * @return the args + the params
-	 * @see #searchAndGettMethodInfos(String, int, Class, BiObject[])
+	 * @see #searchAndGetMethodInfos(String, int, Class, BiObject[])
 	 */
 	public static String getMethodNameAndArgs(String classToSearch, int totalParameters, Class<?> returnClass, BiObject<String, String>[] classes) {
-		return Objects.requireNonNull(searchAndGettMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject1();
+		return Objects.requireNonNull(searchAndGetMethodInfos(classToSearch, totalParameters, returnClass, classes)).getObject1();
 	}
-
+	
 	private static class ParamList {
 		private final Object[] params;
 		

@@ -31,7 +31,7 @@ import java.util.Iterator;
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
 	
-	private static final String bytecodeUtilsVersion = "e8be63325c";
+	private static final String bytecodeUtilsVersion = "77632bcf63";
 	
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
@@ -57,6 +57,7 @@ public class Main implements IFlameAPIMod {
 	
 	private static Method block$onRemoved = null;
 	private static Method block$onPlaced = null;
+	private static Method block$onNeighborChanged = null;
 	private static Method world$setBlockState = null;
 	private static Method world$getBlockState = null;
 	
@@ -184,7 +185,7 @@ public class Main implements IFlameAPIMod {
 	@Override
 	public void setupAPI(String[] args) {
 		try {
-			downloadBytecodeUtils(bytecodeUtilsVersion);
+			downloadBytecodeUtils();
 			addDep("https://repo1.maven.org/maven2/", "org.javassist", "javassist", "3.27.0-GA");
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "janino", "3.1.2");
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler", "3.1.2");
@@ -446,6 +447,8 @@ public class Main implements IFlameAPIMod {
 		String placedMethod = "a()";
 		String argsPlaced = "new Object[]{null}";
 		
+		String neighborChanged = "a()/";
+		
 		try {
 			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
 				int numMatched = 0;
@@ -544,22 +547,32 @@ public class Main implements IFlameAPIMod {
 					block$onPlaced = m;
 				}
 			}
+			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, createBiObjectArray(
+					getBlockStateClass(), getWorldClass(),
+					getBlockPosClass(), getBlockClass(),
+					getBlockPosClass(), boolean.class.getName() + ".class"
+			));
+			if (neighborChangedB != null) {
+				block$onNeighborChanged = neighborChangedB.getObject2();
+				
+				neighborChanged = neighborChangedB.getObject1();
+			}
 
 //			block$onRemoved = Methods.searchMethod(getBlockClass(), 3, void.class, new String[]{
 //					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
 //			});
 			Logger.logLine("Scanning world:");
-			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, createBiObjectArray(2, new String[]{
-					getBlockPosClass(), getBlockStateClass()
-			}));
 			Logger.logLine("Method setBlockState:");
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, createBiObjectArray(
+					getBlockPosClass(), getBlockStateClass()
+			));
 			Logger.logLine("Method getBlockState:");
 			if (ScanningUtils.mcMajorVersion == 15)
 				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
 			else
-				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), createBiObjectArray(1, new String[]{
-					getBlockPosClass()
-			}));
+				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), createBiObjectArray(
+						getBlockPosClass()
+				));
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -579,6 +592,8 @@ public class Main implements IFlameAPIMod {
 			final String finalArgsRemoved = argsRemoved;
 			final String finalPlacedMethod = placedMethod;
 			final String finalArgsPlaced = argsPlaced;
+			final String finalUpdatedMethod = neighborChanged.split("/")[0];
+			final String finalArgsUpdate = neighborChanged.split("/")[1];
 			Fabricator.compileAndLoad("block_class.java", (code) -> code
 					.replace("%block_class%", ScanningUtils.toClassName(blockClass))
 					.replace("%callInfoGen_onRemoved%", "com.tfc.API.flamemc.abstraction.CallInfo info = null")
@@ -587,15 +602,21 @@ public class Main implements IFlameAPIMod {
 					.replace("%removedMethod%", finalRemovedMethod)
 					.replace("%placedMethod%", finalPlacedMethod)
 					.replace("%argsPlaced%", finalArgsPlaced)
+					.replace("%updatedMethod%", finalUpdatedMethod)
+					.replace("%argsUpdated%", finalArgsUpdate)
 			);
 			Field f0 = Fields.forName(Class.forName("Block"), "argsRemoved");
 			Field f1 = Fields.forName(Class.forName("Block"), "argsPlaced");
+			Field f2 = Fields.forName(Class.forName("Block"), "argsUpdated");
 			assert f0 != null;
 			assert f1 != null;
+			assert f2 != null;
 			f0.setAccessible(true);
 			f1.setAccessible(true);
+			f2.setAccessible(true);
 			f0.set(null, new java.lang.String[]{"world", "pos", "state"});
 			f1.set(null, new java.lang.String[]{"world", "pos", "state", "placer", "itemStack"});
+			f2.set(null, new java.lang.String[]{"sate", "world", "pos", "updater_block", "updater_pos", "moved"});
 			
 			Fabricator.compileAndLoad("world_class.java", (code) -> code
 					.replace("%get_block_state%", world$getBlockState.getName())
@@ -628,20 +649,19 @@ public class Main implements IFlameAPIMod {
 		}
 	}
 	
-	private void downloadBytecodeUtils(String version) {
+	private void downloadBytecodeUtils() {
 		addDep(
 				"https://jitpack.io/",
 				"com.github.GiantLuigi4",
 				"Bytecode-Utils",
-				version
+				bytecodeUtilsVersion
 		);
 	}
-
-	private BiObject<String, String>[] createBiObjectArray(int size, String[] obj1Array) {
-		BiObject<String, String>[] newArray = new BiObject[size];
-		for (int i = 0; i < size; i++) {
-			newArray[i] = new BiObject(obj1Array[i], "var" + i);
-		}
+	
+	private BiObject<String, String>[] createBiObjectArray(String... obj1Array) {
+		BiObject<String, String>[] newArray = new BiObject[obj1Array.length];
+		for (int i = 0; i < obj1Array.length; i++)
+			newArray[i] = new BiObject<>(obj1Array[i], "var" + i);
 		return newArray;
 	}
 }

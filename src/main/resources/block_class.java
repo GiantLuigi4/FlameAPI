@@ -3,6 +3,7 @@ public class Block extends %block_class% {
 	
 	private static String[] argsRemoved = null;
 	private static String[] argsPlaced = null;
+	private static String[] argsUpdated = null;
 	
 	public Block(com.tfc.API.flamemc.blocks.Block thisBlock, %properties_class% properties) {
 		super(properties);
@@ -24,4 +25,12 @@ public class Block extends %block_class% {
 		);
 		this.thisBlock.onPlaced(info);
 	}
+	
+//	public void %updatedMethod% {
+//		com.tfc.API.flamemc.abstraction.CallInfo info = new com.tfc.API.flamemc.abstraction.CallInfo(
+//				argsUpdated,
+//				%argsUpdated%
+//		);
+//		this.thisBlock.onPlaced(info);
+//	}
 }
