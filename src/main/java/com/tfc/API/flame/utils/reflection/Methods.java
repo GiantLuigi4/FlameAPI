@@ -154,7 +154,11 @@ public class Methods {
 							if (!usedArgs.contains(index)) {
 								if (param.getName().equals(ScanningUtils.toClassName(o.getObject1()))) {
 									parameters.append(param.getName()).append(" ").append(o.getObject2());
-									arguments.append("var").append(argsMatched);
+									if (o.getObject1().equals(boolean.class.getName() + ".class")) {
+										arguments.append("Boolean.valueOf(").append("var").append(argsMatched).append(")");
+									} else {
+										arguments.append("var").append(argsMatched);
+									}
 									if (argsMatched != totalParameters - 1) {
 										parameters.append(", ");
 										arguments.append(", ");

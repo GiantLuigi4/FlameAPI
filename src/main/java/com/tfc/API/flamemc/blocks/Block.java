@@ -33,9 +33,13 @@ public class Block {
 	}
 	
 	/**
-	 * Arguments are (com.tfc.flamemc.world.World world, com.tfc.flamemc.world.BlockPos pos, com.tfc.flamemc.block.BlockState state)
+	 * this is called when you block is destroyed
 	 *
-	 * @param arguments the list of arguments
+	 * @param arguments Arguments are (
+	 *                  com.tfc.API.flamemc.world.World world,
+	 *                  com.tfc.API.flamemc.world.BlockPos pos,
+	 *                  com.tfc.API.flamemc.block.BlockState state
+	 *                  )
 	 */
 	public void onRemoved(CallInfo arguments) {
 		if (thisBlock != null) {
@@ -47,10 +51,15 @@ public class Block {
 	}
 	
 	/**
-	 * Arguments are (com.tfc.flamemc.world.World world, com.tfc.flamemc.world.BlockPos pos, com.tfc.flamemc.block.BlockState state, %missing%, %missing%)
 	 * This is the one you should override, but you can also override the onAdded
 	 *
-	 * @param arguments the list of arguments
+	 * @param arguments Arguments are (
+	 *                  com.tfc.API.flamemc.world.World world,
+	 *                  com.tfc.API.flamemc.world.BlockPos pos,
+	 *                  com.tfc.API.flamemc.block.BlockState state,
+	 *                  %missing%,
+	 *                  %missing%
+	 *                  )
 	 */
 	public void onPlaced(CallInfo arguments) {
 		onAdded(arguments);
@@ -68,6 +77,18 @@ public class Block {
 			} catch (Throwable ignored) {
 			}
 		}
+	}
+	
+	/**
+	 * This is called when a block around your block changes
+	 *
+	 * @param arguments Arguments are (
+	 *                  com.tfc.API.flamemc.block.BlockState state,
+	 *                  com.tfc.API.flamemc.world.World,
+	 *                  idc enough to document it rn honestly
+	 *                  )
+	 */
+	public void onUpdated(CallInfo arguments) {
 	}
 	
 	/**

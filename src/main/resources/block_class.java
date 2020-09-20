@@ -26,11 +26,11 @@ public class Block extends %block_class% {
 		this.thisBlock.onPlaced(info);
 	}
 	
-//	public void %updatedMethod% {
-//		com.tfc.API.flamemc.abstraction.CallInfo info = new com.tfc.API.flamemc.abstraction.CallInfo(
-//				argsUpdated,
-//				%argsUpdated%
-//		);
-//		this.thisBlock.onPlaced(info);
-//	}
+	public void %updatedMethod% {
+		com.tfc.API.flamemc.abstraction.CallInfo info = new com.tfc.API.flamemc.abstraction.CallInfo(
+				argsUpdated,
+				%argsUpdated%
+		);
+		this.thisBlock.onUpdated(info);
+	}
 }
