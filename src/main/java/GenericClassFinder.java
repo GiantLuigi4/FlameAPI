@@ -188,6 +188,9 @@ public class GenericClassFinder {
 			classes.put("World", clazzWorld.get());
 			classes.put("WorldServer", clazzWorldServer.get());
 			classes.put("IWorld", clazzIWorld.get());
+			if (Main.getVersion().equals("1.15.2-flame")) {
+				classes.put("Entity", "akq.class");
+			}
 			return classes;
 		} catch (Throwable ignored) {
 		}

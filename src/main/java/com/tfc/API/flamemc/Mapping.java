@@ -1,5 +1,6 @@
 package com.tfc.API.flamemc;
 
+import com.tfc.utils.ScanningUtils;
 import entries.FlameAPI.Main;
 
 public class Mapping {
@@ -9,7 +10,7 @@ public class Mapping {
 			String s1 = name.replace("net.minecraft.init.", "");
 			s1 = s1.toLowerCase();
 			s1 = "minecraft:" + s1;
-			return Main.getRegistries().get(s1).replace(".class", "").replace("/", ".");
+			return ScanningUtils.toClassName(Main.getRegistries().get(s1));
 		}
 //		if (name.equals("net.minecraft.init.Items")) {
 //			return Main.getRegistries().get("minecraft:items");

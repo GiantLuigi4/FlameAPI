@@ -7,6 +7,7 @@ import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockProperties;
+import com.tfc.API.flamemc.entities.ClassGenerator;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
 import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
@@ -43,6 +44,7 @@ public class Main implements IFlameAPIMod {
 	
 	private static String mainRegistry = "";
 	private static String blockClass = "";
+	private static String entityClass = "";
 	private static String itemClass = "";
 	private static String blockItemClass = "";
 	private static String itemStackClass = "";
@@ -151,12 +153,21 @@ public class Main implements IFlameAPIMod {
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
+		resourceTypes.put("Entity", entityClass);
 		resourceTypes.put("Item", itemClass);
 		resourceTypes.put("BlockItem", itemClass);
 		resourceTypes.put("ItemStack", itemStackClass);
 		resourceTypes.put("ResourceLocation", resourceLocationClass);
 		resourceTypes.put("BlockFire", blockFireClass);
 		return resourceTypes;
+	}
+	
+	public static String getEntityClass() {
+		return entityClass;
+	}
+	
+	public static Method getBlock$onNeighborChanged() {
+		return block$onNeighborChanged;
 	}
 	
 	public static HashMap<String, String> getRegistries() {
@@ -307,6 +318,7 @@ public class Main implements IFlameAPIMod {
 			itemClass = genericClasses.get("Item");
 			blockItemClass = genericClasses.get("BlockItem");
 			blockClass = genericClasses.get("Block");
+			entityClass = genericClasses.get("Entity");
 			itemStackClass = genericClasses.get("ItemStack");
 			resourceLocationClass = genericClasses.get("ResourceLocation");
 			blockPosClass = genericClasses.get("BlockPos");
@@ -625,6 +637,17 @@ public class Main implements IFlameAPIMod {
 					.replace("%world_class%", ScanningUtils.toClassName(worldClass))
 					.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass))
 			);
+			
+			Logger.logLine("Phantom Class");
+			Logger.logLine(ClassGenerator.getEntityClass("minecraft:phantom"));
+			Logger.logLine("Zombie Class");
+			Logger.logLine(ClassGenerator.getEntityClass("minecraft:zombie"));
+			
+			ClassGenerator.generate("com.tfc.TestEntity", "minecraft:sheep", "" +
+					"public void tick(CallInfo args) {" +
+					"	super.tick();" +
+					"}" +
+					"");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
