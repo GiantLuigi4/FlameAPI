@@ -68,12 +68,6 @@ public class Fabricator {
 		return ForceLoad.forceLoad(Fabricator.class.getClassLoader(), bytes);
 	}
 	
-	private static void write(String text, File file) throws IOException {
-		FileOutputStream stream = new FileOutputStream(file);
-		stream.write(text.getBytes());
-		stream.close();
-	}
-	
 	private static String readFromCL(String name) throws IOException {
 		InputStream inStream = Main.class.getClassLoader().getResourceAsStream(name);
 		byte[] bytes = new byte[inStream.available()];
@@ -81,5 +75,11 @@ public class Fabricator {
 		inStream.close();
 		String text = new String(bytes);
 		return text;
+	}
+	
+	private static void write(String text, File file) throws IOException {
+		FileOutputStream stream = new FileOutputStream(file);
+		stream.write(text.getBytes());
+		stream.close();
 	}
 }

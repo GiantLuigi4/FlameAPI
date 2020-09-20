@@ -1,22 +1,41 @@
 package com.tfc.API.flamemc;
 
-import com.tfc.hacky_class_stuff.ASM.API.Access;
-import com.tfc.hacky_class_stuff.ASM.API.FieldData;
-import com.tfc.hacky_class_stuff.ASM.ASM;
+import com.tfc.hacky_class_stuff.ASM.API.Field;
+import com.tfc.hacky_class_stuff.ASM.API.Method;
+import com.tfc.hacky_class_stuff.ASM.Applier.Applicator;
+import com.tfc.utils.BiObject;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.InsnList;
+
+import java.util.ArrayList;
 
 public class FlameASM implements Opcodes {
-	
-	public static void addField(String clazz, String name, Object defaultVal, AccessType access) {
-		ASM.addFieldNode(clazz, new FieldData(access.level, name, defaultVal));
+	public static void addField(String className, String access, String fieldName, String descriptor, Object defaultVal) {
+		if (!Applicator.fields.containsKey(className)) Applicator.fields.put(className, new ArrayList<>());
+		Applicator.fields.get(className).add(new Field(fieldName, descriptor, access, defaultVal));
 	}
 	
-	public static void transformMethodAccess(String clazz, String method, AccessType access) {
-		ASM.addMethodAT(new Access(access, method), clazz);
+	public static void addMethod(String className, String access, String methodName, String descriptor, InsnList instructions) {
+		if (!Applicator.methods.containsKey(className)) Applicator.methods.put(className, new ArrayList<>());
+		Applicator.methods.get(className).add(new Method(access, methodName, descriptor, instructions));
 	}
 	
-	public static void transformFieldAccess(String clazz, String field, AccessType access) {
-		ASM.addFeildAT(new Access(access, field), clazz);
+	public static void addInstructions(String className, String access, String methodName, String descriptor, InsnList instructions, boolean atStart) {
+		if (!Applicator.insnAdds.containsKey(className)) Applicator.insnAdds.put(className, new ArrayList<>());
+		Applicator.insnAdds.get(className).add(new BiObject<>(new Method(access, methodName, descriptor, instructions), atStart));
+	}
+	
+	public AccessType forString(String type) {
+		if (type.contains("public"))
+			if (type.contains("static")) return AccessType.PUBLIC_STATIC;
+			else return AccessType.PUBLIC;
+		else if (type.contains("private"))
+			if (type.contains("static")) return AccessType.PRIVATE_STATIC;
+			else return AccessType.PRIVATE;
+		else if (type.contains("protected"))
+			if (type.contains("static")) return AccessType.PROTECTED_STATIC;
+			else return AccessType.PROTECTED;
+		return AccessType.PUBLIC;
 	}
 	
 	//No, I will not add final.

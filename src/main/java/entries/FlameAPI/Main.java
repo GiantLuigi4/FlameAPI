@@ -16,7 +16,7 @@ import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
-import com.tfc.hacky_class_stuff.ASM.ClassObject;
+import com.tfc.hacky_class_stuff.ASM.Applier.Applicator;
 import com.tfc.utils.BiObject;
 import com.tfc.utils.Fabricator;
 import com.tfc.utils.ScanningUtils;
@@ -32,7 +32,7 @@ import java.util.Iterator;
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
 	
-	private static final String bytecodeUtilsVersion = "77632bcf63";
+	private static final String bytecodeUtilsVersion = "bf74e37373";
 	
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
@@ -209,11 +209,17 @@ public class Main implements IFlameAPIMod {
 			Class.forName("org.objectweb.asm.ClassVisitor");
 			Class.forName("org.objectweb.asm.ClassReader");
 			Class.forName("org.objectweb.asm.ClassWriter");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.ASM");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.fields.FieldAdder");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.API.FieldData");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.API.InstructionData");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAdder");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.Applier.Applicator");
+			Class.forName("com.tfc.API.flame.utils.logging.Logger");
+			Class.forName("com.tfc.utils.Files");
+			Class.forName("java.io.FileOutputStream");
+			Class.forName("java.lang.RuntimeException");
+			Class.forName("java.lang.Throwable");
+			Class.forName("java.lang.StackTraceElement");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.API.Field");
+			Class.forName("com.tfc.hacky_class_stuff.ASM.API.Access");
+			Class.forName("com.tfc.bytecode.asm.ASM.ASM");
+			Class.forName("com.tfc.bytecode.asm.ASM.FieldVisitor");
 			Class.forName("com.tfc.utils.Bytecode");
 			Class.forName("com.tfc.utils.ScanningUtils");
 			Class.forName("com.tfc.API.flamemc.EmptyClass");
@@ -221,8 +227,6 @@ public class Main implements IFlameAPIMod {
 			Class.forName("GenericClassFinder");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
 			Class.forName("com.tfc.API.flame.annotations.ASM.Hookin");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.methods.MethodAccessTransformer");
-			Class.forName("com.tfc.hacky_class_stuff.ASM.transformers.HookinHandler");
 			Class.forName("com.tfc.utils.BiObject");
 			Class.forName("com.tfc.utils.TriObject");
 			Class.forName("com.tfc.FlameAPIConfigs");
@@ -245,7 +249,6 @@ public class Main implements IFlameAPIMod {
 			Class.forName("javassist.compiler.ast.ASTList");
 			Class.forName("com.tfc.API.flamemc.blocks.Block");
 			FlameASM.AccessType type = FlameASM.AccessType.PUBLIC;
-			Object obj1 = ClassObject.class;
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 //			Runtime.getRuntime().exit(-1);
@@ -279,9 +282,7 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		ScanningUtils.checkVersion();
-//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", BlockClass::getBlock);
-
-//		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", ASM::applyASM);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", Applicator::apply);
 		
 		Access access = new Access(FlameASM.AccessType.PRIVATE, "hello");
 		FlameConfig.field.append(access.type.name() + "\n");
@@ -375,14 +376,21 @@ public class Main implements IFlameAPIMod {
 		
 		try {
 			Fabricator.compileAndLoadJanino("client_brand_retriever.java", (code) -> code);
+//			String className = "net.minecraft.client.ClientBrandRetriever";
+//			FlameASM.addField(className,"public static", "brand", "Ljava/lang/String;", "\"flamemc\"");
+//			InsnList list = new InsnList();
+//			//https://stackoverflow.com/questions/30186103/creating-a-getter-for-a-static-field-in-java-using-objecweb-asm
+//			list.add(new FieldInsnNode(Opcodes.GETSTATIC,"net/minecraft/client/ClientBrandRetriever","brand","java/lang/String"));
+//			list.add(new InsnNode(Opcodes.IRETURN));
+//			FlameASM.addMethod(className,"public static","getClientModName","()Ljava/lang/String;",list);
 			Fabricator.compileAndLoadJanino("block_pos.java", (code) -> code.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass)));
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
-			
-			try {
-				Thread.sleep(5000);
-			} catch (Throwable ignored) {
-			}
+
+//			try {
+//				Thread.sleep(5000);
+//			} catch (Throwable ignored) {
+//			}
 		}
 	}
 	
