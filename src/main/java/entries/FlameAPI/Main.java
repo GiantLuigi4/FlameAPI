@@ -145,6 +145,14 @@ public class Main implements IFlameAPIMod {
 		return IWorldClass;
 	}
 
+	public static String getBBClass() {
+		return bbClass;
+	}
+
+	public static String getTessellatorClass() {
+		return tessellatorClass;
+	}
+
 	public static Method getWorld$setBlockState() {
 		return world$setBlockState;
 	}
@@ -484,7 +492,6 @@ public class Main implements IFlameAPIMod {
 		}
 		
 		String removedMethod = "a()";
-		String argsRemoved = "new Object[]{null}";
 		String placedMethod = "a()";
 		String argsPlaced = "new Object[]{null}";
 		
@@ -494,48 +501,9 @@ public class Main implements IFlameAPIMod {
 			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
 				int numMatched = 0;
 				int num = 0;
-				StringBuilder paramsR = new StringBuilder();
-				StringBuilder argsR = new StringBuilder();
-				for (Class<?> param : m.getParameterTypes()) {
-					if (param.getName().equals(ScanningUtils.toClassName(IWorldClass)) && num == 0) {
-						paramsR.append(param.getName()).append(" var0");
-						argsR.append("var0");
-						if (numMatched != 2) {
-							paramsR.append(", ");
-							argsR.append(", ");
-						}
-						numMatched++;
-					} else if (param.getName().equals(ScanningUtils.toClassName(blockPosClass))) {
-						paramsR.append(param.getName()).append(" var1");
-						argsR.append("var1");
-						if (numMatched != 2) {
-							paramsR.append(", ");
-							argsR.append(", ");
-						}
-						numMatched++;
-					} else if (param.getName().equals(ScanningUtils.toClassName(blockStateClass))) {
-						paramsR.append(param.getName()).append(" var2");
-						argsR.append("var2");
-						if (numMatched != 2) {
-							paramsR.append(", ");
-							argsR.append(", ");
-						}
-						numMatched++;
-					} else {
-						numMatched--;
-					}
-					num++;
-				}
-				if (numMatched == num && num == 3) {
-					removedMethod = m.getName() + "(" + paramsR + ")";
-					argsRemoved = "new Object[]{" + argsR + "}";
-					block$onRemoved = m;
-				}
-				
+
 				StringBuilder paramsA = new StringBuilder();
 				StringBuilder argsA = new StringBuilder();
-				numMatched = 0;
-				num = 0;
 				for (Class<?> param : m.getParameterTypes()) {
 					if (param.getName().equals(ScanningUtils.toClassName(worldClass)) && num == 0) {
 						paramsA.append(param.getName()).append(" var0");
@@ -569,7 +537,8 @@ public class Main implements IFlameAPIMod {
 							argsA.append(", ");
 						}
 						numMatched++;
-					} else if (num == 3) {
+					} else if (num == 3) {                      //TODO UNDERSTAND WHAT LUIGI MEANS HERE
+																//LUIGI TELL ME
 						paramsA.append(param.getName()).append(" var4");
 						argsA.append("var4");
 						if (numMatched != 4) {
@@ -588,6 +557,15 @@ public class Main implements IFlameAPIMod {
 					block$onPlaced = m;
 				}
 			}
+
+			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, createBiObjectArray(
+				getIWorldClass(), getBlockPosClass(), getBlockStateClass()
+			));
+			if (onRemovedB != null) {
+				block$onRemoved = onRemovedB.getObject2();
+				removedMethod = onRemovedB.getObject1();
+			}
+
 			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, createBiObjectArray(
 					getBlockStateClass(), getWorldClass(),
 					getBlockPosClass(), getBlockClass(),
@@ -595,13 +573,9 @@ public class Main implements IFlameAPIMod {
 			));
 			if (neighborChangedB != null) {
 				block$onNeighborChanged = neighborChangedB.getObject2();
-				
 				neighborChanged = neighborChangedB.getObject1();
 			}
 
-//			block$onRemoved = Methods.searchMethod(getBlockClass(), 3, void.class, new String[]{
-//					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
-//			});
 			Logger.logLine("Scanning world:");
 			Logger.logLine("Method setBlockState:");
 			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, createBiObjectArray(
@@ -629,8 +603,8 @@ public class Main implements IFlameAPIMod {
 			} catch (Throwable ignored) {
 			}
 			
-			final String finalRemovedMethod = removedMethod;
-			final String finalArgsRemoved = argsRemoved;
+			final String finalRemovedMethod = removedMethod.split("/")[0];
+			final String finalArgsRemoved = removedMethod.split("/")[1];
 			final String finalPlacedMethod = placedMethod;
 			final String finalArgsPlaced = argsPlaced;
 			final String finalUpdatedMethod = neighborChanged.split("/")[0];
