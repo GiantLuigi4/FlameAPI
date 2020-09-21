@@ -19,6 +19,7 @@ import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.Applier.Applicator;
 import com.tfc.utils.BiObject;
 import com.tfc.utils.Fabricator;
+import com.tfc.utils.Mojmap;
 import com.tfc.utils.ScanningUtils;
 
 import java.io.File;
@@ -198,11 +199,23 @@ public class Main implements IFlameAPIMod {
 	@Override
 	public void setupAPI(String[] args) {
 		try {
+			//Bytecode-Utils
 			downloadBytecodeUtils();
+			//Compilers
 			addDep("https://repo1.maven.org/maven2/", "org.javassist", "javassist", "3.27.0-GA");
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "janino", "3.1.2");
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler", "3.1.2");
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler-jdk", "3.1.2");
+			//Mappings Helper
+			addDep("https://jitpack.io/", "com.github.GiantLuigi4", "MCMappingsHelper", "6e6ebba60c");
+//			//Kotlin
+//			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-stdlib-jdk8", "1.4.0");
+//			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-stdlib", "1.4.0");
+//			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-reflect", "1.4.0");
+//			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-stdlib-common", "1.4.0");
+//			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.3.9");
+//			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlinx", "kotlinx-coroutines-core-common", "1.3.8");
+//			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlinx", "kotlinx-serialization-core", "1.0.0-RC");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -428,6 +441,8 @@ public class Main implements IFlameAPIMod {
 			Logger.logLine(new BlockPos(0, 0, 0));
 			Logger.logLine(new BlockPos(3, 0, 1).offset(1, 2, 3));
 			Logger.logLine(Class.forName("BlockPos"));
+//			Logger.logLine(LinkieImplementation.unmap("net.minecraft.entity.mob.PhantomEntity","yarn","1.15.2"));
+			Logger.logLine("Phantom for " + version.replace("-flame", "") + ": " + Mojmap.getClassObsf("1.15.2", "net.minecraft.world.entity.monster.Phantom").getSecondaryName());
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
