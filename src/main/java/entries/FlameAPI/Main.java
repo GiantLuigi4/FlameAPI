@@ -316,6 +316,8 @@ public class Main implements IFlameAPIMod {
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
+		if (versionMap.startsWith("1.14"))
+			isMappedVersion = isMappedVersion && versionMap.replace("1.14", "").equals(".4");
 		
 		ScanningUtils.checkVersion();
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", Applicator::apply);
