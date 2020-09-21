@@ -7,7 +7,6 @@ import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockProperties;
-import com.tfc.API.flamemc.entities.ClassGenerator;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
 import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
@@ -29,6 +28,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
@@ -65,6 +65,9 @@ public class Main implements IFlameAPIMod {
 	private static Method block$onNeighborChanged = null;
 	private static Method world$setBlockState = null;
 	private static Method world$getBlockState = null;
+	
+	private static String versionMap = "";
+	private static boolean isMappedVersion = false;
 	
 	
 	public static String getVec3iClass() {
@@ -141,14 +144,22 @@ public class Main implements IFlameAPIMod {
 		return worldServerClass;
 	}
 	
+	public static String getBbClass() {
+		return bbClass;
+	}
+	
+	public static String getVersionMap() {
+		return versionMap;
+	}
+	
 	public static String getIWorldClass() {
 		return IWorldClass;
 	}
-
+	
 	public static String getBBClass() {
 		return bbClass;
 	}
-
+	
 	public static String getTessellatorClass() {
 		return tessellatorClass;
 	}
@@ -215,7 +226,7 @@ public class Main implements IFlameAPIMod {
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler", "3.1.2");
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler-jdk", "3.1.2");
 			//Mappings Helper
-			addDep("https://jitpack.io/", "com.github.GiantLuigi4", "MCMappingsHelper", "6e6ebba60c");
+			addDep("https://jitpack.io/", "com.github.GiantLuigi4", "MCMappingsHelper", "43d04aa");
 //			//Kotlin
 //			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-stdlib-jdk8", "1.4.0");
 //			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-stdlib", "1.4.0");
@@ -287,6 +298,7 @@ public class Main implements IFlameAPIMod {
 					isVersion = true;
 				} else if (isVersion) {
 					version = s;
+					versionMap = version.replace("-flame", "");
 					isVersion = false;
 				} else if (s.equals("--gameDir")) {
 					isDir = true;
@@ -297,6 +309,7 @@ public class Main implements IFlameAPIMod {
 					isAssetIndex = true;
 				} else if (isAssetIndex) {
 					assetVersion = s;
+					isMappedVersion = Integer.parseInt(assetVersion.replace("1.", "")) >= 14;
 					isAssetIndex = false;
 				}
 			}
@@ -337,37 +350,56 @@ public class Main implements IFlameAPIMod {
 		try {
 			registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
-			HashMap<String, String> genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findRegistrableClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
-			genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findExtensionClasses", File.class, HashMap.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"), genericClasses);
-			itemClass = genericClasses.get("Item");
-			blockItemClass = genericClasses.get("BlockItem");
-			blockClass = genericClasses.get("Block");
-			entityClass = genericClasses.get("Entity");
-			itemStackClass = genericClasses.get("ItemStack");
-			resourceLocationClass = genericClasses.get("ResourceLocation");
-			blockPosClass = genericClasses.get("BlockPos");
-			Vec3iClass = genericClasses.get("Vec3i");
-			blockFireClass = genericClasses.get("BlockFire");
-			blockStateClass = genericClasses.get("BlockState");
-			worldClass = genericClasses.get("World");
-			IWorldClass = genericClasses.get("IWorld");
-			worldServerClass = genericClasses.get("WorldServer");
-			bbClass = genericClasses.get("BufferBuilder");
-			tessellatorClass = genericClasses.get("Tessellator");
+			if (isMappedVersion) {
+				itemClass = Mojmap.getClassObsf("net/minecraft/world/item/Item").getSecondaryName();
+				blockItemClass = Mojmap.getClassObsf("net/minecraft/world/item/BlockItem").getSecondaryName();
+				blockClass = Mojmap.getClassObsf("net/minecraft/world/level/block/Block").getSecondaryName();
+				worldClass = Mojmap.getClassObsf("net/minecraft/world/level/Level").getSecondaryName();
+				IWorldClass = Mojmap.getClassObsf("net/minecraft/world/level/LevelAccessor").getSecondaryName();
+				worldServerClass = Mojmap.getClassObsf("net/minecraft/server/level/ServerLevel").getSecondaryName();
+				IWorldClass = Mojmap.getClassObsf("net/minecraft/world/level/LevelAccessor").getSecondaryName();
+				Vec3iClass = Mojmap.getClassObsf("net/minecraft/core/Vec3i").getSecondaryName();
+				blockPosClass = Mojmap.getClassObsf("net/minecraft/core/BlockPos").getSecondaryName();
+				bbClass = Mojmap.getClassObsf("com/mojang/blaze3d/vertex/BufferBuilder").getSecondaryName();
+				tessellatorClass = Mojmap.getClassObsf("com/mojang/blaze3d/vertex/Tesselator").getSecondaryName();
+				entityClass = Mojmap.getClassObsf("net/minecraft/world/entity/Entity").getSecondaryName();
+				itemStackClass = Mojmap.getClassObsf("net/minecraft/world/item/ItemStack").getSecondaryName();
+				resourceLocationClass = Mojmap.getClassObsf("net/minecraft/resources/ResourceLocation").getSecondaryName();
+				blockStateClass = Mojmap.getClassObsf("net/minecraft/world/level/block/state/BlockState").getSecondaryName();
+				blockFireClass = Mojmap.getClassObsf("net/minecraft/world/level/block/FireBlock").getSecondaryName();
+			} else {
+				HashMap<String, String> genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findRegistrableClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+				genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findExtensionClasses", File.class, HashMap.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"), genericClasses);
+				itemClass = genericClasses.get("Item");
+				blockItemClass = genericClasses.get("BlockItem");
+				blockClass = genericClasses.get("Block");
+				entityClass = genericClasses.get("Entity");
+				itemStackClass = genericClasses.get("ItemStack");
+				resourceLocationClass = genericClasses.get("ResourceLocation");
+				blockPosClass = genericClasses.get("BlockPos");
+				Vec3iClass = genericClasses.get("Vec3i");
+				blockFireClass = genericClasses.get("BlockFire");
+				blockStateClass = genericClasses.get("BlockState");
+				worldClass = genericClasses.get("World");
+				IWorldClass = genericClasses.get("IWorld");
+				worldServerClass = genericClasses.get("WorldServer");
+				bbClass = genericClasses.get("BufferBuilder");
+				tessellatorClass = genericClasses.get("Tessellator");
+			}
 			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
-			FlameConfig.field.append("Block:" + blockClass + "\n");
-			FlameConfig.field.append("Item:" + itemClass + "\n");
-			FlameConfig.field.append("Item Stack:" + itemStackClass + "\n");
-			FlameConfig.field.append("Resource Location: " + resourceLocationClass + "\n");
+			FlameConfig.field.append("Block: " + blockClass + "\n");
+			FlameConfig.field.append("Item: " + itemClass + "\n");
+			FlameConfig.field.append("ItemStack: " + itemStackClass + "\n");
+			FlameConfig.field.append("ResourceLocation: " + resourceLocationClass + "\n");
 			FlameConfig.field.append("World: " + worldClass + "\n");
 			FlameConfig.field.append("IWorld: " + IWorldClass + "\n");
 			FlameConfig.field.append("WorldServer: " + worldServerClass + "\n");
-			FlameConfig.field.append("BB: " + bbClass + "\n");
+			FlameConfig.field.append("BufferBuilder: " + bbClass + "\n");
 			FlameConfig.field.append("Tessellator: " + tessellatorClass + "\n");
-			FlameConfig.field.append("Block Fire: " + blockFireClass + "\n");
-			FlameConfig.field.append("BlockPos:" + blockPosClass + "\n");
+			FlameConfig.field.append("BlockFire: " + blockFireClass + "\n");
+			FlameConfig.field.append("BlockPos: " + blockPosClass + "\n");
 			FlameConfig.field.append("BlockState: " + blockStateClass + "\n");
-			FlameConfig.field.append("Main Registry:" + mainRegistry + "\n");
+			FlameConfig.field.append("MainRegistry:" + mainRegistry + "\n");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -450,7 +482,7 @@ public class Main implements IFlameAPIMod {
 			Logger.logLine(new BlockPos(3, 0, 1).offset(1, 2, 3));
 			Logger.logLine(Class.forName("BlockPos"));
 //			Logger.logLine(LinkieImplementation.unmap("net.minecraft.entity.mob.PhantomEntity","yarn","1.15.2"));
-			Logger.logLine("Phantom for " + version.replace("-flame", "") + ": " + Mojmap.getClassObsf("1.15.2", "net.minecraft.world.entity.monster.Phantom").getSecondaryName());
+			Logger.logLine("Phantom for " + versionMap + ": " + Mojmap.getClassObsf(versionMap, "net/minecraft/world/entity/monster/Phantom").getSecondaryName());
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -495,13 +527,13 @@ public class Main implements IFlameAPIMod {
 		String placedMethod = "a()";
 		String argsPlaced = "new Object[]{null}";
 		
-		String neighborChanged = "a()/";
+		String neighborChanged = "voideee(int var0)/new Object[]{Integer.valueOf(var0)}";
 		
 		try {
 			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
 				int numMatched = 0;
 				int num = 0;
-
+				
 				StringBuilder paramsA = new StringBuilder();
 				StringBuilder argsA = new StringBuilder();
 				for (Class<?> param : m.getParameterTypes()) {
@@ -565,7 +597,7 @@ public class Main implements IFlameAPIMod {
 				block$onRemoved = onRemovedB.getObject2();
 				removedMethod = onRemovedB.getObject1();
 			}
-
+			
 			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, createBiObjectArray(
 					getBlockStateClass(), getWorldClass(),
 					getBlockPosClass(), getBlockClass(),
@@ -601,6 +633,51 @@ public class Main implements IFlameAPIMod {
 			try {
 				Logger.logLine(world$setBlockState.toString());
 			} catch (Throwable ignored) {
+			}
+			
+			if (isMappedVersion) {
+				Class<?> block = Class.forName(blockClass);
+				com.tfc.mappings.structure.Class blockData = Mojmap.getClassMojmap(blockClass);
+				AtomicReference<com.tfc.mappings.structure.Method> mA = new AtomicReference<>();
+				blockData.getMethods().forEach((method) -> {
+					if (method.getDesc().startsWith("(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos;Z)V")) {
+						if (method.getPrimary().equals("neighborChanged")) {
+							mA.set(method);
+						}
+					}
+				});
+				com.tfc.mappings.structure.Method m = mA.get();
+				Logger.logLine("descriptor " + m.getDesc());
+				Logger.logLine("prime name " + m.getPrimary());
+				Logger.logLine("second name " + m.getSecondary());
+				String desc = ((m.getDesc()).replace(
+						"Lnet/minecraft/world/level/block/state/BlockState;", blockStateClass + ",").replace(
+						"Lnet/minecraft/world/level/Level;", worldClass + ",").replace(
+						"Lnet/minecraft/core/BlockPos;", blockPosClass + ",").replace(
+						"Lnet/minecraft/world/level/block/Block;", blockClass + ",").replace(
+						"Z)V", "boolean,"
+				) + ")").replace(",)", ")");
+				for (Method method : block.getMethods()) {
+					if (method.toString().contains(desc) && method.getName().equals(m.getSecondary())) {
+						Logger.logLine("success");
+						Logger.logLine("name:" + method.toString());
+						Logger.logLine("desc:" + desc);
+						block$onNeighborChanged = method;
+						String unexpandedMethod = method.getName() + desc;
+						int argCount = 0;
+						StringBuilder expandedMethod = new StringBuilder();
+						for (int i = 0; i < unexpandedMethod.length(); i++) {
+							if (unexpandedMethod.charAt(i) == ',') {
+								expandedMethod.append(" var").append(argCount++).append(", ");
+							} else {
+								expandedMethod.append(unexpandedMethod.charAt(i));
+							}
+						}
+						String finishedExpandedMethod = expandedMethod.toString().replace(")", " var" + (argCount) + ")");
+						neighborChanged = finishedExpandedMethod + "/new Object[]{" + "var0,var1,var2,var3,var4,Boolean.valueOf(var5)" + "}";
+						Logger.logLine(neighborChanged);
+					}
+				}
 			}
 			
 			final String finalRemovedMethod = removedMethod.split("/")[0];
@@ -640,17 +717,17 @@ public class Main implements IFlameAPIMod {
 					.replace("%world_class%", ScanningUtils.toClassName(worldClass))
 					.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass))
 			);
-			
-			Logger.logLine("Phantom Class");
-			Logger.logLine(ClassGenerator.getEntityClass("minecraft:phantom"));
-			Logger.logLine("Zombie Class");
-			Logger.logLine(ClassGenerator.getEntityClass("minecraft:zombie"));
-			
-			ClassGenerator.generate("com.tfc.TestEntity", "minecraft:sheep", "" +
-					"public void tick(CallInfo args) {" +
-					"	super.tick();" +
-					"}" +
-					"");
+
+//			Logger.logLine("Phantom Class");
+//			Logger.logLine(ClassGenerator.getEntityClass("minecraft:phantom"));
+//			Logger.logLine("Zombie Class");
+//			Logger.logLine(ClassGenerator.getEntityClass("minecraft:zombie"));
+//
+//			ClassGenerator.generate("com.tfc.TestEntity", "minecraft:sheep", "" +
+//					"public void tick(CallInfo args) {" +
+//					"	super.tick();" +
+//					"}" +
+//					"");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}

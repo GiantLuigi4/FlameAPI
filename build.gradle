@@ -18,7 +18,7 @@ dependencies {
 
     implementation 'com.github.GiantLuigi4:FlameMC:6aa2938'
     implementation 'com.github.GiantLuigi4:Bytecode-Utils:bf74e37373'
-    implementation 'com.github.GiantLuigi4:MCMappingsHelper:6e6ebba60c'
+    implementation 'com.github.GiantLuigi4:MCMappingsHelper:e9c715b'
     compileOnly group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
     compileOnly 'org.codehaus.janino:janino:3.1.2'
     compileOnly 'org.codehaus.janino:commons-compiler:3.1.2'
