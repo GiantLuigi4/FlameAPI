@@ -146,6 +146,16 @@
 
 package com.tfc.API.flamemc.entities;
 
+import entries.FlameAPI.Main;
+
 //TODO
 public class ClassGenerator {
+	public String generate(String name, String superName, String imports, String code) {
+		if (superName == null) superName = Main.getEntityClass();
+		return
+				imports +
+						"public class " + name + " extends " + superName + " {"
+						+ code +
+						"}";
+	}
 }

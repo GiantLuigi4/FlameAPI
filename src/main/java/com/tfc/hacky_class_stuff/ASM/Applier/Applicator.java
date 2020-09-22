@@ -6,11 +6,8 @@ import com.tfc.hacky_class_stuff.ASM.API.Field;
 import com.tfc.hacky_class_stuff.ASM.API.Method;
 import com.tfc.utils.BiObject;
 import com.tfc.utils.Files;
-import entries.FlameAPI.Main;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -18,7 +15,7 @@ public class Applicator {
 	public static final HashMap<String, ArrayList<Field>> fields = new HashMap<>();
 	public static final HashMap<String, ArrayList<Method>> methods = new HashMap<>();
 	public static final HashMap<String, ArrayList<BiObject<Method, Boolean>>> insnAdds = new HashMap<>();
-
+	
 	public static byte[] apply(String name, byte[] source) {
 		ASM asm = new ASM(source);
 		boolean transformed = false;

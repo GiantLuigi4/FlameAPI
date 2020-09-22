@@ -49,4 +49,8 @@ public class World {
 			return null;
 		}
 	}
+	
+	public Object unwrap() {
+		return thisWorld;
+	}
 }

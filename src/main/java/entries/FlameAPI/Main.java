@@ -28,7 +28,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
@@ -86,7 +85,7 @@ public class Main implements IFlameAPIMod {
 		return mainRegistry;
 	}
 	
-	private static HashMap<String, String> registries = null;
+	private static HashMap<String, String> registries = new HashMap<>();
 	
 	public static String getGameDir() {
 		return gameDir;
@@ -163,15 +162,15 @@ public class Main implements IFlameAPIMod {
 	public static String getTessellatorClass() {
 		return tessellatorClass;
 	}
-
+	
 	public static Method getWorld$setBlockState() {
 		return world$setBlockState;
 	}
-
+	
 	public static Method getWorld$getBlockState() {
 		return world$getBlockState;
 	}
-
+	
 	public static HashMap<String, String> getResourceTypeClasses() {
 		HashMap<String, String> resourceTypes = new HashMap<>();
 		resourceTypes.put("Block", blockClass);
@@ -214,7 +213,7 @@ public class Main implements IFlameAPIMod {
 			FlameLauncher.downloadDep(name1, url);
 		}
 	}
-
+	
 	@Override
 	public void setupAPI(String[] args) {
 		try {
@@ -350,9 +349,17 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
-			registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 			if (isMappedVersion) {
+				registries.put("minecraft:blocks", Mojmap.getClassObsf("net/minecraft/world/level/block/Blocks").getSecondaryName());
+				registries.put("minecraft:items", Mojmap.getClassObsf("net/minecraft/world/item/Items").getSecondaryName());
+				registries.put("minecraft:entities", Mojmap.getClassObsf("net/minecraft/world/entity/EntityType").getSecondaryName());
+				registries.put("minecraft:tile_entities", Mojmap.getClassObsf("net/minecraft/world/level/block/entity/BlockEntityType").getSecondaryName());
+				registries.put("minecraft:enchantments", Mojmap.getClassObsf("net/minecraft/world/item/enchantment/Enchantments").getSecondaryName());
+				registries.put("minecraft:biome", Mojmap.getClassObsf("net/minecraft/world/level/biome/Biomes").getSecondaryName());
+				
+				mainRegistry = Mojmap.getClassObsf("net/minecraft/core/Registry").getSecondaryName();
+				
 				itemClass = Mojmap.getClassObsf("net/minecraft/world/item/Item").getSecondaryName();
 				blockItemClass = Mojmap.getClassObsf("net/minecraft/world/item/BlockItem").getSecondaryName();
 				blockClass = Mojmap.getClassObsf("net/minecraft/world/level/block/Block").getSecondaryName();
@@ -370,6 +377,8 @@ public class Main implements IFlameAPIMod {
 				blockStateClass = Mojmap.getClassObsf("net/minecraft/world/level/block/state/BlockState").getSecondaryName();
 				blockFireClass = Mojmap.getClassObsf("net/minecraft/world/level/block/FireBlock").getSecondaryName();
 			} else {
+				registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
+				
 				HashMap<String, String> genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findRegistrableClasses", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 				genericClasses = (HashMap<String, String>) Class.forName("GenericClassFinder").getMethod("findExtensionClasses", File.class, HashMap.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"), genericClasses);
 				itemClass = genericClasses.get("Item");
@@ -387,8 +396,9 @@ public class Main implements IFlameAPIMod {
 				worldServerClass = genericClasses.get("WorldServer");
 				bbClass = genericClasses.get("BufferBuilder");
 				tessellatorClass = genericClasses.get("Tessellator");
+				
+				mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			}
-			mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			FlameConfig.field.append("Block: " + blockClass + "\n");
 			FlameConfig.field.append("Item: " + itemClass + "\n");
 			FlameConfig.field.append("ItemStack: " + itemStackClass + "\n");
@@ -401,14 +411,14 @@ public class Main implements IFlameAPIMod {
 			FlameConfig.field.append("BlockFire: " + blockFireClass + "\n");
 			FlameConfig.field.append("BlockPos: " + blockPosClass + "\n");
 			FlameConfig.field.append("BlockState: " + blockStateClass + "\n");
-			FlameConfig.field.append("MainRegistry:" + mainRegistry + "\n");
+			FlameConfig.field.append("MainRegistry: " + mainRegistry + "\n");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
 		
 		boolean success = false;
 		ArrayList<Throwable> throwables = new ArrayList<>();
-
+		
 		try {
 			FlameConfig.field.append(Registry.constructResourceLocation("FlameAPI:test").toString() + "\n");
 			success = true;
@@ -572,7 +582,7 @@ public class Main implements IFlameAPIMod {
 						}
 						numMatched++;
 					} else if (num == 3) {                      //TODO UNDERSTAND WHAT LUIGI MEANS HERE
-																//LUIGI TELL ME
+						//LUIGI TELL ME
 						paramsA.append(param.getName()).append(" var4");
 						argsA.append("var4");
 						if (numMatched != 4) {
@@ -591,9 +601,9 @@ public class Main implements IFlameAPIMod {
 					block$onPlaced = m;
 				}
 			}
-
+			
 			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, createBiObjectArray(
-				getIWorldClass(), getBlockPosClass(), getBlockStateClass()
+					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
 			));
 			if (onRemovedB != null) {
 				block$onRemoved = onRemovedB.getObject2();
@@ -609,7 +619,7 @@ public class Main implements IFlameAPIMod {
 				block$onNeighborChanged = neighborChangedB.getObject2();
 				neighborChanged = neighborChangedB.getObject1();
 			}
-
+			
 			Logger.logLine("Scanning world:");
 			Logger.logLine("Method setBlockState:");
 			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, createBiObjectArray(
@@ -638,48 +648,23 @@ public class Main implements IFlameAPIMod {
 			}
 			
 			if (isMappedVersion) {
-				Class<?> block = Class.forName(blockClass);
-				com.tfc.mappings.structure.Class blockData = Mojmap.getClassMojmap(blockClass);
-				AtomicReference<com.tfc.mappings.structure.Method> mA = new AtomicReference<>();
-				blockData.getMethods().forEach((method) -> {
-					if (method.getDesc().startsWith("(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos;Z)V")) {
-						if (method.getPrimary().equals("neighborChanged")) {
-							mA.set(method);
-						}
-					}
-				});
-				com.tfc.mappings.structure.Method m = mA.get();
-				Logger.logLine("descriptor " + m.getDesc());
-				Logger.logLine("prime name " + m.getPrimary());
-				Logger.logLine("second name " + m.getSecondary());
-				String desc = ((m.getDesc()).replace(
-						"Lnet/minecraft/world/level/block/state/BlockState;", blockStateClass + ",").replace(
-						"Lnet/minecraft/world/level/Level;", worldClass + ",").replace(
-						"Lnet/minecraft/core/BlockPos;", blockPosClass + ",").replace(
-						"Lnet/minecraft/world/level/block/Block;", blockClass + ",").replace(
-						"Z)V", "boolean,"
-				) + ")").replace(",)", ")");
-				for (Method method : block.getMethods()) {
-					if (method.toString().contains(desc) && method.getName().equals(m.getSecondary())) {
-						Logger.logLine("success");
-						Logger.logLine("name:" + method.toString());
-						Logger.logLine("desc:" + desc);
-						block$onNeighborChanged = method;
-						String unexpandedMethod = method.getName() + desc;
-						int argCount = 0;
-						StringBuilder expandedMethod = new StringBuilder();
-						for (int i = 0; i < unexpandedMethod.length(); i++) {
-							if (unexpandedMethod.charAt(i) == ',') {
-								expandedMethod.append(" var").append(argCount++).append(", ");
-							} else {
-								expandedMethod.append(unexpandedMethod.charAt(i));
-							}
-						}
-						String finishedExpandedMethod = expandedMethod.toString().replace(")", " var" + (argCount) + ")");
-						neighborChanged = finishedExpandedMethod + "/new Object[]{" + "var0,var1,var2,var3,var4,Boolean.valueOf(var5)" + "}";
-						Logger.logLine(neighborChanged);
-					}
-				}
+				//Gets the onUpdated method for block class
+				BiObject<String, Method> method = Mojmap.getMethod(
+						Class.forName(blockClass), Mojmap.getClassMojmap(blockClass),
+						"neighborChanged",
+						"(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos;Z)V",
+						Mojmap.toStringBiObjectArray(
+								"Lnet/minecraft/world/level/block/state/BlockState;", blockStateClass + ",",
+								"Lnet/minecraft/world/level/Level;", worldClass + ",",
+								"Lnet/minecraft/core/BlockPos;", blockPosClass + ",",
+								"Lnet/minecraft/world/level/block/Block;", blockClass + ",",
+								"Z)V", "boolean,"
+						)
+				);
+				block$onNeighborChanged = method.getObject2();
+				neighborChanged = method.getObject1();
+				Logger.logLine(block$onNeighborChanged.toString());
+				Logger.logLine(neighborChanged);
 			}
 			
 			final String finalRemovedMethod = removedMethod.split("/")[0];
