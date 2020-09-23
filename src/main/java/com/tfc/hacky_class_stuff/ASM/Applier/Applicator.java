@@ -5,9 +5,8 @@ import com.tfc.bytecode.asm.ASM.ASM;
 import com.tfc.hacky_class_stuff.ASM.API.Field;
 import com.tfc.hacky_class_stuff.ASM.API.Method;
 import com.tfc.utils.BiObject;
-import com.tfc.utils.Files;
+import com.tfc.utils.Bytecode;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -39,7 +38,7 @@ public class Applicator {
 		byte[] bytes = asm.toBytes();
 		if (transformed) {
 			try {
-				Files.write(new String(bytes), new File(Files.gameDir + "\\FlameASM\\post_asm\\" + name.replace(".", "" + File.separatorChar) + ".class"));
+				Bytecode.writeBytes(name, "post_asm", bytes);
 			} catch (Throwable err) {
 				Logger.logErrFull(err);
 				throw new RuntimeException(err);

@@ -1,28 +1,25 @@
-package com.tfc.API.flamemc;
+package com.tfc.utils.flamemc;
 
 import com.tfc.utils.ScanningUtils;
 import entries.FlameAPI.Main;
 
 public class Mapping {
-	
 	public static String getUnmappedFor(String name) {
 		if (name.startsWith("net.minecraft.init.")) {
 			String s1 = name.replace("net.minecraft.init.", "");
 			s1 = s1.toLowerCase();
 			s1 = "minecraft:" + s1;
 			return ScanningUtils.toClassName(Main.getRegistries().get(s1));
+		} else {
+			try {
+				return Mojmap.getClassObsf(name).getSecondaryName();
+			} catch (Throwable ignored) {
+			}
+			try {
+				return Intermediary.getClassObsf(name).getSecondaryName();
+			} catch (Throwable ignored) {
+			}
 		}
-//		if (name.equals("net.minecraft.init.Items")) {
-//			return Main.getRegistries().get("minecraft:items");
-//		} else if (name.equals("net.minecraft.init.Blocks")) {
-//			return Main.getRegistries().get("minecraft:blocks");
-//		} else if (name.equals("net.minecraft.init.TileEntities")) {
-//			return Main.getRegistries().get("minecraft:tile_entities");
-//		} else if (name.equals("net.minecraft.init.Entities")) {
-//			return Main.getRegistries().get("minecraft:entities");
-//		} else if (name.equals("net.minecraft.init.Enchantments")) {
-//			return Main.getRegistries().get("minecraft:enchantments");
-//		}
 		return name;
 	}
 	

@@ -4,7 +4,7 @@
 //import com.tfc.API.flame.utils.logging.Logger;
 //import com.tfc.API.flame.utils.reflection.Fields;
 //import com.tfc.API.flame.utils.reflection.Methods;
-//import com.tfc.API.flamemc.Mapping;
+//import com.tfc.utils.flamemc.Mapping;
 //import com.tfc.bytecode.utils.Formatter;
 //import com.tfc.utils.ScanningUtils;
 //import entries.FlameAPI.Main;
@@ -146,16 +146,47 @@
 
 package com.tfc.API.flamemc.entities;
 
+import com.tfc.bytecode.Compiler;
+import com.tfc.bytecode.EnumCompiler;
+import com.tfc.utils.flamemc.Mapping;
 import entries.FlameAPI.Main;
 
 //TODO
-public class ClassGenerator {
-	public String generate(String name, String superName, String imports, String code) {
+public class EntityClassGenerator {
+	public static String generate(String name, String superName, String imports, String code) {
 		if (superName == null) superName = Main.getEntityClass();
+		String packageName = "";
+		if (name.contains(".")) {
+			packageName = "package " + name.substring(0, name.lastIndexOf(".")) + ";";
+			name = name.substring(name.lastIndexOf(".") + 1);
+		}
 		return
-				imports +
+				packageName +
+						imports +
 						"public class " + name + " extends " + superName + " {"
-						+ code +
+						+ code
+						.replace("%tick%", Main.getEntity$tick().getName())
+						.replace("%world_class%", Main.getWorldClass())
+						.replace("%entity_type_class%", Mapping.getUnmappedFor("net.minecraft.init.Entities"))
+						.replace("%getX%", Main.getEntity$getX().getName() + "()")
+						.replace("%getY%", Main.getEntity$getY().getName() + "()")
+						.replace("%getZ%", Main.getEntity$getZ().getName() + "()")
+						.replace("%move%", Main.getEntity$move().getName())
+						.replace("%writeNBT%", Main.getEntity$writeAdditionalSaveData().getName())
+						.replace("%readNBT%", Main.getEntity$readAdditionalSaveData().getName())
+						.replace("%nbt_class%", Main.getCompoundNBTClass())
+						.replace("%item_stack_class%", Main.getItemStackClass())
+						.replace("%equipment_slot_class%", Main.getEquipmentSlotClass())
+						.replace("%get_armor_items%", Main.getEntity$getArmorItems().getName())
+						.replace("%equip_stack%", Main.getEntity$equipStack().getName())
+						.replace("%get_equipped_stack%", Main.getEntity$getEquippedStack().getName())
+						.replace("%arm_class%", Main.getArmClass())
+						.replace("%get_main_arm%", Main.getGetMainArm())
+						+
 						"}";
+	}
+	
+	public static byte[] compile(String clazz) {
+		return Compiler.compile(EnumCompiler.JANINO, clazz);
 	}
 }

@@ -10,7 +10,7 @@ public class Bytecode {
 	
 	public static void writeBytes(String clazz, String file, byte[] bytes) {
 		try {
-			File f1 = new File(Main.getGameDir() + "\\FlameASM\\" + file + "\\" + clazz.replace(".", "\\") + ".class");
+			File f1 = new File(Main.getDataDir() + "\\FlameASM\\" + file + "\\" + clazz.replace(".", "\\") + ".class");
 			if (!f1.exists()) {
 				f1.getParentFile().mkdirs();
 				f1.createNewFile();

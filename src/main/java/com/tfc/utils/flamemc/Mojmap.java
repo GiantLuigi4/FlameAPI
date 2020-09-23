@@ -1,9 +1,10 @@
-package com.tfc.utils;
+package com.tfc.utils.flamemc;
 
 import com.tfc.mappings.structure.Class;
 import com.tfc.mappings.structure.Method;
 import com.tfc.mappings.structure.MojmapHolder;
 import com.tfc.mappings.types.Mojang;
+import com.tfc.utils.BiObject;
 import entries.FlameAPI.Main;
 
 import java.util.ArrayList;
@@ -63,7 +64,12 @@ public class Mojmap {
 //			Logger.logLine(biObject.getObject1() + "," + biObject.getObject2());
 			desc = desc.replace(biObject.getObject1(), biObject.getObject2());
 		}
-		desc = (desc + ")").replace(",)", ")");
+		desc = (desc + ")").replace(",)", ")")
+				.replace(")V)", ")")
+				.replace(")D)", ")")
+				.replace(")I)", ")")
+				.replace(")J)", ")")
+		;
 //		Logger.logLine("desc:" + desc);
 		for (java.lang.reflect.Method method : clazz.getMethods()) {
 			if (method.toString().contains(desc) && method.getName().equals(m.getSecondary())) {
@@ -83,10 +89,12 @@ public class Mojmap {
 				}
 				String finishedExpandedMethod = expandedMethod.toString().replace(")", " var" + (argCount) + ")");
 				info = finishedExpandedMethod + "/new Object[]{" + "var0,var1,var2,var3,var4,Boolean.valueOf(var5)" + "}";
+//				Logger.logLine(method.toString());
 //				Logger.logLine(info);
+				return new BiObject<>(info, returnVal);
 			}
 		}
-		return new BiObject<>(info, returnVal);
+		throw new RuntimeException(new NullPointerException("The requested method: " + name + descriptor + " does not exist." + desc));
 	}
 	
 	public static ArrayList<BiObject<String, String>> toStringBiObjectArray(String... list) {

@@ -7,10 +7,14 @@ import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockProperties;
+import com.tfc.API.flamemc.entities.EntityClassGenerator;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
 import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
 import com.tfc.API.flamemc.world.BlockPos;
+import com.tfc.FlameAPIConfigs;
+import com.tfc.bytecode.loading.ForceLoad;
+import com.tfc.bytecode.utils.Formatter;
 import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
@@ -18,10 +22,13 @@ import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.Applier.Applicator;
 import com.tfc.utils.BiObject;
 import com.tfc.utils.Fabricator;
-import com.tfc.utils.Mojmap;
 import com.tfc.utils.ScanningUtils;
+import com.tfc.utils.flamemc.Intermediary;
+import com.tfc.utils.flamemc.Mojmap;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -45,12 +52,18 @@ public class Main implements IFlameAPIMod {
 	private static String mainRegistry = "";
 	private static String blockClass = "";
 	private static String entityClass = "";
+	private static String livingEntityClass = "";
+	private static String compoundNBTClass = "";
+	private static String entitySpawnPacketClass = "";
+	private static String equipmentSlotClass = "";
+	private static String packetClass = "";
 	private static String itemClass = "";
 	private static String blockItemClass = "";
 	private static String itemStackClass = "";
 	private static String resourceLocationClass = "";
 	private static String blockFireClass = "";
 	private static String blockPosClass = "";
+	private static String armClass = "";
 	private static String Vec3iClass = "";
 	private static String blockStateClass = "";
 	private static String worldClass = "";
@@ -62,12 +75,110 @@ public class Main implements IFlameAPIMod {
 	private static Method block$onRemoved = null;
 	private static Method block$onPlaced = null;
 	private static Method block$onNeighborChanged = null;
+	
 	private static Method world$setBlockState = null;
 	private static Method world$getBlockState = null;
+	
+	private static Method entity$tick = null;
+	private static Method entity$getX = null;
+	private static Method entity$getY = null;
+	private static Method entity$getZ = null;
+	private static Method entity$move = null;
+	//I have never heard of this method until literally the day that I started making the entity base class
+	private static Method entity$defineSynchedData = null;
+	private static Method entity$getArmorItems = null;
+	private static Method entity$equipStack = null;
+	private static Method entity$getEquippedStack = null;
+	private static Method entity$getMainArm = null;
+	private static Method entity$readAdditionalSaveData = null;
+	private static Method entity$writeAdditionalSaveData = null;
+	private static Method entity$getAddEntityPacket = null;
+	
+	private static String getMainArm = "";
 	
 	private static String versionMap = "";
 	private static boolean isMappedVersion = false;
 	
+	
+	public static String getEquipmentSlotClass() {
+		return equipmentSlotClass;
+	}
+	
+	public static Method getEntity$tick() {
+		return entity$tick;
+	}
+	
+	public static String getCompoundNBTClass() {
+		return compoundNBTClass;
+	}
+	
+	public static String getGetMainArm() {
+		return getMainArm;
+	}
+	
+	public static Method getEntity$getEquippedStack() {
+		return entity$getEquippedStack;
+	}
+	
+	public static Method getEntity$getMainArm() {
+		return entity$getMainArm;
+	}
+	
+	public static Method getEntity$getArmorItems() {
+		return entity$getArmorItems;
+	}
+	
+	public static String getArmClass() {
+		return armClass;
+	}
+	
+	public static String getEntitySpawnPacketClass() {
+		return entitySpawnPacketClass;
+	}
+	
+	public static Method getEntity$equipStack() {
+		return entity$equipStack;
+	}
+	
+	public static String getPacketClass() {
+		return packetClass;
+	}
+	
+	public static Method getEntity$defineSynchedData() {
+		return entity$defineSynchedData;
+	}
+	
+	public static Method getEntity$readAdditionalSaveData() {
+		return entity$readAdditionalSaveData;
+	}
+	
+	public static Method getEntity$writeAdditionalSaveData() {
+		return entity$writeAdditionalSaveData;
+	}
+	
+	public static Method getEntity$getAddEntityPacket() {
+		return entity$getAddEntityPacket;
+	}
+	
+	public static Method getEntity$getX() {
+		return entity$getX;
+	}
+	
+	public static Method getEntity$getY() {
+		return entity$getY;
+	}
+	
+	public static Method getEntity$getZ() {
+		return entity$getZ;
+	}
+	
+	public static Method getEntity$move() {
+		return entity$move;
+	}
+	
+	public static boolean isIsMappedVersion() {
+		return isMappedVersion;
+	}
 	
 	public static String getVec3iClass() {
 		return Vec3iClass;
@@ -187,6 +298,10 @@ public class Main implements IFlameAPIMod {
 		return entityClass;
 	}
 	
+	public static String getLivingEntityClass() {
+		return livingEntityClass;
+	}
+	
 	public static Method getBlock$onNeighborChanged() {
 		return block$onNeighborChanged;
 	}
@@ -214,6 +329,10 @@ public class Main implements IFlameAPIMod {
 		}
 	}
 	
+	public static String getDataDir() {
+		return ((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+	}
+	
 	@Override
 	public void setupAPI(String[] args) {
 		try {
@@ -225,7 +344,7 @@ public class Main implements IFlameAPIMod {
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler", "3.1.2");
 			addDep("https://repo1.maven.org/maven2/", "org.codehaus.janino", "commons-compiler-jdk", "3.1.2");
 			//Mappings Helper
-			addDep("https://jitpack.io/", "com.github.GiantLuigi4", "MCMappingsHelper", "43d04aa");
+			addDep("https://jitpack.io/", "com.github.GiantLuigi4", "MCMappingsHelper", "f2ec2b7");
 //			//Kotlin
 //			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-stdlib-jdk8", "1.4.0");
 //			addDep("https://repo1.maven.org/maven2/", "org.jetbrains.kotlin", "kotlin-stdlib", "1.4.0");
@@ -369,13 +488,236 @@ public class Main implements IFlameAPIMod {
 				IWorldClass = Mojmap.getClassObsf("net/minecraft/world/level/LevelAccessor").getSecondaryName();
 				Vec3iClass = Mojmap.getClassObsf("net/minecraft/core/Vec3i").getSecondaryName();
 				blockPosClass = Mojmap.getClassObsf("net/minecraft/core/BlockPos").getSecondaryName();
+				try {
+					armClass = Mojmap.getClassObsf("net/minecraft/util/Arm").getSecondaryName();
+				} catch (Throwable ignored) {
+					armClass = Intermediary.getClassObsf("net/minecraft/class_1306").getSecondaryName();
+				}
 				bbClass = Mojmap.getClassObsf("com/mojang/blaze3d/vertex/BufferBuilder").getSecondaryName();
 				tessellatorClass = Mojmap.getClassObsf("com/mojang/blaze3d/vertex/Tesselator").getSecondaryName();
 				entityClass = Mojmap.getClassObsf("net/minecraft/world/entity/Entity").getSecondaryName();
+				livingEntityClass = Mojmap.getClassObsf("net/minecraft/world/entity/LivingEntity").getSecondaryName();
+				compoundNBTClass = Mojmap.getClassObsf("net/minecraft/nbt/CompoundTag").getSecondaryName();
+				entitySpawnPacketClass = Mojmap.getClassObsf("net/minecraft/network/protocol/game/ClientboundAddMobPacket").getSecondaryName();
+				equipmentSlotClass = Mojmap.getClassObsf("net/minecraft/world/entity/EquipmentSlot").getSecondaryName();
+				packetClass = Mojmap.getClassObsf("net/minecraft/network/protocol/Packet").getSecondaryName();
 				itemStackClass = Mojmap.getClassObsf("net/minecraft/world/item/ItemStack").getSecondaryName();
 				resourceLocationClass = Mojmap.getClassObsf("net/minecraft/resources/ResourceLocation").getSecondaryName();
 				blockStateClass = Mojmap.getClassObsf("net/minecraft/world/level/block/state/BlockState").getSecondaryName();
 				blockFireClass = Mojmap.getClassObsf("net/minecraft/world/level/block/FireBlock").getSecondaryName();
+				
+				try {
+					//Gets the tick method for entity class
+					BiObject<String, Method> method = Mojmap.getMethod(
+							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
+							"tick",
+							"()V",
+							new ArrayList<>()
+					);
+					entity$tick = method.getObject2();
+					//Gets the getX method for entity class
+					method = Mojmap.getMethod(
+							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
+							"getX",
+							"()D",
+							new ArrayList<>()
+					);
+					entity$getX = method.getObject2();
+					//Gets the getY method for entity class
+					method = Mojmap.getMethod(
+							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
+							"getY",
+							"()D",
+							new ArrayList<>()
+					);
+					entity$getY = method.getObject2();
+					//Gets the getZ method for entity class
+					method = Mojmap.getMethod(
+							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
+							"getZ",
+							"()D",
+							new ArrayList<>()
+					);
+					entity$getZ = method.getObject2();
+					//Gets the setPos method for entity class
+					method = Mojmap.getMethod(
+							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
+							"setPos",
+							"(DDD)V",
+							Mojmap.toStringBiObjectArray(
+									"D", "double,"
+							)
+					);
+					entity$move = method.getObject2();
+					try {
+						//Gets the defineSynchedData method for entity class
+						com.tfc.mappings.structure.Class classInter = Intermediary.getClassInter(entityClass);
+						com.tfc.mappings.structure.Class classInterL = Intermediary.getClassInter(livingEntityClass);
+						String defineSynchedData = "";
+						String readAdditionalSaveData = "";
+						String writeAdditionalSaveData = "";
+						String getAddEntityPacket = "";
+						String getArmorItems = "";
+						String equipStack = "";
+						String getEquippedStack = "";
+//						String getMainArm = "";
+						ArrayList<com.tfc.mappings.structure.Method> allMethods = new ArrayList<>();
+						allMethods.addAll(classInter.getMethods());
+						allMethods.addAll(classInterL.getMethods());
+						for (com.tfc.mappings.structure.Method methodTest : allMethods) {
+							switch (methodTest.getPrimary()) {
+								case "method_5693":
+									defineSynchedData = methodTest.getSecondary();
+									break;
+								case "method_5749":
+									readAdditionalSaveData = methodTest.getSecondary();
+									break;
+								case "method_5652":
+									writeAdditionalSaveData = methodTest.getSecondary();
+									break;
+								case "method_18002":
+									getAddEntityPacket = methodTest.getSecondary();
+									break;
+								case "method_5661":
+									getArmorItems = methodTest.getSecondary();
+									break;
+								case "method_5673":
+									equipStack = methodTest.getSecondary();
+									break;
+								case "method_6118":
+									getEquippedStack = methodTest.getSecondary();
+									break;
+								case "method_6068":
+									getMainArm = methodTest.getSecondary();
+									break;
+							}
+						}
+						Logger.logLine(classInter.toString());
+						for (Method m : Methods.getAllMethods(Class.forName(entityClass))) {
+							if (
+									m.getParameterTypes().length == 0 &&
+											defineSynchedData.equals(m.getName())
+							) {
+								entity$defineSynchedData = m;
+							} else if (
+									m.getParameterTypes().length == 1 &&
+											m.getParameterTypes()[0].getName().equals(compoundNBTClass) &&
+											readAdditionalSaveData.equals(m.getName())
+							) {
+								entity$readAdditionalSaveData = m;
+							} else if (
+									m.getParameterTypes().length == 1 &&
+											m.getParameterTypes()[0].getName().equals(compoundNBTClass) &&
+											writeAdditionalSaveData.equals(m.getName())
+							) {
+								entity$writeAdditionalSaveData = m;
+							} else if (
+									m.getParameterTypes().length == 0 &&
+											getAddEntityPacket.equals(m.getName())
+							) {
+								entity$getAddEntityPacket = m;
+							} else if (
+									m.getParameterTypes().length == 0 &&
+											getArmorItems.equals(m.getName())
+							) {
+								entity$getArmorItems = m;
+							} else if (
+									m.getParameterTypes().length == 2 &&
+											equipStack.equals(m.getName())
+							) {
+								entity$equipStack = m;
+							} else if (
+									m.getParameterTypes().length == 1 &&
+											getEquippedStack.equals(m.getName())
+							) {
+								entity$getEquippedStack = m;
+							} else if (
+									m.getReturnType().getName().equals(armClass)
+//											getMainArm.equals(m.getName())
+							) {
+								entity$getMainArm = m;
+							}
+						}
+					} catch (Throwable ignored) {
+					}
+					
+					Logger.logLine(entity$tick.toString());
+					Logger.logLine(entity$getX.toString());
+					Logger.logLine(entity$getY.toString());
+					Logger.logLine(entity$getZ.toString());
+					Logger.logLine(entity$move.toString());
+					Logger.logLine(entity$defineSynchedData.toString());
+					Logger.logLine(entity$readAdditionalSaveData.toString());
+					Logger.logLine(entity$writeAdditionalSaveData.toString());
+					Logger.logLine(entity$getAddEntityPacket.toString());
+					
+					try {
+//						String source = 								("public void equipStack(%equipment_slot_class% slot, %item_stack_class% stack) {}" +									"public void write(Object nbt) {super.%writeNBT%((%nbt_class%)nbt);}" +									"public void read(Object nbt) {super.%readNBT%((%nbt_class%)nbt);}" +									"public Entity(%entity_type_class% type, %world_class% world) {super(type,world);}" +									"public void tick() {super.%tick%();}" +									"public final void %tick%() {tick();}" +									"public final double getX() {return %getX%;}" +									"public final double getY() {return %getY%;}" +									"public final double getZ() {return %getZ%;}" +									"public void move(double x, double y, double z) {super.%move%(x,y,z);}" +									"public void %move%(double x, double y, double z) {move(x,y,z);}" +									"protected void " + entity$defineSynchedData.getName() + "() {}" +									entity$writeAdditionalSaveData.toString().replace("abstract ", "").replace(")", " nbt)") + " {write(nbt);}" +									entity$readAdditionalSaveData.toString().replace("abstract ", "").replace(")", " nbt)") + " {read(nbt);}").replace("void " + entityClass + ".", "void ").replace(packetClass + " " + entityClass + ".", packetClass + " ");
+						InputStream sourceStream = Main.class.getClassLoader().getResourceAsStream("entity_base_class.java");
+						byte[] sourceBytes = new byte[sourceStream.available()];
+						sourceStream.read(sourceBytes);
+						sourceStream.close();
+						String source = new String(sourceBytes).replace("\t", "").replace("\n", "").replace("//TODO", "");
+						String entityBaseClass = EntityClassGenerator.generate(
+								"com.tfc.API.flamemc.entities.Entity",
+								Mojmap.getClassObsf("net/minecraft/world/entity/LivingEntity").getSecondaryName(),
+								"import java.util.ArrayList;import java.lang.Iterable;", source
+						);
+						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+						File f = new File(gameDir + "\\FlameASM\\fabrication\\EntityBase.class");
+						File f1 = new File(gameDir + "\\FlameASM\\fabrication\\EntityBase_source.java");
+						if (!f.exists()) {
+							f.getParentFile().mkdirs();
+							f.createNewFile();
+						}
+						if (!f1.exists()) {
+							f1.createNewFile();
+						}
+						Logger.logLine(entityBaseClass);
+						FileOutputStream stream = new FileOutputStream(f);
+						FileOutputStream stream1 = new FileOutputStream(f1);
+						stream1.write(Formatter.formatForCompile(entityBaseClass).getBytes());
+						stream1.close();
+						byte[] entityClassBytes = EntityClassGenerator.compile(entityBaseClass);
+						stream.write(entityClassBytes);
+						stream.close();
+						ForceLoad.forceLoad(Main.class.getClassLoader(), entityClassBytes);
+					} catch (Throwable err) {
+						Logger.logErrFull(err);
+						//Force quit the game, as something must have gone fatally wrong,
+						//weather it be moj-err-microsoft changing mojmap,
+						//microsoft abandoning mojmap,
+						//or one of the methods being changed or deleted
+						if (!FlameAPIConfigs.devMode) {
+							Runtime.getRuntime().exit(-1);
+						}
+					}
+					String testClass = EntityClassGenerator.generate(
+							"com.tfc.test.test", Mojmap.getClassObsf("net/minecraft/world/entity/monster/Phantom").getSecondaryName(),
+							"", "" +
+									"public test(%entity_type_class% type, %world_class% world) {super(type,world);} " +
+									"public void %tick%() {" +
+									"	double x = %getX%;" +
+									"	double y = %getY%;" +
+									"	double z = %getZ%;" +
+									"	super.%tick%();" +
+									"	%move%(x,y,z);" +
+									"}" +
+									""
+					);
+					File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+					File f = new File(gameDir + "\\FlameASM\\fabrication\\testEntity.class");
+					if (!f.exists()) {
+						f.getParentFile().mkdirs();
+						f.createNewFile();
+					}
+					FileOutputStream stream = new FileOutputStream(f);
+					byte[] testClassBytes = EntityClassGenerator.compile(testClass);
+					stream.write(testClassBytes);
+					stream.close();
+				} catch (Throwable err) {
+					Logger.logErrFull(err);
+				}
 			} else {
 				registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 				
