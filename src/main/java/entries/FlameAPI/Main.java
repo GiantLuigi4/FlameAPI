@@ -8,6 +8,7 @@ import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockProperties;
 import com.tfc.API.flamemc.entities.EntityClassGenerator;
+import com.tfc.API.flamemc.event.init_steps.PreFlameInit;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
 import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
@@ -448,7 +449,7 @@ public class Main implements IFlameAPIMod {
 			isMappedVersion = isMappedVersion && versionMap.replace("1.14", "").equals(".4");
 		
 		ScanningUtils.checkVersion();
-		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.Block", Applicator::apply);
+		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", Applicator::apply);
 		
 		Access access = new Access(FlameASM.AccessType.PRIVATE, "hello");
 		FlameConfig.field.append(access.type.name() + "\n");
@@ -829,6 +830,7 @@ public class Main implements IFlameAPIMod {
 	
 	@Override
 	public void init(String[] args) {
+		FlameAPI.instance.bus.post(PreFlameInit.class, new PreFlameInit());
 		try {
 			for (Field f : Class.forName("net.minecraft.client.ClientBrandRetriever").getFields()) {
 				try {
