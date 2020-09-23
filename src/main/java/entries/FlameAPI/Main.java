@@ -333,6 +333,16 @@ public class Main implements IFlameAPIMod {
 		return ((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
 	}
 	
+	public static void quitIfNotDev() {
+		//Force quit the game, as something must have gone fatally wrong,
+		//weather it be moj-err-microsoft changing mojmap,
+		//microsoft abandoning mojmap,
+		//or one of the methods being changed or deleted
+		if (!FlameAPIConfigs.devMode) {
+			Runtime.getRuntime().exit(-1);
+		}
+	}
+	
 	@Override
 	public void setupAPI(String[] args) {
 		try {
@@ -652,7 +662,6 @@ public class Main implements IFlameAPIMod {
 					Logger.logLine(entity$getAddEntityPacket.toString());
 					
 					try {
-//						String source = 								("public void equipStack(%equipment_slot_class% slot, %item_stack_class% stack) {}" +									"public void write(Object nbt) {super.%writeNBT%((%nbt_class%)nbt);}" +									"public void read(Object nbt) {super.%readNBT%((%nbt_class%)nbt);}" +									"public Entity(%entity_type_class% type, %world_class% world) {super(type,world);}" +									"public void tick() {super.%tick%();}" +									"public final void %tick%() {tick();}" +									"public final double getX() {return %getX%;}" +									"public final double getY() {return %getY%;}" +									"public final double getZ() {return %getZ%;}" +									"public void move(double x, double y, double z) {super.%move%(x,y,z);}" +									"public void %move%(double x, double y, double z) {move(x,y,z);}" +									"protected void " + entity$defineSynchedData.getName() + "() {}" +									entity$writeAdditionalSaveData.toString().replace("abstract ", "").replace(")", " nbt)") + " {write(nbt);}" +									entity$readAdditionalSaveData.toString().replace("abstract ", "").replace(")", " nbt)") + " {read(nbt);}").replace("void " + entityClass + ".", "void ").replace(packetClass + " " + entityClass + ".", packetClass + " ");
 						InputStream sourceStream = Main.class.getClassLoader().getResourceAsStream("entity_base_class.java");
 						byte[] sourceBytes = new byte[sourceStream.available()];
 						sourceStream.read(sourceBytes);
@@ -684,39 +693,38 @@ public class Main implements IFlameAPIMod {
 						ForceLoad.forceLoad(Main.class.getClassLoader(), entityClassBytes);
 					} catch (Throwable err) {
 						Logger.logErrFull(err);
-						//Force quit the game, as something must have gone fatally wrong,
-						//weather it be moj-err-microsoft changing mojmap,
-						//microsoft abandoning mojmap,
-						//or one of the methods being changed or deleted
-						if (!FlameAPIConfigs.devMode) {
-							Runtime.getRuntime().exit(-1);
+						quitIfNotDev();
+					}
+					try {
+						String testClass = EntityClassGenerator.generate(
+								"com.tfc.test.test", Mojmap.getClassObsf("net/minecraft/world/entity/monster/Phantom").getSecondaryName(),
+								"", "" +
+										"public test(%entity_type_class% type, %world_class% world) {super(type,world);} " +
+										"public void %tick%() {" +
+										"	double x = %getX%;" +
+										"	double y = %getY%;" +
+										"	double z = %getZ%;" +
+										"	super.%tick%();" +
+										"	%move%(x,y,z);" +
+										"}" +
+										""
+						);
+						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+						File f = new File(gameDir + "\\FlameASM\\fabrication\\testEntity.class");
+						if (!f.exists()) {
+							f.getParentFile().mkdirs();
+							f.createNewFile();
 						}
+						FileOutputStream stream = new FileOutputStream(f);
+						byte[] testClassBytes = EntityClassGenerator.compile(testClass);
+						stream.write(testClassBytes);
+						stream.close();
+					} catch (Throwable err) {
+						Logger.logErrFull(err);
 					}
-					String testClass = EntityClassGenerator.generate(
-							"com.tfc.test.test", Mojmap.getClassObsf("net/minecraft/world/entity/monster/Phantom").getSecondaryName(),
-							"", "" +
-									"public test(%entity_type_class% type, %world_class% world) {super(type,world);} " +
-									"public void %tick%() {" +
-									"	double x = %getX%;" +
-									"	double y = %getY%;" +
-									"	double z = %getZ%;" +
-									"	super.%tick%();" +
-									"	%move%(x,y,z);" +
-									"}" +
-									""
-					);
-					File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
-					File f = new File(gameDir + "\\FlameASM\\fabrication\\testEntity.class");
-					if (!f.exists()) {
-						f.getParentFile().mkdirs();
-						f.createNewFile();
-					}
-					FileOutputStream stream = new FileOutputStream(f);
-					byte[] testClassBytes = EntityClassGenerator.compile(testClass);
-					stream.write(testClassBytes);
-					stream.close();
 				} catch (Throwable err) {
 					Logger.logErrFull(err);
+					quitIfNotDev();
 				}
 			} else {
 				registries = (HashMap<String, String>) Class.forName("RegistryClassFinder").getMethod("findRegistryClass", File.class).invoke(null, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
