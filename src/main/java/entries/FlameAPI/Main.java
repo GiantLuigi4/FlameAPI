@@ -1,5 +1,7 @@
 package entries.FlameAPI;
 
+import com.tfc.bytecode.Compiler;
+import com.tfc.bytecode.EnumCompiler;
 import com.tfc.API.flame.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flame.utils.reflection.Fields;
@@ -14,6 +16,7 @@ import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
 import com.tfc.API.flamemc.world.BlockPos;
 import com.tfc.FlameAPIConfigs;
+import com.tfc.bytecode.EnumCompiler;
 import com.tfc.bytecode.loading.ForceLoad;
 import com.tfc.bytecode.utils.Formatter;
 import com.tfc.flame.FlameConfig;
@@ -21,7 +24,10 @@ import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.Applier.Applicator;
-import com.tfc.utils.*;
+import com.tfc.utils.BiObject;
+import com.tfc.utils.ClassFindingUtils;
+import com.tfc.utils.Fabricator;
+import com.tfc.utils.ScanningUtils;
 import com.tfc.utils.flamemc.Intermediary;
 import com.tfc.utils.flamemc.Mojmap;
 
@@ -35,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
@@ -95,6 +102,8 @@ public class Main implements IFlameAPIMod {
 	private static Method entity$getAddEntityPacket = null;
 	
 	private static String getMainArm = "";
+
+	private static BiObject<String, Method>[] nbtMethods = null;
 	
 	private static String versionMap = "";
 	private static boolean isMappedVersion = false;
@@ -534,8 +543,7 @@ public class Main implements IFlameAPIMod {
 							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr2.length)
 					));
 
-					BiObject<String, Method>[] nbtMethods = ClassFindingUtils.mergeBiObjectArrays(nbtGets, nbtPuts);
-					Arrays.stream(nbtMethods).forEach((arr) -> Logger.logLine(arr.getObject2().toString()));
+					nbtMethods = ClassFindingUtils.mergeBiObjectArrays(nbtGets, nbtPuts);
 					//Gets the tick method for entity class
 					BiObject<String, Method> method = Mojmap.getMethod(
 							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
@@ -710,6 +718,35 @@ public class Main implements IFlameAPIMod {
 						stream.write(entityClassBytes);
 						stream.close();
 						ForceLoad.forceLoad(Main.class.getClassLoader(), entityClassBytes);
+					} catch (Throwable err) {
+						Logger.logErrFull(err);
+						quitIfNotDev();
+					}
+					try {
+						InputStream sourceStream = Main.class.getClassLoader().getResourceAsStream("nbt_class.java");
+						byte[] sourceBytes = new byte[sourceStream.available()];
+						sourceStream.read(sourceBytes);
+						sourceStream.close();
+						AtomicReference<String> source = new AtomicReference<>(new String(sourceBytes).replace("\t", "").replace("\n", "").replace("//TODO", ""));
+						source.set(source.get().replace("%nbt_class%", compoundNBTClass));
+						Arrays.stream(nbtMethods).forEach((biObject) -> source.set(source.get().replace("%" + biObject.getObject2().getName() + "%", biObject.getObject2().getName())));
+						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+						File f = new File(gameDir + "\\FlameASM\\fabrication\\CompoundNBT.class");
+						File f1 = new File(gameDir + "\\FlameASM\\fabrication\\CompoundNBT_source.java");
+						if (!f.exists()) {
+							f.getParentFile().mkdirs();
+							f.createNewFile();
+						}
+						if (!f1.exists()) {
+							f1.createNewFile();
+						}
+						FileOutputStream stream = new FileOutputStream(f);
+						FileOutputStream stream1 = new FileOutputStream(f1);
+						stream1.write(Formatter.formatForCompile(source.get()).getBytes());
+						stream1.close();
+						byte[] compiledBytes = Compiler.compile(EnumCompiler.JANINO, source.get());
+						stream.write(compiledBytes);
+						stream.close();
 					} catch (Throwable err) {
 						Logger.logErrFull(err);
 						quitIfNotDev();
