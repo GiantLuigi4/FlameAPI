@@ -21,9 +21,7 @@ import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.Applier.Applicator;
-import com.tfc.utils.BiObject;
-import com.tfc.utils.Fabricator;
-import com.tfc.utils.ScanningUtils;
+import com.tfc.utils.*;
 import com.tfc.utils.flamemc.Intermediary;
 import com.tfc.utils.flamemc.Mojmap;
 
@@ -34,6 +32,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -516,8 +515,25 @@ public class Main implements IFlameAPIMod {
 				resourceLocationClass = Mojmap.getClassObsf("net/minecraft/resources/ResourceLocation").getSecondaryName();
 				blockStateClass = Mojmap.getClassObsf("net/minecraft/world/level/block/state/BlockState").getSecondaryName();
 				blockFireClass = Mojmap.getClassObsf("net/minecraft/world/level/block/FireBlock").getSecondaryName();
-				
+
 				try {
+					String[] nbtArr = new String[]{
+						"Int", "Float", "Byte", "Long", "List", "Short", "Double", "String", "Boolean", "UUID", "Id"
+					};
+					Logger.logLine(java.lang.Class.forName("java.util.List").toString());
+					BiObject<String, Method>[] nbtGets = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
+							ClassFindingUtils.createNBTSearchArray("get", false, nbtArr),
+							ClassFindingUtils.createNBTSearchArray("get", true, nbtArr),
+							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr.length)
+					));
+					BiObject<String, Method>[] nbtPuts = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
+							ClassFindingUtils.createNBTSearchArray("put", false, nbtArr),
+							ClassFindingUtils.createNBTSearchArray("put", true, nbtArr),
+							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr.length)
+					));
+
+					BiObject<String, Method>[] nbtMethods = ClassFindingUtils.mergeBiObjectArrays(nbtGets, nbtPuts);
+					Arrays.stream(nbtMethods).forEach((arr) -> Logger.logLine(arr.getObject2().toString()));
 					//Gets the tick method for entity class
 					BiObject<String, Method> method = Mojmap.getMethod(
 							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
@@ -954,7 +970,7 @@ public class Main implements IFlameAPIMod {
 				}
 			}
 			
-			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, createBiObjectArray(
+			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, ClassFindingUtils.createBiObjectArray(
 					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
 			));
 			if (onRemovedB != null) {
@@ -962,7 +978,7 @@ public class Main implements IFlameAPIMod {
 				removedMethod = onRemovedB.getObject1();
 			}
 			
-			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, createBiObjectArray(
+			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, ClassFindingUtils.createBiObjectArray(
 					getBlockStateClass(), getWorldClass(),
 					getBlockPosClass(), getBlockClass(),
 					getBlockPosClass(), boolean.class.getName() + ".class"
@@ -974,14 +990,14 @@ public class Main implements IFlameAPIMod {
 			
 			Logger.logLine("Scanning world:");
 			Logger.logLine("Method setBlockState:");
-			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, createBiObjectArray(
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, ClassFindingUtils.createBiObjectArray(
 					getBlockPosClass(), getBlockStateClass()
 			));
 			Logger.logLine("Method getBlockState:");
 			if (ScanningUtils.mcMajorVersion == 15)
 				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
 			else
-				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), createBiObjectArray(
+				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), ClassFindingUtils.createBiObjectArray(
 						getBlockPosClass()
 				));
 		} catch (Throwable err) {
@@ -1099,11 +1115,5 @@ public class Main implements IFlameAPIMod {
 				bytecodeUtilsVersion
 		);
 	}
-	
-	private BiObject<String, String>[] createBiObjectArray(String... obj1Array) {
-		BiObject<String, String>[] newArray = new BiObject[obj1Array.length];
-		for (int i = 0; i < obj1Array.length; i++)
-			newArray[i] = new BiObject<>(obj1Array[i], "var" + i);
-		return newArray;
-	}
+
 }

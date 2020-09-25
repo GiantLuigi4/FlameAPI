@@ -17,7 +17,7 @@ public class Applicator {
 	
 	public static byte[] apply(String name, byte[] source) {
 		try {
-			Logger.logLine("Transforming: " + name);
+			//Logger.logLine("Transforming: " + name);
 			ASM asm = new ASM(source);
 			boolean transformed = false;
 			if (fields.containsKey(name)) {

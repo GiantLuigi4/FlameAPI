@@ -1,5 +1,6 @@
 package com.tfc.utils.flamemc;
 
+import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.mappings.structure.Class;
 import com.tfc.mappings.structure.Method;
 import com.tfc.mappings.structure.MojmapHolder;
@@ -43,10 +44,111 @@ public class Mojmap {
 	public static Class getClassMojmap(String name) {
 		return getClassMojmap(Main.getVersionMap(), name);
 	}
-	
+
+	public static BiObject<String, java.lang.reflect.Method> getMethodBetter(java.lang.Class<?> clazz, Class mappingsClass, String name, String descriptor, ArrayList<BiObject<String, String>> replacements) {
+		java.lang.reflect.Method returnVal;
+		String info;
+		AtomicReference<Method> mA = new AtomicReference<>();
+		mappingsClass.getMethods().forEach((method) -> {
+			if (method.getDesc().startsWith(descriptor)) {
+				if (method.getPrimary().equals(name)) {
+					mA.set(method);
+				}
+			}
+		});
+		Logger.logLine("name to search: " + name + ", descriptor: " + descriptor);
+		com.tfc.mappings.structure.Method m = mA.get();
+		Logger.logLine("prime name " + m.getPrimary() + ", desc: " + m.getDesc());
+		String desc = m.getDesc();
+		for (BiObject<String, String> biObject : replacements) {
+//			Logger.logLine(biObject.getObject1() + "," + biObject.getObject2());
+			desc = desc.replace(biObject.getObject1(), biObject.getObject2());
+		}
+		desc = (desc + ")")
+				       .replace(",)", ")")
+				       .replaceAll("\\)(.*)\\)", ")");
+		//Logger.logLine("desc:" + desc);
+		for (java.lang.reflect.Method method : clazz.getMethods()) {
+			if (method.getName().equals(m.getSecondary())) {
+				String methodDesc = "(" + parseDescriptorFromRealParameters(method.toString().split("\\(")[1]) + ")";
+				//Logger.logLine("name:" + method.toString());
+				//Logger.logLine("parsed desc:" + methodDesc);
+				if (methodDesc.equals(desc)) {
+					//Logger.logLine("success");
+					returnVal = method;
+					String unexpandedMethod = method.getName() + desc;
+					int argCount = 0;
+					StringBuilder expandedMethod = new StringBuilder();
+					for (int i = 0; i < unexpandedMethod.length(); i++) {
+						if (unexpandedMethod.charAt(i) == ',') {
+							expandedMethod.append(" var").append(argCount++).append(", ");
+						} else {
+							expandedMethod.append(unexpandedMethod.charAt(i));
+						}
+					}
+					String finishedExpandedMethod = expandedMethod.toString().replace(")", " var" + (argCount) + ")");
+					//                     what is this |
+					//                                  V
+					info = finishedExpandedMethod + "/new Object[]{" + "var0,var1,var2,var3,var4,Boolean.valueOf(var5)" + "}";
+//				    Logger.logLine(method.toString());
+//				    Logger.logLine(info);
+					return new BiObject<>(info, returnVal);
+				}
+			}
+		}
+		throw new RuntimeException(new NullPointerException("The requested method: " + name + descriptor + " does not exist." + desc));
+	}
+
+	private static String parseDescriptorFromRealParameters(String desc) {
+		StringBuilder returnV = new StringBuilder();
+		desc = desc.replace(")", "");
+		if (!desc.equals("")) {
+			for (String arg : desc.split(",")) {
+				StringBuilder localArg = new StringBuilder();
+				Logger.logLine(arg);
+				switch (arg) {
+					case "int":
+						localArg.append("I");
+						break;
+					case "long":
+						localArg.append("J");
+						break;
+					case "byte":
+						localArg.append("B");
+						break;
+					case "float":
+						localArg.append("F");
+						break;
+					case "double":
+						localArg.append("D");
+						break;
+					case "boolean":
+						localArg.append("Z");
+						break;
+					case "char":
+						localArg.append("C");
+						break;
+					case "short":
+						localArg.append("S");
+						break;
+					default:
+						localArg
+								.append("L")
+								.append(arg.replace(".", "/")) //like I'm keeping this: replaceAll("L(.*?);", "$1")
+								.append(";");
+						break;
+				}
+				if (arg.startsWith("["))
+					localArg.append("[]");
+				returnV.append(localArg);
+			}
+		}
+		return returnV.toString();
+	}
+
 	public static BiObject<String, java.lang.reflect.Method> getMethod(java.lang.Class<?> clazz, Class mappingsClass, String name, String descriptor, ArrayList<BiObject<String, String>> replacements) {
-		java.lang.reflect.Method returnVal = null;
-		String info = "";
+		java.lang.reflect.Method returnVal;
+		String info;
 		AtomicReference<Method> mA = new AtomicReference<>();
 		mappingsClass.getMethods().forEach((method) -> {
 			if (method.getDesc().startsWith(descriptor)) {
@@ -69,29 +171,34 @@ public class Mojmap {
 				.replace(")D)", ")")
 				.replace(")I)", ")")
 				.replace(")J)", ")")
+				.replaceAll("L(.*?);", "$1")
+				.replace("/", ".")
 		;
-//		Logger.logLine("desc:" + desc);
+		Logger.logLine("desc:" + desc);
 		for (java.lang.reflect.Method method : clazz.getMethods()) {
-			if (method.toString().contains(desc) && method.getName().equals(m.getSecondary())) {
-//				Logger.logLine("success");
-//				Logger.logLine("name:" + method.toString());
-//				Logger.logLine("desc:" + desc);
-				returnVal = method;
-				String unexpandedMethod = method.getName() + desc;
-				int argCount = 0;
-				StringBuilder expandedMethod = new StringBuilder();
-				for (int i = 0; i < unexpandedMethod.length(); i++) {
-					if (unexpandedMethod.charAt(i) == ',') {
-						expandedMethod.append(" var").append(argCount++).append(", ");
-					} else {
-						expandedMethod.append(unexpandedMethod.charAt(i));
+			if (method.getName().equals(m.getSecondary())) {
+				Logger.logLine(method.toString());
+				if (method.toString().contains(desc)) {
+//					Logger.logLine("success");
+//					Logger.logLine("name:" + method.toString());
+//					Logger.logLine("desc:" + desc);
+					returnVal = method;
+					String unexpandedMethod = method.getName() + desc;
+					int argCount = 0;
+					StringBuilder expandedMethod = new StringBuilder();
+					for (int i = 0; i < unexpandedMethod.length(); i++) {
+						if (unexpandedMethod.charAt(i) == ',') {
+							expandedMethod.append(" var").append(argCount++).append(", ");
+						} else {
+							expandedMethod.append(unexpandedMethod.charAt(i));
+						}
 					}
+					String finishedExpandedMethod = expandedMethod.toString().replace(")", " var" + (argCount) + ")");
+					info = finishedExpandedMethod + "/new Object[]{" + "var0,var1,var2,var3,var4,Boolean.valueOf(var5)" + "}";
+//				    Logger.logLine(method.toString());
+//				    Logger.logLine(info);
+					return new BiObject<>(info, returnVal);
 				}
-				String finishedExpandedMethod = expandedMethod.toString().replace(")", " var" + (argCount) + ")");
-				info = finishedExpandedMethod + "/new Object[]{" + "var0,var1,var2,var3,var4,Boolean.valueOf(var5)" + "}";
-//				Logger.logLine(method.toString());
-//				Logger.logLine(info);
-				return new BiObject<>(info, returnVal);
 			}
 		}
 		throw new RuntimeException(new NullPointerException("The requested method: " + name + descriptor + " does not exist." + desc));
