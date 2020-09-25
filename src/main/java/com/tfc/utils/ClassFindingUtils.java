@@ -1,5 +1,6 @@
 package com.tfc.utils;
 
+import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.utils.flamemc.Mojmap;
 
 import java.lang.reflect.Method;
@@ -52,27 +53,30 @@ public class ClassFindingUtils {
 				newArray[i] = prefix + strings[i];
 		else
 			for (int i = 0; i < strings.length; i++) {
-				if (strings[i].equals("List") || strings[i].equals("UUID"))
-					strings[i] = "java.util." + strings[i];
-				else if (strings[i].equals("String"))
-					strings[i] = "java.lang.String";
+				String localString = strings[i];
 
-				if (prefix.equals("get"))
-					if (!strings[i].equals("Id"))
-						newArray[i] = "(Ljava/lang/String;)" + parse(strings[i]);
+				if (localString.equals("UUID"))
+					localString = "java.util.UUID";
+				else if (strings[i].equals("String"))
+					localString = "java.lang.String";
+
+				if (prefix.equals("get")) {
+					if (!localString.equals("Id"))
+						newArray[i] = "(Ljava/lang/String;)" + parse(localString);
 					else
 						newArray[i] = "()B";
-				else if (!strings[i].equals("Id"))
-					newArray[i] = "(Ljava/lang/String;" + parse(strings[i] + ")V");
+				} else {
+					newArray[i] = "(Ljava/lang/String;" + parse(localString) + ")V";
+				}
 			}
 		return newArray;
 	}
 
 	private static String parse(String desc) {
-		String normalDesc = desc;
-		desc = desc.toLowerCase();
+		String lowerDesc = desc.toLowerCase();
 		StringBuilder parsedArg = new StringBuilder();
-		switch (desc) {
+		Logger.logLine(lowerDesc);
+		switch (lowerDesc) {
 			case "int":
 				parsedArg.append("I");
 				break;
@@ -100,7 +104,7 @@ public class ClassFindingUtils {
 			default:
 				parsedArg
 						.append("L")
-						.append(normalDesc.replace(".", "/"))
+						.append(desc.replace(".", "/"))
 						.append(";");
 				break;
 			}
@@ -112,7 +116,7 @@ public class ClassFindingUtils {
 	public static <S, M> BiObject<S, M>[] mergeBiObjectArrays(BiObject<S, M>[] firstArr, BiObject<S, M>[] secondArr) {
 		BiObject<S, M>[] array = new BiObject[firstArr.length + secondArr.length];
 		System.arraycopy(firstArr, 0, array, 0, firstArr.length);
-		System.arraycopy(secondArr, 0, array, 0, secondArr.length);
+		System.arraycopy(secondArr, 0, array, firstArr.length, secondArr.length);
 		return array;
 	}
 

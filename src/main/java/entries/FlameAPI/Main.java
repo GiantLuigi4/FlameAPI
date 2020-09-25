@@ -518,18 +518,20 @@ public class Main implements IFlameAPIMod {
 
 				try {
 					String[] nbtArr = new String[]{
-						"Int", "Float", "Byte", "Long", "List", "Short", "Double", "String", "Boolean", "UUID", "Id"
+						"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID", "Id"
 					};
-					Logger.logLine(java.lang.Class.forName("java.util.List").toString());
+					String[] nbtArr2 = new String[]{
+						"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID"
+					};
 					BiObject<String, Method>[] nbtGets = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
 							ClassFindingUtils.createNBTSearchArray("get", false, nbtArr),
 							ClassFindingUtils.createNBTSearchArray("get", true, nbtArr),
 							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr.length)
 					));
 					BiObject<String, Method>[] nbtPuts = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
-							ClassFindingUtils.createNBTSearchArray("put", false, nbtArr),
-							ClassFindingUtils.createNBTSearchArray("put", true, nbtArr),
-							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr.length)
+							ClassFindingUtils.createNBTSearchArray("put", false, nbtArr2),
+							ClassFindingUtils.createNBTSearchArray("put", true, nbtArr2),
+							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr2.length)
 					));
 
 					BiObject<String, Method>[] nbtMethods = ClassFindingUtils.mergeBiObjectArrays(nbtGets, nbtPuts);

@@ -49,6 +49,7 @@ public class Mojmap {
 		java.lang.reflect.Method returnVal;
 		String info;
 		AtomicReference<Method> mA = new AtomicReference<>();
+		Logger.logLine("name to search: " + name + ", descriptor: " + descriptor + ", replacements: " + replacements);
 		mappingsClass.getMethods().forEach((method) -> {
 			if (method.getDesc().startsWith(descriptor)) {
 				if (method.getPrimary().equals(name)) {
@@ -56,7 +57,6 @@ public class Mojmap {
 				}
 			}
 		});
-		Logger.logLine("name to search: " + name + ", descriptor: " + descriptor);
 		com.tfc.mappings.structure.Method m = mA.get();
 		Logger.logLine("prime name " + m.getPrimary() + ", desc: " + m.getDesc());
 		String desc = m.getDesc();
@@ -105,7 +105,6 @@ public class Mojmap {
 		if (!desc.equals("")) {
 			for (String arg : desc.split(",")) {
 				StringBuilder localArg = new StringBuilder();
-				Logger.logLine(arg);
 				switch (arg) {
 					case "int":
 						localArg.append("I");
