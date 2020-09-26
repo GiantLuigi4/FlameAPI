@@ -49,7 +49,6 @@ public class Mojmap {
 		java.lang.reflect.Method returnVal;
 		String info;
 		AtomicReference<Method> mA = new AtomicReference<>();
-		Logger.logLine("name to search: " + name + ", descriptor: " + descriptor + ", replacements: " + replacements);
 		mappingsClass.getMethods().forEach((method) -> {
 			if (method.getDesc().startsWith(descriptor)) {
 				if (method.getPrimary().equals(name)) {
@@ -58,23 +57,17 @@ public class Mojmap {
 			}
 		});
 		com.tfc.mappings.structure.Method m = mA.get();
-		Logger.logLine("prime name " + m.getPrimary() + ", desc: " + m.getDesc());
 		String desc = m.getDesc();
 		for (BiObject<String, String> biObject : replacements) {
-//			Logger.logLine(biObject.getObject1() + "," + biObject.getObject2());
 			desc = desc.replace(biObject.getObject1(), biObject.getObject2());
 		}
 		desc = (desc + ")")
 				       .replace(",)", ")")
 				       .replaceAll("\\)(.*)\\)", ")");
-		//Logger.logLine("desc:" + desc);
 		for (java.lang.reflect.Method method : clazz.getMethods()) {
 			if (method.getName().equals(m.getSecondary())) {
 				String methodDesc = "(" + parseDescriptorFromRealParameters(method.toString().split("\\(")[1]) + ")";
-				//Logger.logLine("name:" + method.toString());
-				//Logger.logLine("parsed desc:" + methodDesc);
 				if (methodDesc.equals(desc)) {
-					//Logger.logLine("success");
 					returnVal = method;
 					String unexpandedMethod = method.getName() + desc;
 					int argCount = 0;
@@ -90,8 +83,6 @@ public class Mojmap {
 					//                     what is this |
 					//                                  V
 					info = finishedExpandedMethod + "/new Object[]{" + "var0,var1,var2,var3,var4,Boolean.valueOf(var5)" + "}";
-//				    Logger.logLine(method.toString());
-//				    Logger.logLine(info);
 					return new BiObject<>(info, returnVal);
 				}
 			}
@@ -170,8 +161,6 @@ public class Mojmap {
 				.replace(")D)", ")")
 				.replace(")I)", ")")
 				.replace(")J)", ")")
-				.replaceAll("L(.*?);", "$1")
-				.replace("/", ".")
 		;
 		Logger.logLine("desc:" + desc);
 		for (java.lang.reflect.Method method : clazz.getMethods()) {

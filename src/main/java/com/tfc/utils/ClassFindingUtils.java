@@ -75,7 +75,6 @@ public class ClassFindingUtils {
 	private static String parse(String desc) {
 		String lowerDesc = desc.toLowerCase();
 		StringBuilder parsedArg = new StringBuilder();
-		Logger.logLine(lowerDesc);
 		switch (lowerDesc) {
 			case "int":
 				parsedArg.append("I");
@@ -120,7 +119,7 @@ public class ClassFindingUtils {
 		return array;
 	}
 
-	public static <S> ArrayList<S>[] createEmptyArrayOfArrays(int numberOfArr) {
+	public static <S> ArrayList<S>[] createArrayOfEmptyArrays(int numberOfArr) {
 		ArrayList<S>[] arrayLists = new ArrayList[numberOfArr];
 		for (int i = 0; i < numberOfArr; i++)
 			arrayLists[i] = new ArrayList<>();

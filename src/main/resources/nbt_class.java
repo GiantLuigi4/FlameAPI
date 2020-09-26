@@ -1,81 +1,86 @@
-%nbtClass% thisNBT;
+import java.util.UUID;
 
-public CompoundNBT(Object thisNBT) {
-	this.thisNBT = thisNBT;
-}
+public class CompoundNBT {
 
-public int getInt(java.lang.String tag) {
-	return thisNBT.%getInt%(tag);
-}
+	%nbtClass% thisNBT;
 
-public float getFloat(java.lang.String tag) {
-	return thisNBT.%geFloat%(tag);
-}
+	public CompoundNBT(%nbtClass% thisNBT) {
+		this.thisNBT = thisNBT;
+	}
 
-public byte getByte(java.lang.String tag) {
-	return thisNBT.%getByte%(tag);
-}
+	public int getInt(String tag) {
+		return thisNBT.%getInt%(tag);
+	}
 
-public long getLong(java.lang.String tag) {
-	return thisNBT.%getLong%(tag);
-}
+	public float getFloat(String tag) {
+		return thisNBT.%getFloat%(tag);
+	}
 
-public short getShort(java.lang.String tag) {
-	return thisNBT.%getShort%(tag);
-}
+	public byte getByte(String tag) {
+		return thisNBT.%getByte%(tag);
+	}
 
-public double getDouble(java.lang.String tag) {
-	return thisNBT.%getDouble%(tag);
-}
+	public long getLong(String tag) {
+		return thisNBT.%getLong%(tag);
+	}
 
-public java.lang.String getString(java.lang.String tag) {
-	return thisNBT.%getString%(tag);
-}
+	public short getShort(String tag) {
+		return thisNBT.%getShort%(tag);
+	}
 
-public boolean getBoolean(java.lang.String tag) {
-	return thisNBT.%getBoolean%(tag);
-}
+	public double getDouble(String tag) {
+		return thisNBT.%getDouble%(tag);
+	}
 
-public java.util.UUID getUUID(java.lang.String tag) {
-	return thisNBT.%getUUID%(tag);
-}
+	public String getString(String tag) {
+		return thisNBT.%getString%(tag);
+	}
 
-public byte getId() {
-	return thisNBT.%getId%();
-}
+	public boolean getBoolean(String tag) {
+		return thisNBT.%getBoolean%(tag);
+	}
 
-public void putInt(java.lang.String tag, int value) {
-	thisNBT.%putInt%(tag, value);
-}
+	public UUID getUUID(String tag) {
+		return thisNBT.%getUUID%(tag);
+	}
 
-public void putFloat(java.lang.String tag, float value) {
-	thisNBT.%putFloat%(tag, value);
-}
+	public byte getId() {
+		return thisNBT.%getId%();
+	}
 
-public void putByte(java.lang.String tag, byte value) {
-	thisNBT.%putByte%(tag, value);
-}
+	public void putInt(String tag, int value) {
+		thisNBT.%putInt%(tag, value);
+	}
 
-public void putLong(java.lang.String tag, long value) {
-	thisNBT.%putLong%(tag, value);
-}
+	public void putFloat(String tag, float value) {
+		thisNBT.%putFloat%(tag, value);
+	}
 
-public void putShort(java.lang.String tag, short value) {
-	thisNBT.%putShort%(tag, value);
-}
+	public void putByte(String tag, byte value) {
+		thisNBT.%putByte%(tag, value);
+	}
 
-public void putDouble(java.lang.String tag, double value) {
-    thisNBT.%putDouble%(tag, value);
-}
+	public void putLong(String tag, long value) {
+		thisNBT.%putLong%(tag, value);
+	}
 
-public void putString(java.lang.String tag, java.lang.String value) {
-	thisNBT.%putString%(tag, value);
-}
+	public void putShort(String tag, short value) {
+		thisNBT.%putShort%(tag, value);
+	}
 
-public void putBoolean(java.lang.String tag, boolean value) {
-	thisNBT.%putBoolean%(tag, value);
-}
+	public void putDouble(String tag, double value) {
+		thisNBT.%putDouble%(tag, value);
+	}
 
-public void putBoolean(java.lang.String tag, java.util.UUID value) {
-	thisNBT.%putUUID%(tag, value);
+	public void putString(String tag, String value) {
+		thisNBT.%putString%(tag, value);
+	}
+
+	public void putBoolean(String tag, boolean value) {
+		thisNBT.%putBoolean%(tag, value);
+	}
+
+	public void putUUID(String tag, UUID value) {
+		thisNBT.%putUUID%(tag, value);
+	}
 }

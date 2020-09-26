@@ -16,7 +16,6 @@ import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
 import com.tfc.API.flamemc.world.BlockPos;
 import com.tfc.FlameAPIConfigs;
-import com.tfc.bytecode.EnumCompiler;
 import com.tfc.bytecode.loading.ForceLoad;
 import com.tfc.bytecode.utils.Formatter;
 import com.tfc.flame.FlameConfig;
@@ -51,6 +50,7 @@ public class Main implements IFlameAPIMod {
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
 	//private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
+	File gameDirectory = null;
 	private static String gameDir;
 	private static String version;
 	private static String assetVersion; //for snapshots
@@ -487,6 +487,7 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
+			gameDirectory = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 			if (isMappedVersion) {
 				registries.put("minecraft:blocks", Mojmap.getClassObsf("net/minecraft/world/level/block/Blocks").getSecondaryName());
@@ -535,12 +536,12 @@ public class Main implements IFlameAPIMod {
 					BiObject<String, Method>[] nbtGets = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
 							ClassFindingUtils.createNBTSearchArray("get", false, nbtArr),
 							ClassFindingUtils.createNBTSearchArray("get", true, nbtArr),
-							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr.length)
+							ClassFindingUtils.createArrayOfEmptyArrays(nbtArr.length)
 					));
 					BiObject<String, Method>[] nbtPuts = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
 							ClassFindingUtils.createNBTSearchArray("put", false, nbtArr2),
 							ClassFindingUtils.createNBTSearchArray("put", true, nbtArr2),
-							ClassFindingUtils.createEmptyArrayOfArrays(nbtArr2.length)
+							ClassFindingUtils.createArrayOfEmptyArrays(nbtArr2.length)
 					));
 
 					nbtMethods = ClassFindingUtils.mergeBiObjectArrays(nbtGets, nbtPuts);
@@ -699,9 +700,8 @@ public class Main implements IFlameAPIMod {
 								Mojmap.getClassObsf("net/minecraft/world/entity/LivingEntity").getSecondaryName(),
 								"import java.util.ArrayList;import java.lang.Iterable;", source
 						);
-						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
-						File f = new File(gameDir + "\\FlameASM\\fabrication\\EntityBase.class");
-						File f1 = new File(gameDir + "\\FlameASM\\fabrication\\EntityBase_source.java");
+						File f = new File(gameDirectory + "\\FlameASM\\fabrication\\EntityBase.class");
+						File f1 = new File(gameDirectory + "\\FlameASM\\fabrication\\EntityBase_source.java");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
@@ -727,12 +727,30 @@ public class Main implements IFlameAPIMod {
 						byte[] sourceBytes = new byte[sourceStream.available()];
 						sourceStream.read(sourceBytes);
 						sourceStream.close();
+
 						AtomicReference<String> source = new AtomicReference<>(new String(sourceBytes).replace("\t", "").replace("\n", "").replace("//TODO", ""));
-						source.set(source.get().replace("%nbt_class%", compoundNBTClass));
-						Arrays.stream(nbtMethods).forEach((biObject) -> source.set(source.get().replace("%" + biObject.getObject2().getName() + "%", biObject.getObject2().getName())));
-						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
-						File f = new File(gameDir + "\\FlameASM\\fabrication\\CompoundNBT.class");
-						File f1 = new File(gameDir + "\\FlameASM\\fabrication\\CompoundNBT_source.java");
+						source.set(source.get().replace("%nbtClass%", compoundNBTClass));
+
+						com.tfc.mappings.structure.Method[] methodstoFindArr = new com.tfc.mappings.structure.Method[nbtMethods.length];
+						int counter = 0;
+						for (com.tfc.mappings.structure.Method nbtMet : Mojmap.getClassMojmap(compoundNBTClass).getMethods()) {
+							String match = "%" + nbtMet.getPrimary() + "%";
+							if (source.get().contains(match)) {
+								methodstoFindArr[counter] = nbtMet;
+								counter++;
+							}
+						}
+
+						for (BiObject<String, Method> biObject : nbtMethods) {
+							for (com.tfc.mappings.structure.Method value : methodstoFindArr) {
+								if (value.getSecondary().equals(biObject.getObject2().getName())) {
+									source.set(source.get().replace("%" + value.getPrimary() + "%", biObject.getObject2().getName()));
+								}
+							}
+						}
+
+						File f = new File(gameDirectory + "\\FlameASM\\fabrication\\CompoundNBT.class");
+						File f1 = new File(gameDirectory + "\\FlameASM\\fabrication\\CompoundNBT_source.java");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
@@ -740,10 +758,13 @@ public class Main implements IFlameAPIMod {
 						if (!f1.exists()) {
 							f1.createNewFile();
 						}
+
 						FileOutputStream stream = new FileOutputStream(f);
 						FileOutputStream stream1 = new FileOutputStream(f1);
+
 						stream1.write(Formatter.formatForCompile(source.get()).getBytes());
 						stream1.close();
+
 						byte[] compiledBytes = Compiler.compile(EnumCompiler.JANINO, source.get());
 						stream.write(compiledBytes);
 						stream.close();
@@ -765,8 +786,7 @@ public class Main implements IFlameAPIMod {
 										"}" +
 										""
 						);
-						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
-						File f = new File(gameDir + "\\FlameASM\\fabrication\\testEntity.class");
+						File f = new File(gameDirectory + "\\FlameASM\\fabrication\\testEntity.class");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
