@@ -37,7 +37,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
@@ -50,7 +49,7 @@ public class Main implements IFlameAPIMod {
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
 	//private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
-	File gameDirectory = null;
+	static File dataDirectory = null;
 	private static String gameDir;
 	private static String version;
 	private static String assetVersion; //for snapshots
@@ -263,10 +262,6 @@ public class Main implements IFlameAPIMod {
 		return worldServerClass;
 	}
 	
-	public static String getBbClass() {
-		return bbClass;
-	}
-	
 	public static String getVersionMap() {
 		return versionMap;
 	}
@@ -332,14 +327,14 @@ public class Main implements IFlameAPIMod {
 		String name1 = path.replace(".", File.separatorChar + "") + File.separatorChar + name + File.separatorChar + version + File.separatorChar + name + "-" + version + ".jar";
 		try {
 			Method m = FlameLauncher.dependencyManager.getClass().getMethod("addFromURL", String.class);
-			m.invoke(FlameLauncher.dependencyManager, ("libraries/" + name1 + "," + url));
+			m.invoke(FlameLauncher.dependencyManager, ("\\libraries\\" + name1 + "," + url));
 		} catch (Throwable err) {
 			FlameLauncher.downloadDep(name1, url);
 		}
 	}
 	
 	public static String getDataDir() {
-		return ((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+		return dataDirectory.getAbsolutePath();
 	}
 	
 	public static void quitIfNotDev() {
@@ -355,6 +350,10 @@ public class Main implements IFlameAPIMod {
 	@Override
 	public void setupAPI(String[] args) {
 		try {
+			if (!FlameLauncher.isDev)
+				dataDirectory = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+			else
+				dataDirectory = new File(Main.getExecDir() + "\\run");
 			//Bytecode-Utils
 			downloadBytecodeUtils();
 			//Compilers
@@ -487,7 +486,6 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
-			gameDirectory = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
 			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
 			if (isMappedVersion) {
 				registries.put("minecraft:blocks", Mojmap.getClassObsf("net/minecraft/world/level/block/Blocks").getSecondaryName());
@@ -700,8 +698,8 @@ public class Main implements IFlameAPIMod {
 								Mojmap.getClassObsf("net/minecraft/world/entity/LivingEntity").getSecondaryName(),
 								"import java.util.ArrayList;import java.lang.Iterable;", source
 						);
-						File f = new File(gameDirectory + "\\FlameASM\\fabrication\\EntityBase.class");
-						File f1 = new File(gameDirectory + "\\FlameASM\\fabrication\\EntityBase_source.java");
+						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\EntityBase.class");
+						File f1 = new File(dataDirectory + "\\FlameASM\\fabrication\\EntityBase_source.java");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
@@ -749,8 +747,8 @@ public class Main implements IFlameAPIMod {
 							}
 						}
 
-						File f = new File(gameDirectory + "\\FlameASM\\fabrication\\CompoundNBT.class");
-						File f1 = new File(gameDirectory + "\\FlameASM\\fabrication\\CompoundNBT_source.java");
+						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\CompoundNBT.class");
+						File f1 = new File(dataDirectory + "\\FlameASM\\fabrication\\CompoundNBT_source.java");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
@@ -786,7 +784,7 @@ public class Main implements IFlameAPIMod {
 										"}" +
 										""
 						);
-						File f = new File(gameDirectory + "\\FlameASM\\fabrication\\testEntity.class");
+						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\testEntity.class");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();

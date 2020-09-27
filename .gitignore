@@ -1,6 +1,11 @@
 # Project exclude paths
 /.gradle/
 /build/
-/.idea/
+/.idea/.name
+/.idea/*.xml
+/.idea/libraries/
+/.idea/modules/
+/libraries/
 *.class
-forge-1.12.2-14.23.5.2854_mapped_snapshot_20171003-1.12-sources.jar
+/libs/
+/run/
