@@ -16,7 +16,6 @@ import com.tfc.API.flamemc.world.BlockPos;
 import com.tfc.FlameAPIConfigs;
 import com.tfc.bytecode.loading.ForceLoad;
 import com.tfc.bytecode.utils.Formatter;
-import com.tfc.flame.FlameConfig;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
@@ -95,6 +94,8 @@ public class Main implements IFlameAPIMod {
 	private static Method entity$writeAdditionalSaveData = null;
 	private static Method entity$getAddEntityPacket = null;
 	
+	private static Method blocks$register = null;
+	
 	private static String getMainArm = "";
 	
 	private static String versionMap = "";
@@ -123,6 +124,10 @@ public class Main implements IFlameAPIMod {
 	
 	public static Method getEntity$getMainArm() {
 		return entity$getMainArm;
+	}
+	
+	public static Method getBlocks$register() {
+		return blocks$register;
 	}
 	
 	public static Method getEntity$getArmorItems() {
@@ -452,20 +457,20 @@ public class Main implements IFlameAPIMod {
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", Applicator::apply);
 		
 		Access access = new Access(FlameASM.AccessType.PRIVATE, "hello");
-		FlameConfig.field.append(access.type.name() + "\n");
-		FlameConfig.field.append(access.type.level + "\n");
+		Logger.log(access.type.name() + "\n");
+		Logger.log(access.type.level + "\n");
 		
 		access.increase(FlameASM.AccessType.PROTECTED);
-		FlameConfig.field.append(access.type.name() + "\n");
-		FlameConfig.field.append(access.type.level + "\n");
+		Logger.log(access.type.name() + "\n");
+		Logger.log(access.type.level + "\n");
 		
 		access.increase(FlameASM.AccessType.PUBLIC);
-		FlameConfig.field.append(access.type.name() + "\n");
-		FlameConfig.field.append(access.type.level + "\n");
+		Logger.log(access.type.name() + "\n");
+		Logger.log(access.type.level + "\n");
 		
 		access.increase(FlameASM.AccessType.PUBLIC_STATIC);
-		FlameConfig.field.append(access.type.name() + "\n");
-		FlameConfig.field.append(access.type.level + "\n");
+		Logger.log(access.type.name() + "\n");
+		Logger.log(access.type.level + "\n");
 
 //		try {
 //			Class.forName("mixins.FlameAPI.ClientBrandRetriever");
@@ -479,7 +484,7 @@ public class Main implements IFlameAPIMod {
 //		}
 		
 		try {
-			FlameConfig.field.append("PreInit Registries:" + registries.size() + "\n");
+			Logger.log("PreInit Registries:" + registries.size() + "\n");
 			if (isMappedVersion) {
 				registries.put("minecraft:blocks", Mojmap.getClassObsf("net/minecraft/world/level/block/Blocks").getSecondaryName());
 				registries.put("minecraft:items", Mojmap.getClassObsf("net/minecraft/world/item/Items").getSecondaryName());
@@ -750,19 +755,19 @@ public class Main implements IFlameAPIMod {
 				
 				mainRegistry = (String) Class.forName("RegistryClassFinder").getMethod("findMainRegistry", HashMap.class, File.class).invoke(null, registries, new File(execDir + "\\versions\\" + version + "\\" + version + ".jar"));
 			}
-			FlameConfig.field.append("Block: " + blockClass + "\n");
-			FlameConfig.field.append("Item: " + itemClass + "\n");
-			FlameConfig.field.append("ItemStack: " + itemStackClass + "\n");
-			FlameConfig.field.append("ResourceLocation: " + resourceLocationClass + "\n");
-			FlameConfig.field.append("World: " + worldClass + "\n");
-			FlameConfig.field.append("IWorld: " + IWorldClass + "\n");
-			FlameConfig.field.append("WorldServer: " + worldServerClass + "\n");
-			FlameConfig.field.append("BufferBuilder: " + bbClass + "\n");
-			FlameConfig.field.append("Tessellator: " + tessellatorClass + "\n");
-			FlameConfig.field.append("BlockFire: " + blockFireClass + "\n");
-			FlameConfig.field.append("BlockPos: " + blockPosClass + "\n");
-			FlameConfig.field.append("BlockState: " + blockStateClass + "\n");
-			FlameConfig.field.append("MainRegistry: " + mainRegistry + "\n");
+			Logger.log("Block: " + blockClass + "\n");
+			Logger.log("Item: " + itemClass + "\n");
+			Logger.log("ItemStack: " + itemStackClass + "\n");
+			Logger.log("ResourceLocation: " + resourceLocationClass + "\n");
+			Logger.log("World: " + worldClass + "\n");
+			Logger.log("IWorld: " + IWorldClass + "\n");
+			Logger.log("WorldServer: " + worldServerClass + "\n");
+			Logger.log("BufferBuilder: " + bbClass + "\n");
+			Logger.log("Tessellator: " + tessellatorClass + "\n");
+			Logger.log("BlockFire: " + blockFireClass + "\n");
+			Logger.log("BlockPos: " + blockPosClass + "\n");
+			Logger.log("BlockState: " + blockStateClass + "\n");
+			Logger.log("MainRegistry: " + mainRegistry + "\n");
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}
@@ -771,21 +776,21 @@ public class Main implements IFlameAPIMod {
 		ArrayList<Throwable> throwables = new ArrayList<>();
 		
 		try {
-			FlameConfig.field.append(Registry.constructResourceLocation("FlameAPI:test").toString() + "\n");
+			Logger.log(Registry.constructResourceLocation("FlameAPI:test").toString() + "\n");
 			success = true;
 		} catch (Throwable err) {
 			throwables.add(err);
 		}
 		
 		try {
-			FlameConfig.field.append(Registry.constructResourceLocation("flame_api:test").toString() + "\n");
+			Logger.log(Registry.constructResourceLocation("flame_api:test").toString() + "\n");
 			success = true;
 		} catch (Throwable err) {
 			throwables.add(err);
 		}
 		
 		try {
-			FlameConfig.field.append(Registry.constructResourceLocation("flameapi:test").toString() + "\n");
+			Logger.log(Registry.constructResourceLocation("flameapi:test").toString() + "\n");
 			success = true;
 		} catch (Throwable err) {
 			throwables.add(err);
@@ -793,7 +798,7 @@ public class Main implements IFlameAPIMod {
 		
 		if (!success) {
 			throwables.forEach(Logger::logErrFull);
-			FlameConfig.field.append("Failed to construct a resource location.\n");
+			Logger.log("Failed to construct a resource location.\n");
 		}
 		
 		try {
@@ -834,7 +839,7 @@ public class Main implements IFlameAPIMod {
 		try {
 			for (Field f : Class.forName("net.minecraft.client.ClientBrandRetriever").getFields()) {
 				try {
-					FlameConfig.field.append("net.minecraft.client.ClientBrandRetriever%" + f.getName() + "=" + f.get(null) + "\n");
+					Logger.log("net.minecraft.client.ClientBrandRetriever%" + f.getName() + "=" + f.get(null) + "\n");
 				} catch (Throwable ignored) {
 				}
 			}
@@ -1071,19 +1076,58 @@ public class Main implements IFlameAPIMod {
 			Logger.logErrFull(err);
 		}
 		
+		if (isMappedVersion) {
+			try {
+				blocks$register =
+						Mojmap.getMethod(
+								Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()),
+								Mojmap.getClassMojmap("net/minecraft/class_2246"),
+								"register", "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/Block;",
+								Mojmap.toStringBiObjectArray(
+										"Ljava/lang/String;", "String",
+										"net/minecraft/world/level/block/Block", blockClass
+								)
+						).getObject2();
+			} catch (Throwable err) {
+				try {
+					blocks$register = Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()).getDeclaredMethod(
+							"a", String.class, Class.forName(blockClass)
+					);
+				} catch (Throwable err2) {
+					try {
+						try {
+							for (Method m : Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()).getDeclaredMethods())
+								if (m.getName().equals("a")) blocks$register = m;
+						} catch (Throwable ignored) {
+						}
+						if (blocks$register == null) {
+							blocks$register = Class.forName("bpi").getDeclaredMethod("a", String.class, Class.forName(blockClass));
+							if (blocks$register == null) {
+								throw new RuntimeException("a");
+							}
+						}
+					} catch (Throwable err3) {
+						Logger.logErrFull(err);
+						Logger.logErrFull(err2);
+						Logger.logErrFull(err3);
+					}
+				}
+			}
+		}
+		
 		FlameAPI.instance.bus.post(RegistryStep.class, new RegistryStep());
 	}
 	
 	@Override
 	public void postinit(String[] args) {
-		FlameConfig.field.append("PostInit Registries:" + registries.size() + "\n");
+		Logger.log("PostInit Registries:" + registries.size() + "\n");
 		Iterator<String> names = registries.keySet().iterator();
 		Iterator<String> classes = registries.values().iterator();
 		for (int i = 0; i < registries.size(); i++) {
 			try {
 				String name = names.next();
 				String clazz = ScanningUtils.toClassName(classes.next());
-				FlameConfig.field.append("Registry class: " + name + ": " + clazz + "\n");
+				Logger.log("Registry class: " + name + ": " + clazz + "\n");
 				registryClassNames.put(name, clazz);
 			} catch (Throwable err) {
 				Logger.logErrFull(err);

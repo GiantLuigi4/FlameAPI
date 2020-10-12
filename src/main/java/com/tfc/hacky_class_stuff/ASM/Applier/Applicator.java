@@ -17,20 +17,25 @@ public class Applicator {
 	
 	public static byte[] apply(String name, byte[] source) {
 		try {
-			Logger.logLine("Transforming: " + name);
+			if (name.equals("awy")) {
+				Logger.logLine("Class loading awy.class");
+			}
 			ASM asm = new ASM(source);
 			boolean transformed = false;
 			if (fields.containsKey(name)) {
+				Logger.logLine("Adding fields to " + name);
 				transformed = true;
 				for (Field f : fields.get(name))
 					asm.addField(f.getName(), f.getAccess(), f.getDescriptor(), f.getDefaultValue());
 			}
 			if (methods.containsKey(name)) {
+				Logger.logLine("Adding methods to " + name);
 				transformed = true;
 				for (Method m : methods.get(name))
 					asm.addMethod(m.getAccess(), m.getName(), m.getDescriptor(), null, null, m.getInstructions());
 			}
 			if (insnAdds.containsKey(name)) {
+				Logger.logLine("Adding instructions to existing methods of " + name);
 				transformed = true;
 				for (BiObject<Method, Boolean> add : insnAdds.get(name)) {
 					Method m = add.getObject1();

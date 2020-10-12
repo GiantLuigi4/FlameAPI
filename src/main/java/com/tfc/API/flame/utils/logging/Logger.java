@@ -7,8 +7,10 @@ import com.tfc.flame.FlameConfig;
 public class Logger {
 	public static void log(Object obj) {
 		if (obj instanceof String) {
+			System.out.print((String) obj);
 			FlameConfig.field.append((String) obj);
 		} else {
+			System.out.print(obj + "");
 			FlameConfig.field.append(obj + "");
 		}
 	}

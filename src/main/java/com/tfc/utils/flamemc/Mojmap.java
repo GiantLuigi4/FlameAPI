@@ -1,5 +1,6 @@
 package com.tfc.utils.flamemc;
 
+import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.mappings.structure.Class;
 import com.tfc.mappings.structure.Method;
 import com.tfc.mappings.structure.MojmapHolder;
@@ -71,7 +72,7 @@ public class Mojmap {
 				.replace(")J)", ")")
 		;
 //		Logger.logLine("desc:" + desc);
-		for (java.lang.reflect.Method method : clazz.getMethods()) {
+		for (java.lang.reflect.Method method : Methods.getAllMethods(clazz)) {
 			if (method.toString().contains(desc) && method.getName().equals(m.getSecondary())) {
 //				Logger.logLine("success");
 //				Logger.logLine("name:" + method.toString());

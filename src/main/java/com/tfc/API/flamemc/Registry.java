@@ -32,12 +32,31 @@ public class Registry {
 		if (registryHash.contains(type, resourceLocation)) {
 			throw new RuntimeException(new IllegalAccessException("Can not register two " + type.name + "s" + " to the same register."));
 		}
+		if (type == RegistryType.BLOCK) {
+			System.out.println(Main.getBlocks$register());
+			if (Main.getBlocks$register() != null) {
+				try {
+					Method m = Main.getBlocks$register();
+					m.setAccessible(true);
+					Object returnVal = m.invoke(null, resourceLocation.toString(), toRegister);
+					if (returnVal != null) {
+						registryHash.add(type, resourceLocation, returnVal);
+						return new RegistryObject<>(returnVal);
+					} else
+						throw new RuntimeException(new NullPointerException("Cannot register a null object... idk how you bypassed the first null check though."));
+				} catch (Throwable err) {
+					Logger.logErrFull(err);
+					throw new RuntimeException(err);
+				}
+			}
+		}
 		try {
 			Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
 			Class<?> registry = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(type.name))));
 			AtomicReference<RegistryObject<?>> returnVal = new AtomicReference<>(null);
 			ArrayList<Method> allMethods = Methods.getAllMethods(registry);
 			FlameConfig.field.append(allMethods.size() + "\n");
+			ArrayList<Throwable> errs = new ArrayList<>();
 			for (Method method : allMethods) {
 				if (method.getParameterTypes().length == 2) {
 					if (returnVal.get() == null) {
@@ -51,11 +70,14 @@ public class Registry {
 								return returnVal.get();
 							}
 						} catch (Throwable err) {
-							Logger.logErrFull(err);
+							errs.add(err);
+//							Logger.logErrFull(err);
 						}
 					}
 				}
 			}
+			if (returnVal.get() == null)
+				errs.forEach(Logger::logErrFull);
 			return returnVal.get();
 		} catch (Throwable err) {
 			FlameConfig.logError(err);
@@ -131,35 +153,37 @@ public class Registry {
 			throw new RuntimeException(new IllegalAccessException("Can not register two " + RegistryType.BLOCK.name + "s" + " to the same register."));
 		}
 		try {
-			Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
-			Class<?> registry = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(RegistryType.BLOCK.name))));
-			ArrayList<Method> allMethods = Methods.getAllMethods(registry);
-			FlameConfig.field.append(allMethods.size() + "\n");
-			for (Method method : allMethods) {
-				if (method.getParameterTypes().length == 1) {
-					if (method.getParameterTypes()[0].equals(block.get().getClass())) {
-						if (returnVal == null) {
-							try {
-								FlameConfig.field.append("method: " + method.getName() + "\n");
-								FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
-								method.setAccessible(true);
-								returnVal = new RegistryObject<>(method.invoke(null, block));
-								registryHash.add(RegistryType.ITEM, location, returnVal);
-							} catch (Throwable err) {
-								Logger.logErrFull(err);
+			returnVal = register(location, RegistryType.ITEM, BlockItem.instance(block, new ItemProperties(location, block.get())));
+		} catch (Throwable ignored) {
+		}
+		if (returnVal == null) {
+			try {
+				Class.forName(ScanningUtils.toClassName(Main.getMainRegistry()));
+				Class<?> registry = Class.forName(ScanningUtils.toClassName(Main.getRegistries().get(getRegistryClass(RegistryType.BLOCK.name))));
+				ArrayList<Method> allMethods = Methods.getAllMethods(registry);
+				FlameConfig.field.append(allMethods.size() + "\n");
+				for (Method method : allMethods) {
+					if (method.getParameterTypes().length == 1) {
+						if (method.getParameterTypes()[0].equals(block.get().getClass())) {
+							if (returnVal == null) {
+								try {
+									FlameConfig.field.append("method: " + method.getName() + "\n");
+									FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
+									method.setAccessible(true);
+									returnVal = new RegistryObject<>(method.invoke(null, block));
+									registryHash.add(RegistryType.ITEM, location, returnVal);
+								} catch (Throwable err) {
+									Logger.logErrFull(err);
+								}
 							}
 						}
 					}
 				}
+			} catch (Throwable err) {
+				FlameConfig.logError(err);
 			}
-		} catch (Throwable err) {
-			FlameConfig.logError(err);
 		}
-		if (returnVal == null) {
-			return register(location, RegistryType.ITEM, BlockItem.instance(block, new ItemProperties(location, block.get())));
-		} else {
-			return new RegistryObject<>(returnVal);
-		}
+		return new RegistryObject<>(returnVal);
 	}
 	
 	//If you want to use this with vanilla methods, you need to call ".unwrap()" on the ResourceLocation object this creates.
