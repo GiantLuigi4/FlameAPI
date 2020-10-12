@@ -1,5 +1,7 @@
 package entries.FlameAPI;
 
+import com.tfc.bytecode.Compiler;
+import com.tfc.bytecode.EnumCompiler;
 import com.tfc.API.flame.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flame.utils.reflection.Fields;
@@ -21,6 +23,7 @@ import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
 import com.tfc.hacky_class_stuff.ASM.Applier.Applicator;
 import com.tfc.utils.BiObject;
+import com.tfc.utils.ClassFindingUtils;
 import com.tfc.utils.Fabricator;
 import com.tfc.utils.ScanningUtils;
 import com.tfc.utils.flamemc.Intermediary;
@@ -35,6 +38,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
@@ -44,6 +48,7 @@ public class Main implements IFlameAPIMod {
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
 	//private static final HashMap<String, Class<?>> registryClasses = new HashMap<>();
+	static File dataDirectory = null;
 	private static String gameDir;
 	private static String version;
 	private static String assetVersion; //for snapshots
@@ -97,6 +102,8 @@ public class Main implements IFlameAPIMod {
 	private static Method blocks$register = null;
 	
 	private static String getMainArm = "";
+
+	private static BiObject<String, Method>[] nbtMethods = null;
 	
 	private static String versionMap = "";
 	private static boolean isMappedVersion = false;
@@ -260,10 +267,6 @@ public class Main implements IFlameAPIMod {
 		return worldServerClass;
 	}
 	
-	public static String getBbClass() {
-		return bbClass;
-	}
-	
 	public static String getVersionMap() {
 		return versionMap;
 	}
@@ -329,14 +332,14 @@ public class Main implements IFlameAPIMod {
 		String name1 = path.replace(".", File.separatorChar + "") + File.separatorChar + name + File.separatorChar + version + File.separatorChar + name + "-" + version + ".jar";
 		try {
 			Method m = FlameLauncher.dependencyManager.getClass().getMethod("addFromURL", String.class);
-			m.invoke(FlameLauncher.dependencyManager, ("libraries/" + name1 + "," + url));
+			m.invoke(FlameLauncher.dependencyManager, ("\\libraries\\" + name1 + "," + url));
 		} catch (Throwable err) {
 			FlameLauncher.downloadDep(name1, url);
 		}
 	}
 	
 	public static String getDataDir() {
-		return ((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+		return dataDirectory.getAbsolutePath();
 	}
 	
 	public static void quitIfNotDev() {
@@ -352,6 +355,10 @@ public class Main implements IFlameAPIMod {
 	@Override
 	public void setupAPI(String[] args) {
 		try {
+			if (!FlameLauncher.isDev)
+				dataDirectory = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
+			else
+				dataDirectory = new File(Main.getExecDir() + "\\run");
 			//Bytecode-Utils
 			downloadBytecodeUtils();
 			//Compilers
@@ -521,8 +528,26 @@ public class Main implements IFlameAPIMod {
 				resourceLocationClass = Mojmap.getClassObsf("net/minecraft/resources/ResourceLocation").getSecondaryName();
 				blockStateClass = Mojmap.getClassObsf("net/minecraft/world/level/block/state/BlockState").getSecondaryName();
 				blockFireClass = Mojmap.getClassObsf("net/minecraft/world/level/block/FireBlock").getSecondaryName();
-				
+
 				try {
+					String[] nbtArr = new String[]{
+						"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID", "Id"
+					};
+					String[] nbtArr2 = new String[]{
+						"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID"
+					};
+					BiObject<String, Method>[] nbtGets = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
+							ClassFindingUtils.createNBTSearchArray("get", false, nbtArr),
+							ClassFindingUtils.createNBTSearchArray("get", true, nbtArr),
+							ClassFindingUtils.createArrayOfEmptyArrays(nbtArr.length)
+					));
+					BiObject<String, Method>[] nbtPuts = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
+							ClassFindingUtils.createNBTSearchArray("put", false, nbtArr2),
+							ClassFindingUtils.createNBTSearchArray("put", true, nbtArr2),
+							ClassFindingUtils.createArrayOfEmptyArrays(nbtArr2.length)
+					));
+
+					nbtMethods = ClassFindingUtils.mergeBiObjectArrays(nbtGets, nbtPuts);
 					//Gets the tick method for entity class
 					BiObject<String, Method> method = Mojmap.getMethod(
 							Class.forName(entityClass), Mojmap.getClassMojmap(entityClass),
@@ -678,9 +703,8 @@ public class Main implements IFlameAPIMod {
 								Mojmap.getClassObsf("net/minecraft/world/entity/LivingEntity").getSecondaryName(),
 								"import java.util.ArrayList;import java.lang.Iterable;", source
 						);
-						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
-						File f = new File(gameDir + "\\FlameASM\\fabrication\\EntityBase.class");
-						File f1 = new File(gameDir + "\\FlameASM\\fabrication\\EntityBase_source.java");
+						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\EntityBase.class");
+						File f1 = new File(dataDirectory + "\\FlameASM\\fabrication\\EntityBase_source.java");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
@@ -702,6 +726,56 @@ public class Main implements IFlameAPIMod {
 						quitIfNotDev();
 					}
 					try {
+						InputStream sourceStream = Main.class.getClassLoader().getResourceAsStream("nbt_class.java");
+						byte[] sourceBytes = new byte[sourceStream.available()];
+						sourceStream.read(sourceBytes);
+						sourceStream.close();
+
+						AtomicReference<String> source = new AtomicReference<>(new String(sourceBytes).replace("\t", "").replace("\n", "").replace("//TODO", ""));
+						source.set(source.get().replace("%nbtClass%", compoundNBTClass));
+
+						com.tfc.mappings.structure.Method[] methodstoFindArr = new com.tfc.mappings.structure.Method[nbtMethods.length];
+						int counter = 0;
+						for (com.tfc.mappings.structure.Method nbtMet : Mojmap.getClassMojmap(compoundNBTClass).getMethods()) {
+							String match = "%" + nbtMet.getPrimary() + "%";
+							if (source.get().contains(match)) {
+								methodstoFindArr[counter] = nbtMet;
+								counter++;
+							}
+						}
+
+						for (BiObject<String, Method> biObject : nbtMethods) {
+							for (com.tfc.mappings.structure.Method value : methodstoFindArr) {
+								if (value.getSecondary().equals(biObject.getObject2().getName())) {
+									source.set(source.get().replace("%" + value.getPrimary() + "%", biObject.getObject2().getName()));
+								}
+							}
+						}
+
+						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\CompoundNBT.class");
+						File f1 = new File(dataDirectory + "\\FlameASM\\fabrication\\CompoundNBT_source.java");
+						if (!f.exists()) {
+							f.getParentFile().mkdirs();
+							f.createNewFile();
+						}
+						if (!f1.exists()) {
+							f1.createNewFile();
+						}
+
+						FileOutputStream stream = new FileOutputStream(f);
+						FileOutputStream stream1 = new FileOutputStream(f1);
+
+						stream1.write(Formatter.formatForCompile(source.get()).getBytes());
+						stream1.close();
+
+						byte[] compiledBytes = Compiler.compile(EnumCompiler.JANINO, source.get());
+						stream.write(compiledBytes);
+						stream.close();
+					} catch (Throwable err) {
+						Logger.logErrFull(err);
+						quitIfNotDev();
+					}
+					try {
 						String testClass = EntityClassGenerator.generate(
 								"com.tfc.test.test", Mojmap.getClassObsf("net/minecraft/world/entity/monster/Phantom").getSecondaryName(),
 								"", "" +
@@ -715,8 +789,7 @@ public class Main implements IFlameAPIMod {
 										"}" +
 										""
 						);
-						File gameDir = new File((Main.getGameDir() == null ? Main.getExecDir() : Main.getGameDir()));
-						File f = new File(gameDir + "\\FlameASM\\fabrication\\testEntity.class");
+						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\testEntity.class");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
@@ -959,7 +1032,7 @@ public class Main implements IFlameAPIMod {
 				}
 			}
 			
-			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, createBiObjectArray(
+			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, ClassFindingUtils.createBiObjectArray(
 					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
 			));
 			if (onRemovedB != null) {
@@ -967,7 +1040,7 @@ public class Main implements IFlameAPIMod {
 				removedMethod = onRemovedB.getObject1();
 			}
 			
-			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, createBiObjectArray(
+			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, ClassFindingUtils.createBiObjectArray(
 					getBlockStateClass(), getWorldClass(),
 					getBlockPosClass(), getBlockClass(),
 					getBlockPosClass(), boolean.class.getName() + ".class"
@@ -979,14 +1052,14 @@ public class Main implements IFlameAPIMod {
 			
 			Logger.logLine("Scanning world:");
 			Logger.logLine("Method setBlockState:");
-			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, createBiObjectArray(
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, ClassFindingUtils.createBiObjectArray(
 					getBlockPosClass(), getBlockStateClass()
 			));
 			Logger.logLine("Method getBlockState:");
 			if (ScanningUtils.mcMajorVersion == 15)
 				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
 			else
-				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), createBiObjectArray(
+				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), ClassFindingUtils.createBiObjectArray(
 						getBlockPosClass()
 				));
 		} catch (Throwable err) {
@@ -1143,11 +1216,5 @@ public class Main implements IFlameAPIMod {
 				bytecodeUtilsVersion
 		);
 	}
-	
-	private BiObject<String, String>[] createBiObjectArray(String... obj1Array) {
-		BiObject<String, String>[] newArray = new BiObject[obj1Array.length];
-		for (int i = 0; i < obj1Array.length; i++)
-			newArray[i] = new BiObject<>(obj1Array[i], "var" + i);
-		return newArray;
-	}
+
 }

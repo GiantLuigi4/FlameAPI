@@ -1,4 +1,5 @@
 import com.tfc.API.flame.utils.logging.Logger;
+import com.tfc.utils.ClassFindingUtils;
 import com.tfc.utils.ScanningUtils;
 import entries.FlameAPI.Main;
 

@@ -16,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.function.Function;
 
 public class Fabricator {
-	private static final File f = new File(Main.getExecDir() + "\\FlameASM\\fabrication");
+	private static final File f = new File(Main.getDataDir() + "\\FlameASM\\fabrication");
 	
 	private static final Janino_Compiler compiler = new Janino_Compiler();
 	
