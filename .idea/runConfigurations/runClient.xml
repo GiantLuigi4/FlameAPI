@@ -2,7 +2,7 @@
   <configuration default="false" name="runClient" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.tfc.flamemc.FlameLauncher" />
     <module name="FlameAPI-1.7.10+.main" />
-    <option name="VM_PARAMETERS" value="-Djava.library.path=libs/" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=libraries/" />
     <method v="2">
       <option name="Gradle.BeforeRunTask" enabled="true" tasks="jar" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>

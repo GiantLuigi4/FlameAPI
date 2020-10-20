@@ -187,6 +187,7 @@ public class EntityClassGenerator {
 	}
 	
 	public static byte[] compile(String clazz) {
-		return Compiler.compile(EnumCompiler.JANINO, clazz);
+//		return Compiler.compile(EnumCompiler.JANINO, clazz);
+		return Compiler.compile(EnumCompiler.JAVASSIST, clazz);
 	}
 }

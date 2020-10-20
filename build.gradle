@@ -48,9 +48,9 @@ dependencies {
     runtimeOnly 'net.java.jutils:jutils:1.0.0'
     runtimeOnly 'net.java.jinput:jinput:2.0.5'
 
-    implementation 'com.github.GiantLuigi4:FlameMC:5862261'
-    implementation 'com.github.GiantLuigi4:Bytecode-Utils:bf74e37373'
-    implementation 'com.github.GiantLuigi4:MCMappingsHelper:e9c715b'
+    implementation 'com.github.GiantLuigi4:FlameMC:79e69be'
+    compileOnly 'com.github.GiantLuigi4:Bytecode-Utils:509c9e4'
+    compileOnly 'com.github.GiantLuigi4:MCMappingsHelper:e9c715b'
     compileOnly group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
     compileOnly 'org.codehaus.janino:janino:3.1.2'
     compileOnly 'org.codehaus.janino:commons-compiler:3.1.2'

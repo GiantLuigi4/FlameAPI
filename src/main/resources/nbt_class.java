@@ -1,11 +1,14 @@
 import java.util.UUID;
 
 public class CompoundNBT {
-
 	%nbtClass% thisNBT;
-
+	
 	public CompoundNBT(%nbtClass% thisNBT) {
 		this.thisNBT = thisNBT;
+	}
+	
+	public CompoundNBT() {
+		this.thisNBT = new %nbtClass%();
 	}
 
 	public int getInt(String tag) {
@@ -40,7 +43,7 @@ public class CompoundNBT {
 		return thisNBT.%getBoolean%(tag);
 	}
 
-	public UUID getUUID(String tag) {
+	public java.util.UUID getUUID(String tag) {
 		return thisNBT.%getUUID%(tag);
 	}
 
@@ -80,7 +83,15 @@ public class CompoundNBT {
 		thisNBT.%putBoolean%(tag, value);
 	}
 
-	public void putUUID(String tag, UUID value) {
+	public void putUUID(String tag, java.util.UUID value) {
 		thisNBT.%putUUID%(tag, value);
+	}
+	
+	public Object unwrap() {
+		return this.thisNBT;
+	}
+	
+	public String toString() {
+		return this.thisNBT.toString();
 	}
 }

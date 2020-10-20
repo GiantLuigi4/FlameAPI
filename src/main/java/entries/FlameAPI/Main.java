@@ -1,7 +1,5 @@
 package entries.FlameAPI;
 
-import com.tfc.bytecode.Compiler;
-import com.tfc.bytecode.EnumCompiler;
 import com.tfc.API.flame.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flame.utils.reflection.Fields;
@@ -9,6 +7,7 @@ import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockProperties;
+import com.tfc.API.flamemc.data.CompoundNBT;
 import com.tfc.API.flamemc.entities.EntityClassGenerator;
 import com.tfc.API.flamemc.event.init_steps.PreFlameInit;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
@@ -16,8 +15,12 @@ import com.tfc.API.flamemc.items.BlockItem;
 import com.tfc.API.flamemc.items.Item;
 import com.tfc.API.flamemc.world.BlockPos;
 import com.tfc.FlameAPIConfigs;
+import com.tfc.bytecode.Compiler;
+import com.tfc.bytecode.compilers.Javassist_Compiler;
 import com.tfc.bytecode.loading.ForceLoad;
 import com.tfc.bytecode.utils.Formatter;
+import com.tfc.bytecode.utils.Parser;
+import com.tfc.bytecode.utils.class_structure.ClassNode;
 import com.tfc.flame.IFlameAPIMod;
 import com.tfc.flamemc.FlameLauncher;
 import com.tfc.hacky_class_stuff.ASM.API.Access;
@@ -43,7 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Main implements IFlameAPIMod {
 	private static final HashMap<String, String> registryClassNames = new HashMap<>();
 	
-	private static final String bytecodeUtilsVersion = "bf74e37373";
+	private static final String bytecodeUtilsVersion = "509c9e4";
 	
 	public static final ArrayList<Constructor<?>> blockConstructors = new ArrayList<>();
 	
@@ -721,6 +724,7 @@ public class Main implements IFlameAPIMod {
 						stream.write(entityClassBytes);
 						stream.close();
 						ForceLoad.forceLoad(Main.class.getClassLoader(), entityClassBytes);
+					} catch (ReflectiveOperationException ignored) {
 					} catch (Throwable err) {
 						Logger.logErrFull(err);
 						quitIfNotDev();
@@ -731,9 +735,10 @@ public class Main implements IFlameAPIMod {
 						sourceStream.read(sourceBytes);
 						sourceStream.close();
 
-						AtomicReference<String> source = new AtomicReference<>(new String(sourceBytes).replace("\t", "").replace("\n", "").replace("//TODO", ""));
+//						AtomicReference<String> source = new AtomicReference<>(new String(sourceBytes).replace("\t", "").replace("\n", "").replace("//TODO", ""));
+						AtomicReference<String> source = new AtomicReference<>(new String("import java.util.UUID;public class CompoundNBT {%nbtClass% thisNBT;public CompoundNBT(%nbtClass% thisNBT) {this.thisNBT = thisNBT;}public CompoundNBT() {this.thisNBT = new %nbtClass%();}public int getInt(String tag) {return thisNBT.%getInt%(tag);}public float getFloat(String tag) {return thisNBT.%getFloat%(tag);}public byte getByte(String tag) {return thisNBT.%getByte%(tag);}public long getLong(String tag) {return thisNBT.%getLong%(tag);}public short getShort(String tag) {return thisNBT.%getShort%(tag);}public double getDouble(String tag) {return thisNBT.%getDouble%(tag);}public String getString(String tag) {return thisNBT.%getString%(tag);}public boolean getBoolean(String tag) {return thisNBT.%getBoolean%(tag);}public java.util.UUID getUUID(String tag) {return thisNBT.%getUUID%(tag);}public byte getId() {return thisNBT.%getId%();}public void putInt(String tag, int value) {thisNBT.%putInt%(tag, value);}public void putFloat(String tag, float value) {thisNBT.%putFloat%(tag, value);}public void putByte(String tag, byte value) {thisNBT.%putByte%(tag, value);}public void putLong(String tag, long value) {thisNBT.%putLong%(tag, value);}public void putShort(String tag, short value) {thisNBT.%putShort%(tag, value);}public void putDouble(String tag, double value) {thisNBT.%putDouble%(tag, value);}public void putString(String tag, String value) {thisNBT.%putString%(tag, value);}public void putBoolean(String tag, boolean value) {thisNBT.%putBoolean%(tag, value);}public void putUUID(String tag, java.util.UUID value) {thisNBT.%putUUID%(tag, value);}public Object unwrap() {return this.thisNBT;}public String toString() {return this.thisNBT.toString();}}").replace("\t", "").replace("\n", "").replace("//TODO", ""));
 						source.set(source.get().replace("%nbtClass%", compoundNBTClass));
-
+						
 						com.tfc.mappings.structure.Method[] methodstoFindArr = new com.tfc.mappings.structure.Method[nbtMethods.length];
 						int counter = 0;
 						for (com.tfc.mappings.structure.Method nbtMet : Mojmap.getClassMojmap(compoundNBTClass).getMethods()) {
@@ -761,14 +766,21 @@ public class Main implements IFlameAPIMod {
 						if (!f1.exists()) {
 							f1.createNewFile();
 						}
-
+						
 						FileOutputStream stream = new FileOutputStream(f);
 						FileOutputStream stream1 = new FileOutputStream(f1);
-
+						
 						stream1.write(Formatter.formatForCompile(source.get()).getBytes());
 						stream1.close();
-
-						byte[] compiledBytes = Compiler.compile(EnumCompiler.JANINO, source.get());
+						
+						Field compiler = Compiler.class.getDeclaredField("javassist");
+						compiler.setAccessible(true);
+						Javassist_Compiler compiler1 = (Javassist_Compiler) compiler.get(null);
+						ClassNode node = Parser.parse(Formatter.formatForCompile(source.get()));
+						node.name = "com.tfc.API.flamemc.data.CompoundNBT";
+						byte[] compiledBytes = compiler1.compile(node);
+						ForceLoad.forceLoad(Main.class.getClassLoader(), compiledBytes);
+//						byte[] compiledBytes = Compiler.compile(EnumCompiler.JAVASSIST, source.get());
 						stream.write(compiledBytes);
 						stream.close();
 					} catch (Throwable err) {
@@ -778,16 +790,7 @@ public class Main implements IFlameAPIMod {
 					try {
 						String testClass = EntityClassGenerator.generate(
 								"com.tfc.test.test", Mojmap.getClassObsf("net/minecraft/world/entity/monster/Phantom").getSecondaryName(),
-								"", "" +
-										"public test(%entity_type_class% type, %world_class% world) {super(type,world);} " +
-										"public void %tick%() {" +
-										"	double x = %getX%;" +
-										"	double y = %getY%;" +
-										"	double z = %getZ%;" +
-										"	super.%tick%();" +
-										"	%move%(x,y,z);" +
-										"}" +
-										""
+								"", "public test(%entity_type_class% type, %world_class% world) {super(type,world);} public void %tick%() {	double x = %getX%;	double y = %getY%;	double z = %getZ%;	super.%tick%();	%move%(x,y,z);}"
 						);
 						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\testEntity.class");
 						if (!f.exists()) {
@@ -883,7 +886,7 @@ public class Main implements IFlameAPIMod {
 //			list.add(new FieldInsnNode(Opcodes.GETSTATIC,"net/minecraft/client/ClientBrandRetriever","brand","java/lang/String"));
 //			list.add(new InsnNode(Opcodes.IRETURN));
 //			FlameASM.addMethod(className,"public static","getClientModName","()Ljava/lang/String;",list);
-			Fabricator.compileAndLoadJanino("block_pos.java", (code) -> code.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass)));
+			Fabricator.compileAndLoad("block_pos.java", (code) -> code.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass)));
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 
@@ -925,6 +928,11 @@ public class Main implements IFlameAPIMod {
 			Logger.logLine(Class.forName("BlockPos"));
 //			Logger.logLine(LinkieImplementation.unmap("net.minecraft.entity.mob.PhantomEntity","yarn","1.15.2"));
 			Logger.logLine("Phantom for " + versionMap + ": " + Mojmap.getClassObsf(versionMap, "net/minecraft/world/entity/monster/Phantom").getSecondaryName());
+			
+			CompoundNBT nbt = new CompoundNBT();
+			nbt.putString("hello", "hi");
+			nbt.putBoolean("boolean", false);
+			Logger.logLine(nbt.toString());
 		} catch (Throwable err) {
 			Logger.logErrFull(err);
 		}

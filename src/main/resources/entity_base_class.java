@@ -46,8 +46,8 @@ public final void %readNBT%(%nbt_class% nbt) {
 	read(nbt);
 }
 public Iterable<%item_stack_class%> %get_armor_items%() {
-		//TODO
-	return new ArrayList<>();
+	//TODO
+	return new Iterable<%item_stack_class%>();
 }
 public %arm_class% %get_main_arm%() {
 	//TODO

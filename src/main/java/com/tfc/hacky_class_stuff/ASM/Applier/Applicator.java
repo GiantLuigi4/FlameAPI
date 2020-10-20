@@ -32,7 +32,7 @@ public class Applicator {
 				Logger.logLine("Adding methods to " + name);
 				transformed = true;
 				for (Method m : methods.get(name))
-					asm.addMethod(m.getAccess(), m.getName(), m.getDescriptor(), null, null, m.getInstructions());
+					asm.addMethod(m.getAccess(), m.getName(), m.getDescriptor(), null, null, m.getInstructions(), m.getReplace());
 			}
 			if (insnAdds.containsKey(name)) {
 				Logger.logLine("Adding instructions to existing methods of " + name);

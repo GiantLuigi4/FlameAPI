@@ -28,9 +28,9 @@ public class Fabricator {
 			}
 			String text = readFromCL(resource);
 			text = runtimeCodeReplacer.apply(text);
-			byte[] output = Compiler.compile(compilerEnum, text);
 			write(Formatter.formatForCompile(text), new File(f + "\\" + (resource)));
 			write(text, new File(f + "\\" + (resource).replace(".java", "_source.java")));
+			byte[] output = Compiler.compile(compilerEnum, text);
 			write(new String(output), new File(f + "\\" + (resource.replace(".java", ".class"))));
 			return output;
 		} catch (Throwable err) {
@@ -47,9 +47,10 @@ public class Fabricator {
 			}
 			String text = readFromCL(resource);
 			text = runtimeCodeReplacer.apply(text);
-			byte[] output = compiler.compile(text, "a", otherClasses);
 			write(Formatter.formatForCompile(text), new File(f + "\\" + (resource)));
 			write(text, new File(f + "\\" + (resource).replace(".java", "_source.java")));
+			byte[] output = compiler.compile(text, "a", otherClasses);
+//			byte[] output = new SimpleCompiler("aaaaaa",new ByteArrayInputStream(text.getBytes())).getClassFiles()[0].toByteArray();
 			write(new String(output), new File(f + "\\" + (resource.replace(".java", ".class"))));
 			return output;
 		} catch (Throwable err) {
