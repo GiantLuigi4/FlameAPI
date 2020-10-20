@@ -1,13 +1,13 @@
 import java.util.UUID;
 
-public class CompoundNBT {
+public class NBTObject {
 	%nbtClass% thisNBT;
 	
-	public CompoundNBT(%nbtClass% thisNBT) {
+	public NBTObject(%nbtClass% thisNBT) {
 		this.thisNBT = thisNBT;
 	}
 	
-	public CompoundNBT() {
+	public NBTObject() {
 		this.thisNBT = new %nbtClass%();
 	}
 

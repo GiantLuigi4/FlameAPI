@@ -3,7 +3,7 @@ package com.tfc.API.flamemc.data;
 import java.util.UUID;
 
 //Refer to nbt_class.java for the code for this
-public class CompoundNBT {
+public class NBTObject {
 	public native int getInt(String tag);
 	
 	public native float getFloat(String tag);

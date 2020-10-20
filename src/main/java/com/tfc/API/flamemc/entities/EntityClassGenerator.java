@@ -174,7 +174,7 @@ public class EntityClassGenerator {
 						.replace("%move%", Main.getEntity$move().getName())
 						.replace("%writeNBT%", Main.getEntity$writeAdditionalSaveData().getName())
 						.replace("%readNBT%", Main.getEntity$readAdditionalSaveData().getName())
-						.replace("%nbt_class%", Main.getCompoundNBTClass())
+						.replace("%nbt_class%", Main.getNBTObjectClass())
 						.replace("%item_stack_class%", Main.getItemStackClass())
 						.replace("%equipment_slot_class%", Main.getEquipmentSlotClass())
 						.replace("%get_armor_items%", Main.getEntity$getArmorItems().getName())

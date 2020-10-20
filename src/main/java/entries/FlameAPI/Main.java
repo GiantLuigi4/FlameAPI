@@ -7,7 +7,7 @@ import com.tfc.API.flame.utils.reflection.Methods;
 import com.tfc.API.flamemc.FlameASM;
 import com.tfc.API.flamemc.Registry;
 import com.tfc.API.flamemc.blocks.BlockProperties;
-import com.tfc.API.flamemc.data.CompoundNBT;
+import com.tfc.API.flamemc.data.NBTObject;
 import com.tfc.API.flamemc.entities.EntityClassGenerator;
 import com.tfc.API.flamemc.event.init_steps.PreFlameInit;
 import com.tfc.API.flamemc.event.init_steps.RegistryStep;
@@ -61,7 +61,7 @@ public class Main implements IFlameAPIMod {
 	private static String blockClass = "";
 	private static String entityClass = "";
 	private static String livingEntityClass = "";
-	private static String compoundNBTClass = "";
+	private static String NBTObjectClass = "";
 	private static String entitySpawnPacketClass = "";
 	private static String equipmentSlotClass = "";
 	private static String packetClass = "";
@@ -120,8 +120,8 @@ public class Main implements IFlameAPIMod {
 		return entity$tick;
 	}
 	
-	public static String getCompoundNBTClass() {
-		return compoundNBTClass;
+	public static String getNBTObjectClass() {
+		return NBTObjectClass;
 	}
 	
 	public static String getGetMainArm() {
@@ -523,7 +523,7 @@ public class Main implements IFlameAPIMod {
 				tessellatorClass = Mojmap.getClassObsf("com/mojang/blaze3d/vertex/Tesselator").getSecondaryName();
 				entityClass = Mojmap.getClassObsf("net/minecraft/world/entity/Entity").getSecondaryName();
 				livingEntityClass = Mojmap.getClassObsf("net/minecraft/world/entity/LivingEntity").getSecondaryName();
-				compoundNBTClass = Mojmap.getClassObsf("net/minecraft/nbt/CompoundTag").getSecondaryName();
+				NBTObjectClass = Mojmap.getClassObsf("net/minecraft/nbt/CompoundTag").getSecondaryName();
 				entitySpawnPacketClass = Mojmap.getClassObsf("net/minecraft/network/protocol/game/ClientboundAddMobPacket").getSecondaryName();
 				equipmentSlotClass = Mojmap.getClassObsf("net/minecraft/world/entity/EquipmentSlot").getSecondaryName();
 				packetClass = Mojmap.getClassObsf("net/minecraft/network/protocol/Packet").getSecondaryName();
@@ -531,25 +531,25 @@ public class Main implements IFlameAPIMod {
 				resourceLocationClass = Mojmap.getClassObsf("net/minecraft/resources/ResourceLocation").getSecondaryName();
 				blockStateClass = Mojmap.getClassObsf("net/minecraft/world/level/block/state/BlockState").getSecondaryName();
 				blockFireClass = Mojmap.getClassObsf("net/minecraft/world/level/block/FireBlock").getSecondaryName();
-
+				
 				try {
 					String[] nbtArr = new String[]{
-						"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID", "Id"
+							"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID", "Id"
 					};
 					String[] nbtArr2 = new String[]{
-						"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID"
+							"Int", "Float", "Byte", "Long", "Short", "Double", "String", "Boolean", "UUID"
 					};
-					BiObject<String, Method>[] nbtGets = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
+					BiObject<String, Method>[] nbtGets = ClassFindingUtils.getMethodsForClass(NBTObjectClass, ClassFindingUtils.createTriObjArr(
 							ClassFindingUtils.createNBTSearchArray("get", false, nbtArr),
 							ClassFindingUtils.createNBTSearchArray("get", true, nbtArr),
 							ClassFindingUtils.createArrayOfEmptyArrays(nbtArr.length)
 					));
-					BiObject<String, Method>[] nbtPuts = ClassFindingUtils.getMethodsForClass(compoundNBTClass, ClassFindingUtils.createTriObjArr(
+					BiObject<String, Method>[] nbtPuts = ClassFindingUtils.getMethodsForClass(NBTObjectClass, ClassFindingUtils.createTriObjArr(
 							ClassFindingUtils.createNBTSearchArray("put", false, nbtArr2),
 							ClassFindingUtils.createNBTSearchArray("put", true, nbtArr2),
 							ClassFindingUtils.createArrayOfEmptyArrays(nbtArr2.length)
 					));
-
+					
 					nbtMethods = ClassFindingUtils.mergeBiObjectArrays(nbtGets, nbtPuts);
 					//Gets the tick method for entity class
 					BiObject<String, Method> method = Mojmap.getMethod(
@@ -645,13 +645,13 @@ public class Main implements IFlameAPIMod {
 								entity$defineSynchedData = m;
 							} else if (
 									m.getParameterTypes().length == 1 &&
-											m.getParameterTypes()[0].getName().equals(compoundNBTClass) &&
+											m.getParameterTypes()[0].getName().equals(NBTObjectClass) &&
 											readAdditionalSaveData.equals(m.getName())
 							) {
 								entity$readAdditionalSaveData = m;
 							} else if (
 									m.getParameterTypes().length == 1 &&
-											m.getParameterTypes()[0].getName().equals(compoundNBTClass) &&
+											m.getParameterTypes()[0].getName().equals(NBTObjectClass) &&
 											writeAdditionalSaveData.equals(m.getName())
 							) {
 								entity$writeAdditionalSaveData = m;
@@ -736,19 +736,19 @@ public class Main implements IFlameAPIMod {
 						sourceStream.close();
 
 //						AtomicReference<String> source = new AtomicReference<>(new String(sourceBytes).replace("\t", "").replace("\n", "").replace("//TODO", ""));
-						AtomicReference<String> source = new AtomicReference<>(new String("import java.util.UUID;public class CompoundNBT {%nbtClass% thisNBT;public CompoundNBT(%nbtClass% thisNBT) {this.thisNBT = thisNBT;}public CompoundNBT() {this.thisNBT = new %nbtClass%();}public int getInt(String tag) {return thisNBT.%getInt%(tag);}public float getFloat(String tag) {return thisNBT.%getFloat%(tag);}public byte getByte(String tag) {return thisNBT.%getByte%(tag);}public long getLong(String tag) {return thisNBT.%getLong%(tag);}public short getShort(String tag) {return thisNBT.%getShort%(tag);}public double getDouble(String tag) {return thisNBT.%getDouble%(tag);}public String getString(String tag) {return thisNBT.%getString%(tag);}public boolean getBoolean(String tag) {return thisNBT.%getBoolean%(tag);}public java.util.UUID getUUID(String tag) {return thisNBT.%getUUID%(tag);}public byte getId() {return thisNBT.%getId%();}public void putInt(String tag, int value) {thisNBT.%putInt%(tag, value);}public void putFloat(String tag, float value) {thisNBT.%putFloat%(tag, value);}public void putByte(String tag, byte value) {thisNBT.%putByte%(tag, value);}public void putLong(String tag, long value) {thisNBT.%putLong%(tag, value);}public void putShort(String tag, short value) {thisNBT.%putShort%(tag, value);}public void putDouble(String tag, double value) {thisNBT.%putDouble%(tag, value);}public void putString(String tag, String value) {thisNBT.%putString%(tag, value);}public void putBoolean(String tag, boolean value) {thisNBT.%putBoolean%(tag, value);}public void putUUID(String tag, java.util.UUID value) {thisNBT.%putUUID%(tag, value);}public Object unwrap() {return this.thisNBT;}public String toString() {return this.thisNBT.toString();}}").replace("\t", "").replace("\n", "").replace("//TODO", ""));
-						source.set(source.get().replace("%nbtClass%", compoundNBTClass));
+						AtomicReference<String> source = new AtomicReference<>(new String("import java.util.UUID;public class NBTObject {%nbtClass% thisNBT;public NBTObject(%nbtClass% thisNBT) {this.thisNBT = thisNBT;}public NBTObject() {this.thisNBT = new %nbtClass%();}public int getInt(String tag) {return thisNBT.%getInt%(tag);}public float getFloat(String tag) {return thisNBT.%getFloat%(tag);}public byte getByte(String tag) {return thisNBT.%getByte%(tag);}public long getLong(String tag) {return thisNBT.%getLong%(tag);}public short getShort(String tag) {return thisNBT.%getShort%(tag);}public double getDouble(String tag) {return thisNBT.%getDouble%(tag);}public String getString(String tag) {return thisNBT.%getString%(tag);}public boolean getBoolean(String tag) {return thisNBT.%getBoolean%(tag);}public java.util.UUID getUUID(String tag) {return thisNBT.%getUUID%(tag);}public byte getId() {return thisNBT.%getId%();}public void putInt(String tag, int value) {thisNBT.%putInt%(tag, value);}public void putFloat(String tag, float value) {thisNBT.%putFloat%(tag, value);}public void putByte(String tag, byte value) {thisNBT.%putByte%(tag, value);}public void putLong(String tag, long value) {thisNBT.%putLong%(tag, value);}public void putShort(String tag, short value) {thisNBT.%putShort%(tag, value);}public void putDouble(String tag, double value) {thisNBT.%putDouble%(tag, value);}public void putString(String tag, String value) {thisNBT.%putString%(tag, value);}public void putBoolean(String tag, boolean value) {thisNBT.%putBoolean%(tag, value);}public void putUUID(String tag, java.util.UUID value) {thisNBT.%putUUID%(tag, value);}public Object unwrap() {return this.thisNBT;}public String toString() {return this.thisNBT.toString();}}").replace("\t", "").replace("\n", "").replace("//TODO", ""));
+						source.set(source.get().replace("%nbtClass%", NBTObjectClass));
 						
 						com.tfc.mappings.structure.Method[] methodstoFindArr = new com.tfc.mappings.structure.Method[nbtMethods.length];
 						int counter = 0;
-						for (com.tfc.mappings.structure.Method nbtMet : Mojmap.getClassMojmap(compoundNBTClass).getMethods()) {
+						for (com.tfc.mappings.structure.Method nbtMet : Mojmap.getClassMojmap(NBTObjectClass).getMethods()) {
 							String match = "%" + nbtMet.getPrimary() + "%";
 							if (source.get().contains(match)) {
 								methodstoFindArr[counter] = nbtMet;
 								counter++;
 							}
 						}
-
+						
 						for (BiObject<String, Method> biObject : nbtMethods) {
 							for (com.tfc.mappings.structure.Method value : methodstoFindArr) {
 								if (value.getSecondary().equals(biObject.getObject2().getName())) {
@@ -756,9 +756,9 @@ public class Main implements IFlameAPIMod {
 								}
 							}
 						}
-
-						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\CompoundNBT.class");
-						File f1 = new File(dataDirectory + "\\FlameASM\\fabrication\\CompoundNBT_source.java");
+						
+						File f = new File(dataDirectory + "\\FlameASM\\fabrication\\NBTObject.class");
+						File f1 = new File(dataDirectory + "\\FlameASM\\fabrication\\NBTObject_source.java");
 						if (!f.exists()) {
 							f.getParentFile().mkdirs();
 							f.createNewFile();
@@ -777,7 +777,7 @@ public class Main implements IFlameAPIMod {
 						compiler.setAccessible(true);
 						Javassist_Compiler compiler1 = (Javassist_Compiler) compiler.get(null);
 						ClassNode node = Parser.parse(Formatter.formatForCompile(source.get()));
-						node.name = "com.tfc.API.flamemc.data.CompoundNBT";
+						node.name = "com.tfc.API.flamemc.data.NBTObject";
 						byte[] compiledBytes = compiler1.compile(node);
 						ForceLoad.forceLoad(Main.class.getClassLoader(), compiledBytes);
 //						byte[] compiledBytes = Compiler.compile(EnumCompiler.JAVASSIST, source.get());
@@ -929,7 +929,7 @@ public class Main implements IFlameAPIMod {
 //			Logger.logLine(LinkieImplementation.unmap("net.minecraft.entity.mob.PhantomEntity","yarn","1.15.2"));
 			Logger.logLine("Phantom for " + versionMap + ": " + Mojmap.getClassObsf(versionMap, "net/minecraft/world/entity/monster/Phantom").getSecondaryName());
 			
-			CompoundNBT nbt = new CompoundNBT();
+			NBTObject nbt = new NBTObject();
 			nbt.putString("hello", "hi");
 			nbt.putBoolean("boolean", false);
 			Logger.logLine(nbt.toString());
