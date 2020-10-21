@@ -14,7 +14,7 @@ repositories {
 dependencies {
     [...]
     implementation 'com.github.GiantLuigi4:FlameAPI:[commit id]'
-    implementation 'com.github.GiantLuigi4:FlameMC:eb350c1e01'
+    implementation 'com.github.GiantLuigi4:FlameMC:79e69be'
 }
 ```
 
