@@ -355,6 +355,356 @@ public class Main implements IFlameAPIMod {
 		}
 	}
 	
+	private static final String registerInsnList = "" +
+			"    INVOKEVIRTUAL java/util/ArrayList.iterator ()Ljava/util/Iterator;\n" +
+			"    astore 0\n" +
+			"   l0\n" +
+			"    aload 0\n" +
+			"    INVOKEINTERFACE java/util/Iterator.hasNext ()Z (itf)\n" +
+			"    ifeq l1\n" +
+			"    aload 0\n" +
+			"    INVOKEINTERFACE java/util/Iterator.next ()Ljava/lang/Object; (itf)\n" +
+			"    checkcast 'com/tfc/API/flamemc/Registry$RegistryObject'\n" +
+			"    astore 1\n" +
+			"    aload 1\n" +
+			"    INVOKEVIRTUAL com/tfc/API/flamemc/Registry$RegistryObject.getName ()Lcom/tfc/API/flamemc/Registry$ResourceLocation;\n" +
+			"    INVOKEVIRTUAL java/lang/String.toString ()Ljava/lang/String;\n" +
+			"    aload 1\n" +
+			"    INVOKEVIRTUAL com/tfc/API/flamemc/Registry$RegistryObject.get ()Ljava/lang/Object;\n" +
+			"    checkcast '%register_class%'\n" +
+			"    INVOKESTATIC %registry%.%method% (Ljava/lang/String;L%register_class%;)L%register_class%;\n" +
+			"    pop\n" +
+			"    _goto l0\n" +
+			"   l1\n";
+	
+	@Override
+	public void preinit(String[] args) {
+	}
+	
+	//NYI on mod loader's side
+	public static Main instance = null;
+	private static Class<?> blockPropertiesClass = null;
+	
+	public static Class<?> getBlockPropertiesClass() {
+		return blockPropertiesClass;
+	}
+	
+	@Override
+	public void init(String[] args) {
+		FlameAPI.instance.bus.post(PreFlameInit.class, new PreFlameInit());
+		try {
+			for (Field f : Class.forName("net.minecraft.client.ClientBrandRetriever").getFields()) {
+				try {
+					Logger.log("net.minecraft.client.ClientBrandRetriever%" + f.getName() + "=" + f.get(null) + "\n");
+				} catch (Throwable ignored) {
+				}
+			}
+		} catch (Throwable ignored) {
+		}
+		
+		try {
+			Logger.logLine(new BlockPos(0, 0, 0));
+			Logger.logLine(new BlockPos(3, 0, 1).offset(1, 2, 3));
+			Logger.logLine(Class.forName("BlockPos"));
+//			Logger.logLine(LinkieImplementation.unmap("net.minecraft.entity.mob.PhantomEntity","yarn","1.15.2"));
+			Logger.logLine("Phantom for " + versionMap + ": " + Mojmap.getClassObsf(versionMap, "net/minecraft/world/entity/monster/Phantom").getSecondaryName());
+			
+			NBTObject nbt = new NBTObject();
+			nbt.putString("hello", "hi");
+			nbt.putBoolean("boolean", false);
+			Logger.logLine(nbt.toString());
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
+		try {
+			Logger.logLine("Block Class Constructors");
+			for (Constructor<?> c : Class.forName(ScanningUtils.toClassName(getBlockClass())).getConstructors()) {
+				String params = "";
+				int num = 0;
+				for (Class<?> clazz : c.getParameterTypes()) {
+					params += num + ": " + clazz.getName() + ", ";
+					num++;
+					if (clazz.getName().contains(ScanningUtils.toClassName(getBlockClass()))) {
+						blockPropertiesClass = clazz;
+					}
+				}
+				blockConstructors.add(c);
+				Logger.logLine(params.substring(0, params.length() - 2));
+			}
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
+		BlockItem.init();
+		Item.init();
+		
+		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:stone")));
+		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:bedrock")));
+		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice")));
+		
+		try {
+			BlockProperties properties = new BlockProperties(
+					new Registry.ResourceLocation("flameapi:test"),
+					Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice"))
+			);
+			Logger.logLine(properties);
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
+		String removedMethod = "a()";
+		String placedMethod = "a()";
+		String argsPlaced = "new Object[]{null}";
+		
+		String neighborChanged = "voideee(int var0)/new Object[]{Integer.valueOf(var0)}";
+		
+		try {
+			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
+				int numMatched = 0;
+				int num = 0;
+				
+				StringBuilder paramsA = new StringBuilder();
+				StringBuilder argsA = new StringBuilder();
+				for (Class<?> param : m.getParameterTypes()) {
+					if (param.getName().equals(ScanningUtils.toClassName(worldClass)) && num == 0) {
+						paramsA.append(param.getName()).append(" var0");
+						argsA.append("var0");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockPosClass))) {
+						paramsA.append(param.getName()).append(" var1");
+						argsA.append("var1");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(blockStateClass))) {
+						paramsA.append(param.getName()).append(" var2");
+						argsA.append("var2");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (param.getName().equals(ScanningUtils.toClassName(itemStackClass))) {
+						paramsA.append(param.getName()).append(" var5");
+						argsA.append("var5");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else if (num == 3) {                      //TODO UNDERSTAND WHAT LUIGI MEANS HERE
+						//LUIGI TELL ME
+						paramsA.append(param.getName()).append(" var4");
+						argsA.append("var4");
+						if (numMatched != 4) {
+							paramsA.append(", ");
+							argsA.append(", ");
+						}
+						numMatched++;
+					} else {
+						numMatched--;
+					}
+					num++;
+				}
+				if (numMatched == num && num == 5) {
+					placedMethod = m.getName() + "(" + paramsA + ")";
+					argsPlaced = "new Object[]{" + argsA + "}";
+					block$onPlaced = m;
+				}
+			}
+			
+			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, ClassFindingUtils.createBiObjectArray(
+					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
+			));
+			if (onRemovedB != null) {
+				block$onRemoved = onRemovedB.getObject2();
+				removedMethod = onRemovedB.getObject1();
+			}
+			
+			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, ClassFindingUtils.createBiObjectArray(
+					getBlockStateClass(), getWorldClass(),
+					getBlockPosClass(), getBlockClass(),
+					getBlockPosClass(), boolean.class.getName() + ".class"
+			));
+			if (neighborChangedB != null) {
+				block$onNeighborChanged = neighborChangedB.getObject2();
+				neighborChanged = neighborChangedB.getObject1();
+			}
+			
+			Logger.logLine("Scanning world:");
+			Logger.logLine("Method setBlockState:");
+			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, ClassFindingUtils.createBiObjectArray(
+					getBlockPosClass(), getBlockStateClass()
+			));
+			Logger.logLine("Method getBlockState:");
+			if (ScanningUtils.mcMajorVersion == 15)
+				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
+			else
+				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), ClassFindingUtils.createBiObjectArray(
+						getBlockPosClass()
+				));
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
+		try {
+			try {
+				Logger.logLine(world$getBlockState.toString());
+			} catch (Throwable ignored) {
+			}
+			
+			try {
+				Logger.logLine(world$setBlockState.toString());
+			} catch (Throwable ignored) {
+			}
+			
+			if (isMappedVersion) {
+				//Gets the onUpdated method for block class
+				BiObject<String, Method> method = Mojmap.getMethod(
+						Class.forName(blockClass), Mojmap.getClassMojmap(blockClass),
+						"neighborChanged",
+						"(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos;Z)V",
+						Mojmap.toStringBiObjectArray(
+								"Lnet/minecraft/world/level/block/state/BlockState;", blockStateClass + ",",
+								"Lnet/minecraft/world/level/Level;", worldClass + ",",
+								"Lnet/minecraft/core/BlockPos;", blockPosClass + ",",
+								"Lnet/minecraft/world/level/block/Block;", blockClass + ",",
+								"Z)V", "boolean,"
+						)
+				);
+				block$onNeighborChanged = method.getObject2();
+				neighborChanged = method.getObject1();
+				Logger.logLine(block$onNeighborChanged.toString());
+				Logger.logLine(neighborChanged);
+			}
+			
+			final String finalRemovedMethod = removedMethod.split("/")[0];
+			final String finalArgsRemoved = removedMethod.split("/")[1];
+			final String finalPlacedMethod = placedMethod;
+			final String finalArgsPlaced = argsPlaced;
+			final String finalUpdatedMethod = neighborChanged.split("/")[0];
+			final String finalArgsUpdate = neighborChanged.split("/")[1];
+			Fabricator.compileAndLoad("block_class.java", (code) -> code
+					.replace("%block_class%", ScanningUtils.toClassName(blockClass))
+					.replace("%callInfoGen_onRemoved%", "com.tfc.API.flamemc.abstraction.CallInfo info = null")
+					.replace("%properties_class%", blockPropertiesClass.getName())
+					.replace("%argsRemoved%", finalArgsRemoved)
+					.replace("%removedMethod%", finalRemovedMethod)
+					.replace("%placedMethod%", finalPlacedMethod)
+					.replace("%argsPlaced%", finalArgsPlaced)
+					.replace("%updatedMethod%", finalUpdatedMethod)
+					.replace("%argsUpdated%", finalArgsUpdate)
+			);
+			Field f0 = Fields.forName(Class.forName("Block"), "argsRemoved");
+			Field f1 = Fields.forName(Class.forName("Block"), "argsPlaced");
+			Field f2 = Fields.forName(Class.forName("Block"), "argsUpdated");
+			assert f0 != null;
+			assert f1 != null;
+			assert f2 != null;
+			f0.setAccessible(true);
+			f1.setAccessible(true);
+			f2.setAccessible(true);
+			f0.set(null, new java.lang.String[]{"world", "pos", "state"});
+			f1.set(null, new java.lang.String[]{"world", "pos", "state", "placer", "itemStack"});
+			f2.set(null, new java.lang.String[]{"sate", "world", "pos", "updater_block", "updater_pos", "moved"});
+			
+			Fabricator.compileAndLoad("world_class.java", (code) -> code
+					.replace("%get_block_state%", world$getBlockState.getName())
+					.replace("%set_block_state%", world$setBlockState.getName())
+					.replace("%block_state_class%", ScanningUtils.toClassName(blockStateClass))
+					.replace("%world_class%", ScanningUtils.toClassName(worldClass))
+					.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass))
+			);
+
+//			Logger.logLine("Phantom Class");
+//			Logger.logLine(ClassGenerator.getEntityClass("minecraft:phantom"));
+//			Logger.logLine("Zombie Class");
+//			Logger.logLine(ClassGenerator.getEntityClass("minecraft:zombie"));
+//
+//			ClassGenerator.generate("com.tfc.TestEntity", "minecraft:sheep", "" +
+//					"public void tick(CallInfo args) {" +
+//					"	super.tick();" +
+//					"}" +
+//					"");
+		} catch (Throwable err) {
+			Logger.logErrFull(err);
+		}
+		
+		if (isMappedVersion) {
+			try {
+				blocks$register =
+						Mojmap.getMethod(
+								Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()),
+								Mojmap.getClassMojmap("net/minecraft/class_2246"),
+								"register", "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/Block;",
+								Mojmap.toStringBiObjectArray(
+										"Ljava/lang/String;", "String",
+										"net/minecraft/world/level/block/Block", blockClass
+								)
+						).getObject2();
+			} catch (Throwable err) {
+				try {
+					blocks$register = Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()).getDeclaredMethod(
+							"a", String.class, Class.forName(blockClass)
+					);
+				} catch (Throwable err2) {
+					try {
+						try {
+							for (Method m : Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()).getDeclaredMethods())
+								if (m.getName().equals("a")) blocks$register = m;
+						} catch (Throwable ignored) {
+						}
+						if (blocks$register == null) {
+							blocks$register = Class.forName("bpi").getDeclaredMethod("a", String.class, Class.forName(blockClass));
+							if (blocks$register == null) {
+								throw new RuntimeException("a");
+							}
+						}
+					} catch (Throwable err3) {
+						Logger.logErrFull(err);
+						Logger.logErrFull(err2);
+						Logger.logErrFull(err3);
+					}
+				}
+			}
+		}
+		
+		FlameAPI.instance.bus.post(RegistryStep.class, new RegistryStep());
+	}
+	
+	@Override
+	public void postinit(String[] args) {
+		Logger.log("PostInit Registries:" + registries.size() + "\n");
+		Iterator<String> names = registries.keySet().iterator();
+		Iterator<String> classes = registries.values().iterator();
+		for (int i = 0; i < registries.size(); i++) {
+			try {
+				String name = names.next();
+				String clazz = ScanningUtils.toClassName(classes.next());
+				Logger.log("Registry class: " + name + ": " + clazz + "\n");
+				registryClassNames.put(name, clazz);
+			} catch (Throwable err) {
+				Logger.logErrFull(err);
+			}
+		}
+	}
+	
+	private void downloadBytecodeUtils() {
+		addDep(
+				"https://jitpack.io/",
+				"com.github.GiantLuigi4",
+				"Bytecode-Utils",
+				bytecodeUtilsVersion
+		);
+	}
+	
 	@Override
 	public void setupAPI(String[] args) {
 		try {
@@ -400,7 +750,6 @@ public class Main implements IFlameAPIMod {
 			Class.forName("com.tfc.bytecode.asm.ASM.FieldVisitor");
 			Class.forName("com.tfc.utils.Bytecode");
 			Class.forName("com.tfc.utils.ScanningUtils");
-			Class.forName("com.tfc.API.flamemc.EmptyClass");
 			Class.forName("RegistryClassFinder");
 			Class.forName("GenericClassFinder");
 			Class.forName("com.tfc.API.flamemc.FlameASM");
@@ -462,7 +811,7 @@ public class Main implements IFlameAPIMod {
 		}
 		if (versionMap.startsWith("1.14"))
 			isMappedVersion = isMappedVersion && versionMap.replace("1.14", "").equals(".4");
-		
+//		FlameASM.addInstructions(registries.get(Mapping.getUnmappedFor(Mapping.getMappedClassForRegistry("minecraft:blocks"))),"static","<clinit>","()V",,false);
 		ScanningUtils.checkVersion();
 		FlameLauncher.getLoader().getAsmAppliers().put("com.tfc.FlameAPI.ASM", Applicator::apply);
 		
@@ -896,333 +1245,5 @@ public class Main implements IFlameAPIMod {
 //			}
 		}
 	}
-	
-	@Override
-	public void preinit(String[] args) {
-	}
-	
-	//NYI on mod loader's side
-	public static Main instance = null;
-	private static Class<?> blockPropertiesClass = null;
-	
-	public static Class<?> getBlockPropertiesClass() {
-		return blockPropertiesClass;
-	}
-	
-	@Override
-	public void init(String[] args) {
-		FlameAPI.instance.bus.post(PreFlameInit.class, new PreFlameInit());
-		try {
-			for (Field f : Class.forName("net.minecraft.client.ClientBrandRetriever").getFields()) {
-				try {
-					Logger.log("net.minecraft.client.ClientBrandRetriever%" + f.getName() + "=" + f.get(null) + "\n");
-				} catch (Throwable ignored) {
-				}
-			}
-		} catch (Throwable ignored) {
-		}
-		
-		try {
-			Logger.logLine(new BlockPos(0, 0, 0));
-			Logger.logLine(new BlockPos(3, 0, 1).offset(1, 2, 3));
-			Logger.logLine(Class.forName("BlockPos"));
-//			Logger.logLine(LinkieImplementation.unmap("net.minecraft.entity.mob.PhantomEntity","yarn","1.15.2"));
-			Logger.logLine("Phantom for " + versionMap + ": " + Mojmap.getClassObsf(versionMap, "net/minecraft/world/entity/monster/Phantom").getSecondaryName());
-			
-			NBTObject nbt = new NBTObject();
-			nbt.putString("hello", "hi");
-			nbt.putBoolean("boolean", false);
-			Logger.logLine(nbt.toString());
-		} catch (Throwable err) {
-			Logger.logErrFull(err);
-		}
-		
-		try {
-			Logger.logLine("Block Class Constructors");
-			for (Constructor<?> c : Class.forName(ScanningUtils.toClassName(getBlockClass())).getConstructors()) {
-				String params = "";
-				int num = 0;
-				for (Class<?> clazz : c.getParameterTypes()) {
-					params += num + ": " + clazz.getName() + ", ";
-					num++;
-					if (clazz.getName().contains(ScanningUtils.toClassName(getBlockClass()))) {
-						blockPropertiesClass = clazz;
-					}
-				}
-				blockConstructors.add(c);
-				Logger.logLine(params.substring(0, params.length() - 2));
-			}
-		} catch (Throwable err) {
-			Logger.logErrFull(err);
-		}
-		
-		BlockItem.init();
-		Item.init();
-		
-		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:stone")));
-		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:bedrock")));
-		Logger.logLine(Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice")));
-		
-		try {
-			BlockProperties properties = new BlockProperties(
-					new Registry.ResourceLocation("flameapi:test"),
-					Registry.get(Registry.RegistryType.BLOCK, new Registry.ResourceLocation("minecraft:ice"))
-			);
-			Logger.logLine(properties);
-		} catch (Throwable err) {
-			Logger.logErrFull(err);
-		}
-		
-		String removedMethod = "a()";
-		String placedMethod = "a()";
-		String argsPlaced = "new Object[]{null}";
-		
-		String neighborChanged = "voideee(int var0)/new Object[]{Integer.valueOf(var0)}";
-		
-		try {
-			for (Method m : Methods.getAllMethods(Class.forName(ScanningUtils.toClassName(getBlockClass())))) {
-				int numMatched = 0;
-				int num = 0;
-				
-				StringBuilder paramsA = new StringBuilder();
-				StringBuilder argsA = new StringBuilder();
-				for (Class<?> param : m.getParameterTypes()) {
-					if (param.getName().equals(ScanningUtils.toClassName(worldClass)) && num == 0) {
-						paramsA.append(param.getName()).append(" var0");
-						argsA.append("var0");
-						if (numMatched != 4) {
-							paramsA.append(", ");
-							argsA.append(", ");
-						}
-						numMatched++;
-					} else if (param.getName().equals(ScanningUtils.toClassName(blockPosClass))) {
-						paramsA.append(param.getName()).append(" var1");
-						argsA.append("var1");
-						if (numMatched != 4) {
-							paramsA.append(", ");
-							argsA.append(", ");
-						}
-						numMatched++;
-					} else if (param.getName().equals(ScanningUtils.toClassName(blockStateClass))) {
-						paramsA.append(param.getName()).append(" var2");
-						argsA.append("var2");
-						if (numMatched != 4) {
-							paramsA.append(", ");
-							argsA.append(", ");
-						}
-						numMatched++;
-					} else if (param.getName().equals(ScanningUtils.toClassName(itemStackClass))) {
-						paramsA.append(param.getName()).append(" var5");
-						argsA.append("var5");
-						if (numMatched != 4) {
-							paramsA.append(", ");
-							argsA.append(", ");
-						}
-						numMatched++;
-					} else if (num == 3) {                      //TODO UNDERSTAND WHAT LUIGI MEANS HERE
-						//LUIGI TELL ME
-						paramsA.append(param.getName()).append(" var4");
-						argsA.append("var4");
-						if (numMatched != 4) {
-							paramsA.append(", ");
-							argsA.append(", ");
-						}
-						numMatched++;
-					} else {
-						numMatched--;
-					}
-					num++;
-				}
-				if (numMatched == num && num == 5) {
-					placedMethod = m.getName() + "(" + paramsA + ")";
-					argsPlaced = "new Object[]{" + argsA + "}";
-					block$onPlaced = m;
-				}
-			}
-			
-			BiObject<String, Method> onRemovedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 3, void.class, ClassFindingUtils.createBiObjectArray(
-					getIWorldClass(), getBlockPosClass(), getBlockStateClass()
-			));
-			if (onRemovedB != null) {
-				block$onRemoved = onRemovedB.getObject2();
-				removedMethod = onRemovedB.getObject1();
-			}
-			
-			BiObject<String, Method> neighborChangedB = Methods.searchAndGetMethodInfosPrecise(getBlockClass(), 6, null, ClassFindingUtils.createBiObjectArray(
-					getBlockStateClass(), getWorldClass(),
-					getBlockPosClass(), getBlockClass(),
-					getBlockPosClass(), boolean.class.getName() + ".class"
-			));
-			if (neighborChangedB != null) {
-				block$onNeighborChanged = neighborChangedB.getObject2();
-				neighborChanged = neighborChangedB.getObject1();
-			}
-			
-			Logger.logLine("Scanning world:");
-			Logger.logLine("Method setBlockState:");
-			world$setBlockState = Methods.searchMethod(getWorldClass(), 2, boolean.class, ClassFindingUtils.createBiObjectArray(
-					getBlockPosClass(), getBlockStateClass()
-			));
-			Logger.logLine("Method getBlockState:");
-			if (ScanningUtils.mcMajorVersion == 15)
-				world$getBlockState = ScanningUtils.classFor(getWorldClass()).getMethod("d_", ScanningUtils.classFor(getBlockPosClass()));
-			else
-				world$getBlockState = Methods.searchMethod(getWorldClass(), 1, Class.forName(getBlockStateClass()), ClassFindingUtils.createBiObjectArray(
-						getBlockPosClass()
-				));
-		} catch (Throwable err) {
-			Logger.logErrFull(err);
-		}
-		
-		try {
-			try {
-				Logger.logLine(world$getBlockState.toString());
-			} catch (Throwable ignored) {
-			}
-			
-			try {
-				Logger.logLine(world$setBlockState.toString());
-			} catch (Throwable ignored) {
-			}
-			
-			if (isMappedVersion) {
-				//Gets the onUpdated method for block class
-				BiObject<String, Method> method = Mojmap.getMethod(
-						Class.forName(blockClass), Mojmap.getClassMojmap(blockClass),
-						"neighborChanged",
-						"(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos;Z)V",
-						Mojmap.toStringBiObjectArray(
-								"Lnet/minecraft/world/level/block/state/BlockState;", blockStateClass + ",",
-								"Lnet/minecraft/world/level/Level;", worldClass + ",",
-								"Lnet/minecraft/core/BlockPos;", blockPosClass + ",",
-								"Lnet/minecraft/world/level/block/Block;", blockClass + ",",
-								"Z)V", "boolean,"
-						)
-				);
-				block$onNeighborChanged = method.getObject2();
-				neighborChanged = method.getObject1();
-				Logger.logLine(block$onNeighborChanged.toString());
-				Logger.logLine(neighborChanged);
-			}
-			
-			final String finalRemovedMethod = removedMethod.split("/")[0];
-			final String finalArgsRemoved = removedMethod.split("/")[1];
-			final String finalPlacedMethod = placedMethod;
-			final String finalArgsPlaced = argsPlaced;
-			final String finalUpdatedMethod = neighborChanged.split("/")[0];
-			final String finalArgsUpdate = neighborChanged.split("/")[1];
-			Fabricator.compileAndLoad("block_class.java", (code) -> code
-					.replace("%block_class%", ScanningUtils.toClassName(blockClass))
-					.replace("%callInfoGen_onRemoved%", "com.tfc.API.flamemc.abstraction.CallInfo info = null")
-					.replace("%properties_class%", blockPropertiesClass.getName())
-					.replace("%argsRemoved%", finalArgsRemoved)
-					.replace("%removedMethod%", finalRemovedMethod)
-					.replace("%placedMethod%", finalPlacedMethod)
-					.replace("%argsPlaced%", finalArgsPlaced)
-					.replace("%updatedMethod%", finalUpdatedMethod)
-					.replace("%argsUpdated%", finalArgsUpdate)
-			);
-			Field f0 = Fields.forName(Class.forName("Block"), "argsRemoved");
-			Field f1 = Fields.forName(Class.forName("Block"), "argsPlaced");
-			Field f2 = Fields.forName(Class.forName("Block"), "argsUpdated");
-			assert f0 != null;
-			assert f1 != null;
-			assert f2 != null;
-			f0.setAccessible(true);
-			f1.setAccessible(true);
-			f2.setAccessible(true);
-			f0.set(null, new java.lang.String[]{"world", "pos", "state"});
-			f1.set(null, new java.lang.String[]{"world", "pos", "state", "placer", "itemStack"});
-			f2.set(null, new java.lang.String[]{"sate", "world", "pos", "updater_block", "updater_pos", "moved"});
-			
-			Fabricator.compileAndLoad("world_class.java", (code) -> code
-					.replace("%get_block_state%", world$getBlockState.getName())
-					.replace("%set_block_state%", world$setBlockState.getName())
-					.replace("%block_state_class%", ScanningUtils.toClassName(blockStateClass))
-					.replace("%world_class%", ScanningUtils.toClassName(worldClass))
-					.replace("%block_pos_class%", ScanningUtils.toClassName(blockPosClass))
-			);
-
-//			Logger.logLine("Phantom Class");
-//			Logger.logLine(ClassGenerator.getEntityClass("minecraft:phantom"));
-//			Logger.logLine("Zombie Class");
-//			Logger.logLine(ClassGenerator.getEntityClass("minecraft:zombie"));
-//
-//			ClassGenerator.generate("com.tfc.TestEntity", "minecraft:sheep", "" +
-//					"public void tick(CallInfo args) {" +
-//					"	super.tick();" +
-//					"}" +
-//					"");
-		} catch (Throwable err) {
-			Logger.logErrFull(err);
-		}
-		
-		if (isMappedVersion) {
-			try {
-				blocks$register =
-						Mojmap.getMethod(
-								Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()),
-								Mojmap.getClassMojmap("net/minecraft/class_2246"),
-								"register", "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/Block;",
-								Mojmap.toStringBiObjectArray(
-										"Ljava/lang/String;", "String",
-										"net/minecraft/world/level/block/Block", blockClass
-								)
-						).getObject2();
-			} catch (Throwable err) {
-				try {
-					blocks$register = Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()).getDeclaredMethod(
-							"a", String.class, Class.forName(blockClass)
-					);
-				} catch (Throwable err2) {
-					try {
-						try {
-							for (Method m : Class.forName(Mojmap.getClassMojmap("net/minecraft/class_2246").getSecondaryName()).getDeclaredMethods())
-								if (m.getName().equals("a")) blocks$register = m;
-						} catch (Throwable ignored) {
-						}
-						if (blocks$register == null) {
-							blocks$register = Class.forName("bpi").getDeclaredMethod("a", String.class, Class.forName(blockClass));
-							if (blocks$register == null) {
-								throw new RuntimeException("a");
-							}
-						}
-					} catch (Throwable err3) {
-						Logger.logErrFull(err);
-						Logger.logErrFull(err2);
-						Logger.logErrFull(err3);
-					}
-				}
-			}
-		}
-		
-		FlameAPI.instance.bus.post(RegistryStep.class, new RegistryStep());
-	}
-	
-	@Override
-	public void postinit(String[] args) {
-		Logger.log("PostInit Registries:" + registries.size() + "\n");
-		Iterator<String> names = registries.keySet().iterator();
-		Iterator<String> classes = registries.values().iterator();
-		for (int i = 0; i < registries.size(); i++) {
-			try {
-				String name = names.next();
-				String clazz = ScanningUtils.toClassName(classes.next());
-				Logger.log("Registry class: " + name + ": " + clazz + "\n");
-				registryClassNames.put(name, clazz);
-			} catch (Throwable err) {
-				Logger.logErrFull(err);
-			}
-		}
-	}
-	
-	private void downloadBytecodeUtils() {
-		addDep(
-				"https://jitpack.io/",
-				"com.github.GiantLuigi4",
-				"Bytecode-Utils",
-				bytecodeUtilsVersion
-		);
-	}
-
+	//com/tfc/API/flamemc/EmptyClass
 }

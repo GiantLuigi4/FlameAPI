@@ -41,7 +41,7 @@ public class Registry {
 					Object returnVal = m.invoke(null, resourceLocation.toString(), toRegister);
 					if (returnVal != null) {
 						registryHash.add(type, resourceLocation, returnVal);
-						return new RegistryObject<>(returnVal);
+						return new RegistryObject<>(returnVal, resourceLocation);
 					} else
 						throw new RuntimeException(new NullPointerException("Cannot register a null object... idk how you bypassed the first null check though."));
 				} catch (Throwable err) {
@@ -64,7 +64,7 @@ public class Registry {
 							FlameConfig.field.append("method: " + method.getName() + "\n");
 							FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
 							method.setAccessible(true);
-							returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister)));
+							returnVal.set(new RegistryObject<>(method.invoke(null, resourceLocation.toString(), toRegister), resourceLocation));
 							if (returnVal.get() != null) {
 								registryHash.add(type, resourceLocation, returnVal.get());
 								return returnVal.get();
@@ -170,7 +170,7 @@ public class Registry {
 									FlameConfig.field.append("method: " + method.getName() + "\n");
 									FlameConfig.field.append("args: " + Arrays.toString(method.getParameterTypes()) + "\n");
 									method.setAccessible(true);
-									returnVal = new RegistryObject<>(method.invoke(null, block));
+									returnVal = new RegistryObject<>(method.invoke(null, block), location);
 									registryHash.add(RegistryType.ITEM, location, returnVal);
 								} catch (Throwable err) {
 									Logger.logErrFull(err);
@@ -183,7 +183,7 @@ public class Registry {
 				FlameConfig.logError(err);
 			}
 		}
-		return new RegistryObject<>(returnVal);
+		return new RegistryObject<>(returnVal, location);
 	}
 	
 	//If you want to use this with vanilla methods, you need to call ".unwrap()" on the ResourceLocation object this creates.
@@ -193,9 +193,15 @@ public class Registry {
 	
 	public static class RegistryObject<A> {
 		private final A object;
+		private final ResourceLocation name;
 		
-		protected RegistryObject(A object) {
+		protected RegistryObject(A object, ResourceLocation name) {
 			this.object = object;
+			this.name = name;
+		}
+		
+		public ResourceLocation getName() {
+			return name;
 		}
 		
 		@Override
