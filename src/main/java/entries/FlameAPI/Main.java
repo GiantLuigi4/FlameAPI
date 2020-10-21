@@ -359,26 +359,24 @@ public class Main implements IFlameAPIMod {
 	 * note to self: com/tfc/API/flamemc/EmptyClass
 	 */
 	private static final String registerInsnList = "" +
+			"    GETSTATIC com/tfc/API/flamemc/EmptyClassMK2.registryObjects : Ljava/util/ArrayList;\n" +
 			"    INVOKEVIRTUAL java/util/ArrayList.iterator ()Ljava/util/Iterator;\n" +
-			"    astore 0\n" +
-			"   l0\n" +
-			"    aload 0\n" +
+			"    ASTORE 0\n" +
 			"    INVOKEINTERFACE java/util/Iterator.hasNext ()Z (itf)\n" +
-			"    ifeq l1\n" +
-			"    aload 0\n" +
+			"    IFEQ L3\n" +
+			"    ALOAD 0\n" +
 			"    INVOKEINTERFACE java/util/Iterator.next ()Ljava/lang/Object; (itf)\n" +
-			"    checkcast 'com/tfc/API/flamemc/Registry$RegistryObject'\n" +
-			"    astore 1\n" +
-			"    aload 1\n" +
-			"    INVOKEVIRTUAL com/tfc/API/flamemc/Registry$RegistryObject.getName ()Lcom/tfc/API/flamemc/Registry$ResourceLocation;\n" +
+			"    CHECKCAST com/tfc/API/flamemc/Registry$RegistryObject\n" +
+			"    ASTORE 1\n" +
+			"    ALOAD 1\n" +
+			"    INVOKEVIRTUAL com/tfc/API/flamemc/Registry$RegistryObject.toString ()Ljava/lang/String;\n" +
 			"    INVOKEVIRTUAL java/lang/String.toString ()Ljava/lang/String;\n" +
-			"    aload 1\n" +
+			"    ALOAD 1\n" +
 			"    INVOKEVIRTUAL com/tfc/API/flamemc/Registry$RegistryObject.get ()Ljava/lang/Object;\n" +
-			"    checkcast '%register_class%'\n" +
-			"    INVOKESTATIC %registry%.%method% (Ljava/lang/String;L%register_class%;)L%register_class%;\n" +
-			"    pop\n" +
-			"    _goto l0\n" +
-			"   l1\n";
+			"    CHECKCAST java/lang/String\n" +
+			"    INVOKESTATIC com/tfc/API/flamemc/EmptyClass.a (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;\n" +
+			"    POP" +
+			"    GOTO L2\n";
 	
 	@Override
 	public void preinit(String[] args) {
