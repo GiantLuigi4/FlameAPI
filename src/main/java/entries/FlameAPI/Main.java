@@ -355,6 +355,9 @@ public class Main implements IFlameAPIMod {
 		}
 	}
 	
+	/**
+	 * note to self: com/tfc/API/flamemc/EmptyClass
+	 */
 	private static final String registerInsnList = "" +
 			"    INVOKEVIRTUAL java/util/ArrayList.iterator ()Ljava/util/Iterator;\n" +
 			"    astore 0\n" +
@@ -1245,5 +1248,4 @@ public class Main implements IFlameAPIMod {
 //			}
 		}
 	}
-	//com/tfc/API/flamemc/EmptyClass
 }
