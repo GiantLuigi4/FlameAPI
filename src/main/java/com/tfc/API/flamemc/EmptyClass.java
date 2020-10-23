@@ -6,7 +6,7 @@ public class EmptyClass {
 	static {
 		test = "hello";
 		for (Registry.RegistryObject object : EmptyClassMK2.registryObjects) {
-			a(object.toString().toString(), (String) object.get());
+			a(object.getName().toString(), (String) object.get());
 		}
 	}
 

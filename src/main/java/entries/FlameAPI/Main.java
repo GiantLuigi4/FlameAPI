@@ -1,5 +1,6 @@
 package entries.FlameAPI;
 
+import com.github.lorenzopapi.asmutils.ConstructorUtils;
 import com.tfc.API.flame.FlameAPI;
 import com.tfc.API.flame.utils.logging.Logger;
 import com.tfc.API.flame.utils.reflection.Fields;
@@ -31,10 +32,10 @@ import com.tfc.utils.Fabricator;
 import com.tfc.utils.ScanningUtils;
 import com.tfc.utils.flamemc.Intermediary;
 import com.tfc.utils.flamemc.Mojmap;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.*;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -358,26 +359,44 @@ public class Main implements IFlameAPIMod {
 	/**
 	 * note to self: com/tfc/API/flamemc/EmptyClass
 	 */
-	private static final String registerInsnList = "" +
-			"    GETSTATIC com/tfc/API/flamemc/EmptyClassMK2.registryObjects : Ljava/util/ArrayList;\n" +
-			"    INVOKEVIRTUAL java/util/ArrayList.iterator ()Ljava/util/Iterator;\n" +
-			"    ASTORE 0\n" +
-			"    INVOKEINTERFACE java/util/Iterator.hasNext ()Z (itf)\n" +
-			"    IFEQ L3\n" +
-			"    ALOAD 0\n" +
-			"    INVOKEINTERFACE java/util/Iterator.next ()Ljava/lang/Object; (itf)\n" +
-			"    CHECKCAST com/tfc/API/flamemc/Registry$RegistryObject\n" +
-			"    ASTORE 1\n" +
-			"    ALOAD 1\n" +
-			"    INVOKEVIRTUAL com/tfc/API/flamemc/Registry$RegistryObject.toString ()Ljava/lang/String;\n" +
-			"    INVOKEVIRTUAL java/lang/String.toString ()Ljava/lang/String;\n" +
-			"    ALOAD 1\n" +
-			"    INVOKEVIRTUAL com/tfc/API/flamemc/Registry$RegistryObject.get ()Ljava/lang/Object;\n" +
-			"    CHECKCAST java/lang/String\n" +
-			"    INVOKESTATIC com/tfc/API/flamemc/EmptyClass.a (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;\n" +
-			"    POP" +
-			"    GOTO L2\n";
-	
+
+	private static InsnList staticInitRegisterInjection(String registerClass, String methodToRegister) {
+		InsnList list = new InsnList();
+		list.add(new FieldInsnNode(Opcodes.GETSTATIC, "com/tfc/API/flamemc/EmptyClassMK2", "registryObjects", "Ljava/util/ArrayList;"));
+		list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/util/ArrayList", "iterator", "()Ljava/util/Iterator;"));
+		list.add(new VarInsnNode(Opcodes.ASTORE, 0));
+		LabelNode l2 = new LabelNode();
+		list.add(new FrameNode(Opcodes.F_FULL, 1, new Object[]{Iterator.class}, 0, new Object[0]));
+		list.add(new VarInsnNode(Opcodes.ALOAD, 0));
+		list.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z"));
+		addIfConditionWithoutElse(list, Opcodes.IFEQ, () -> {
+			list.add(new FrameNode(Opcodes.F_FULL, 0, new Object[0], 0, new Object[0]));
+			list.add(new InsnNode(Opcodes.RETURN));
+		});
+		list.add(new VarInsnNode(Opcodes.ALOAD, 0));
+		list.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;"));
+		list.add(new TypeInsnNode(Opcodes.CHECKCAST, "com/tfc/API/flamemc/Registry$RegistryObject"));
+		list.add(new VarInsnNode(Opcodes.ASTORE, 1));
+		list.add(l2);
+		list.add(new VarInsnNode(Opcodes.ALOAD, 1));
+		list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "com/tfc/API/flamemc/Registry$RegistryObject", "getName", "()Lcom/tfc/API/flamemc/Registry$ResourceLocation;"));
+		list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/String", "toString", "()Ljava/lang/String;"));
+		list.add(new VarInsnNode(Opcodes.ALOAD, 1));
+		list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "com/tfc/API/flamemc/Registry$RegistryObject", "get", "()Ljava/lang/Object;"));
+		list.add(new TypeInsnNode(Opcodes.CHECKCAST, registerClass));
+		list.add(new MethodInsnNode(Opcodes.INVOKESTATIC, registerClass, methodToRegister, "(Ljava/lang/String;L%register_class%;)L" + registerClass + ";"));
+		list.add(new InsnNode(Opcodes.POP));
+		list.add(new JumpInsnNode(Opcodes.GOTO, l2));
+		return list;
+	}
+
+	private static void addIfConditionWithoutElse(InsnList list, int opcode, Runnable ifTrue) {
+		LabelNode then = new LabelNode();
+		list.add(new JumpInsnNode(opcode, then));
+		ifTrue.run();
+		list.add(then);
+	}
+
 	@Override
 	public void preinit(String[] args) {
 	}
@@ -832,17 +851,6 @@ public class Main implements IFlameAPIMod {
 		Logger.log(access.type.name() + "\n");
 		Logger.log(access.type.level + "\n");
 
-//		try {
-//			Class.forName("mixins.FlameAPI.ClientBrandRetriever");
-//		} catch (Throwable ignored) {}
-
-//		try {
-//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.minecraft.client.ClientBrandRetriever");
-//			FlameLauncher.addClassReplacement("replacements.FlameAPI.net.client.ClientBrandRetriever");
-//		} catch (Throwable err) {
-//			Logger.logErrFull();(err);
-//		}
-		
 		try {
 			Logger.log("PreInit Registries:" + registries.size() + "\n");
 			if (isMappedVersion) {
@@ -854,8 +862,9 @@ public class Main implements IFlameAPIMod {
 				registries.put("minecraft:biome", Mojmap.getClassObsf("net/minecraft/world/level/biome/Biomes").getSecondaryName());
 				
 				mainRegistry = Mojmap.getClassObsf("net/minecraft/core/Registry").getSecondaryName();
-				
 				itemClass = Mojmap.getClassObsf("net/minecraft/world/item/Item").getSecondaryName();
+				ConstructorUtils itemClassChanger = new ConstructorUtils(getClassBytes(itemClass));
+				itemClassChanger.addInstructionsToStartOrEnd(staticInitRegisterInjection(itemClass, ""), "()V", true, true);
 				blockItemClass = Mojmap.getClassObsf("net/minecraft/world/item/BlockItem").getSecondaryName();
 				blockClass = Mojmap.getClassObsf("net/minecraft/world/level/block/Block").getSecondaryName();
 				worldClass = Mojmap.getClassObsf("net/minecraft/world/level/Level").getSecondaryName();
@@ -1244,6 +1253,23 @@ public class Main implements IFlameAPIMod {
 //				Thread.sleep(5000);
 //			} catch (Throwable ignored) {
 //			}
+		}
+	}
+
+	private static byte[] getClassBytes(String className) throws IOException {
+		InputStream inputStream = ClassLoader.getSystemResourceAsStream(className.replace('.', '/') + ".class");
+		if (inputStream == null)
+			throw new IOException("Class not found");
+		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+			byte[] data = new byte[4096];
+			int bytesRead;
+			while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
+				outputStream.write(data, 0, bytesRead);
+			}
+			outputStream.flush();
+			return outputStream.toByteArray();
+		} finally {
+			inputStream.close();
 		}
 	}
 }
