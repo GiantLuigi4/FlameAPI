@@ -360,7 +360,7 @@ public class Main implements IFlameAPIMod {
 	 * note to self: com/tfc/API/flamemc/EmptyClass
 	 */
 
-	private static InsnList staticInitRegisterInjection(String registerClass, String methodToRegister) {
+	private static InsnList staticInitRegisterInjection(String registry, String methodThatRegisterThingsInMCClass, String objectToRegisterClass) {
 		InsnList list = new InsnList();
 		list.add(new FieldInsnNode(Opcodes.GETSTATIC, "com/tfc/API/flamemc/EmptyClassMK2", "registryObjects", "Ljava/util/ArrayList;"));
 		list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/util/ArrayList", "iterator", "()Ljava/util/Iterator;"));
@@ -383,8 +383,8 @@ public class Main implements IFlameAPIMod {
 		list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/String", "toString", "()Ljava/lang/String;"));
 		list.add(new VarInsnNode(Opcodes.ALOAD, 1));
 		list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "com/tfc/API/flamemc/Registry$RegistryObject", "get", "()Ljava/lang/Object;"));
-		list.add(new TypeInsnNode(Opcodes.CHECKCAST, registerClass));
-		list.add(new MethodInsnNode(Opcodes.INVOKESTATIC, registerClass, methodToRegister, "(Ljava/lang/String;L%register_class%;)L" + registerClass + ";"));
+		list.add(new TypeInsnNode(Opcodes.CHECKCAST, objectToRegisterClass));
+		list.add(new MethodInsnNode(Opcodes.INVOKESTATIC, registry, methodThatRegisterThingsInMCClass, "(Ljava/lang/String;L" + registry + ";)L" + registry + ";"));
 		list.add(new InsnNode(Opcodes.POP));
 		list.add(new JumpInsnNode(Opcodes.GOTO, l2));
 		return list;
@@ -863,8 +863,10 @@ public class Main implements IFlameAPIMod {
 				
 				mainRegistry = Mojmap.getClassObsf("net/minecraft/core/Registry").getSecondaryName();
 				itemClass = Mojmap.getClassObsf("net/minecraft/world/item/Item").getSecondaryName();
-				ConstructorUtils itemClassChanger = new ConstructorUtils(getClassBytes(itemClass));
-				itemClassChanger.addInstructionsToStartOrEnd(staticInitRegisterInjection(itemClass, ""), "()V", true, true);
+				/*
+					ConstructorUtils itemClassChanger = new ConstructorUtils(getClassBytes(itemClass));
+					itemClassChanger.addInstructionsToStartOrEnd(staticInitRegisterInjection(itemClass, "", ""), "()V", true, true);
+				*/
 				blockItemClass = Mojmap.getClassObsf("net/minecraft/world/item/BlockItem").getSecondaryName();
 				blockClass = Mojmap.getClassObsf("net/minecraft/world/level/block/Block").getSecondaryName();
 				worldClass = Mojmap.getClassObsf("net/minecraft/world/level/Level").getSecondaryName();
